@@ -8,6 +8,9 @@ proxbot is a local-first macOS application for building loss-aware, inspectable 
 
 - Tauri 2 / Rust application core and Svelte 5 / TypeScript interface.
 - Frida USB preflight against a paired, cable-connected iPhone.
+- Paired-device inventory with trust, product, iOS, and build metadata.
+- Real iPhone `pcapd` packet capture to PCAPNG, including compatibility with the newer capabilities handshake.
+- Raw-preserving iPhone syslog capture to append-only JSONL.
 - Single-active-capture guard and bounded command inputs.
 - Python provider process supervised by Rust.
 - Four-byte big-endian, 16 MiB-bounded MessagePack IPC over a private Unix socket.
@@ -57,6 +60,15 @@ In the application:
 3. Select **Run verified demo** to create a 30-event evidence session.
 4. Filter or select timeline rows and inspect the exact raw provider payload.
 5. Read the bottom health strip for persisted and dropped counters and the absolute session path.
+
+The standalone provider also exposes bounded hardware capture commands used by the next coordinator milestone:
+
+```bash
+PROVIDER="src-tauri/binaries/proxbot-ios-provider-$(rustc -vV | sed -n 's/^host: //p')"
+"$PROVIDER" device-preflight
+"$PROVIDER" pcap-capture --out /tmp/proxbot.pcapng --count 50
+"$PROVIDER" log-capture --out /tmp/proxbot-syslog.jsonl --count 50
+```
 
 ## Build the macOS application
 
