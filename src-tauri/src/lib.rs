@@ -1,3 +1,4 @@
+pub mod capture;
 pub mod domain;
 pub mod provider;
 pub mod store;

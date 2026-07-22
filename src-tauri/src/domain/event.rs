@@ -31,6 +31,7 @@ pub struct ProviderEvent {
     pub schema_version: u16,
     pub provider_id: String,
     pub provider_version: String,
+    #[serde(with = "uuid_string")]
     pub session_id: Uuid,
     pub sequence: u64,
     pub source_time_ns: i64,
@@ -44,4 +45,24 @@ pub struct ProviderEvent {
     pub payload: Value,
     pub raw_ref: Option<RawArtifactRef>,
     pub parse_status: ParseStatus,
+}
+
+mod uuid_string {
+    use serde::{Deserialize, Deserializer, Serializer};
+    use uuid::Uuid;
+
+    pub fn serialize<S>(value: &Uuid, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&value.to_string())
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Uuid, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = String::deserialize(deserializer)?;
+        Uuid::parse_str(&value).map_err(serde::de::Error::custom)
+    }
 }
