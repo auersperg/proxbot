@@ -11,7 +11,7 @@ use crate::{
     capture::run_fake_capture_with_runtime,
     domain::{EvidenceClass, ParseStatus, ProviderEvent, RawArtifactRef},
     provider::ProviderRuntime,
-    store::EventIndex,
+    store::{EndpointFilter, EndpointKind, EndpointSummary, EventIndex, ExchangeRow, RawView},
 };
 
 #[derive(Debug, Serialize)]
@@ -93,6 +93,107 @@ pub struct EventPageDto {
     pub total: u64,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EndpointSummaryDto {
+    pub kind: EndpointKind,
+    pub value: String,
+    pub count: u64,
+}
+
+impl From<EndpointSummary> for EndpointSummaryDto {
+    fn from(value: EndpointSummary) -> Self {
+        Self {
+            kind: value.kind,
+            value: value.value,
+            count: value.count,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RawViewDto {
+    pub content: String,
+    pub media_type: String,
+    pub reconstructed: bool,
+    pub truncated: bool,
+    pub masked: bool,
+    pub artifact: Option<RawArtifactRefDto>,
+}
+
+impl From<RawView> for RawViewDto {
+    fn from(value: RawView) -> Self {
+        Self {
+            content: value.content,
+            media_type: value.media_type,
+            reconstructed: value.reconstructed,
+            truncated: value.truncated,
+            masked: value.masked,
+            artifact: value.artifact.map(Into::into),
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExchangeRowDto {
+    pub request_id: String,
+    pub request_sequence: Option<u64>,
+    pub response_sequence: Option<u64>,
+    pub started_ns: String,
+    pub method: Option<String>,
+    pub scheme: Option<String>,
+    pub host: Option<String>,
+    pub ip: Option<String>,
+    pub path: Option<String>,
+    pub status: Option<u16>,
+    pub protocol: Option<String>,
+    pub process_name: Option<String>,
+    pub duration_ms: Option<u64>,
+    pub request_bytes: Option<u64>,
+    pub response_bytes: Option<u64>,
+    pub tls: Option<String>,
+    pub evidence: EvidenceClass,
+    pub warning: Option<String>,
+    pub request_raw: RawViewDto,
+    pub response_raw: Option<RawViewDto>,
+}
+
+impl From<ExchangeRow> for ExchangeRowDto {
+    fn from(value: ExchangeRow) -> Self {
+        Self {
+            request_id: value.request_id,
+            request_sequence: value.request_sequence,
+            response_sequence: value.response_sequence,
+            started_ns: value.started_ns.to_string(),
+            method: value.method,
+            scheme: value.scheme,
+            host: value.host,
+            ip: value.ip,
+            path: value.path,
+            status: value.status,
+            protocol: value.protocol,
+            process_name: value.process_name,
+            duration_ms: value.duration_ms,
+            request_bytes: value.request_bytes,
+            response_bytes: value.response_bytes,
+            tls: value.tls,
+            evidence: value.evidence,
+            warning: value.warning,
+            request_raw: value.request_raw.into(),
+            response_raw: value.response_raw.map(Into::into),
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExchangePageDto {
+    pub exchanges: Vec<ExchangeRowDto>,
+    pub total: u64,
+}
+
 pub fn validate_capture_count(count: u64) -> anyhow::Result<u64> {
     anyhow::ensure!(
         (1..=10_000).contains(&count),
@@ -104,6 +205,36 @@ pub fn validate_capture_count(count: u64) -> anyhow::Result<u64> {
 pub fn validate_page_request(limit: u64) -> anyhow::Result<u64> {
     anyhow::ensure!(limit > 0, "page limit must be positive");
     Ok(limit.min(500))
+}
+
+pub fn validate_endpoint_limit(limit: u64) -> anyhow::Result<u64> {
+    anyhow::ensure!(limit > 0, "endpoint limit must be positive");
+    Ok(limit.min(2_000))
+}
+
+fn parse_endpoint(
+    kind: Option<String>,
+    value: Option<String>,
+) -> Result<Option<EndpointFilter>, String> {
+    match (kind, value) {
+        (None, None) => Ok(None),
+        (Some(kind), Some(value)) if !value.trim().is_empty() => {
+            let kind = match kind.as_str() {
+                "domain" => EndpointKind::Domain,
+                "ip" => EndpointKind::Ip,
+                _ => return Err("endpoint kind must be domain or ip".into()),
+            };
+            Ok(Some(EndpointFilter { kind, value }))
+        }
+        _ => Err("endpoint kind and value must be supplied together".into()),
+    }
+}
+
+fn session_database(state: &AppState, session_id: Uuid) -> std::path::PathBuf {
+    state
+        .sessions_root
+        .join(session_id.to_string())
+        .join("database/session.sqlite")
 }
 
 pub async fn run_frida_preflight(provider_project: &Path) -> anyhow::Result<Value> {
@@ -168,6 +299,45 @@ pub async fn page_events(
         .map_err(|error| error.to_string())?;
     Ok(EventPageDto {
         events: page.events.into_iter().map(Into::into).collect(),
+        total: page.total,
+    })
+}
+
+#[tauri::command]
+pub async fn list_endpoints(
+    session_id: String,
+    query: String,
+    limit: u64,
+    state: State<'_, AppState>,
+) -> Result<Vec<EndpointSummaryDto>, String> {
+    let session_id = Uuid::parse_str(&session_id).map_err(|error| error.to_string())?;
+    let limit = validate_endpoint_limit(limit).map_err(|error| error.to_string())?;
+    EventIndex::open(&session_database(&state, session_id))
+        .and_then(|index| index.list_endpoints(session_id, &query, limit))
+        .map(|items| items.into_iter().map(Into::into).collect())
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub async fn page_exchanges(
+    session_id: String,
+    query: String,
+    endpoint_kind: Option<String>,
+    endpoint_value: Option<String>,
+    offset: u64,
+    limit: u64,
+    state: State<'_, AppState>,
+) -> Result<ExchangePageDto, String> {
+    let session_id = Uuid::parse_str(&session_id).map_err(|error| error.to_string())?;
+    let limit = validate_page_request(limit).map_err(|error| error.to_string())?;
+    let endpoint = parse_endpoint(endpoint_kind, endpoint_value)?;
+    let page = EventIndex::open(&session_database(&state, session_id))
+        .and_then(|index| {
+            index.page_exchanges(session_id, &query, endpoint.as_ref(), offset, limit)
+        })
+        .map_err(|error| error.to_string())?;
+    Ok(ExchangePageDto {
+        exchanges: page.exchanges.into_iter().map(Into::into).collect(),
         total: page.total,
     })
 }

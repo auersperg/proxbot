@@ -27,4 +27,36 @@ describe("proxbot command client", () => {
       limit: 200,
     });
   });
+
+  it("requests endpoint summaries with an explicit bound", async () => {
+    const invoke = vi.fn().mockResolvedValue([]);
+    const api = createApi(invoke);
+
+    await api.listEndpoints("session", "privy", 2_000);
+    expect(invoke).toHaveBeenCalledWith("list_endpoints", {
+      sessionId: "session",
+      query: "privy",
+      limit: 2_000,
+    });
+  });
+
+  it("requests a filtered exchange page without losing endpoint identity", async () => {
+    const invoke = vi.fn().mockResolvedValue({ exchanges: [], total: 0 });
+    const api = createApi(invoke);
+
+    await api.pageExchanges("session", {
+      query: "signTransaction",
+      endpoint: { kind: "domain", value: "auth.privy.io" },
+      offset: 200,
+      limit: 200,
+    });
+    expect(invoke).toHaveBeenCalledWith("page_exchanges", {
+      sessionId: "session",
+      query: "signTransaction",
+      endpointKind: "domain",
+      endpointValue: "auth.privy.io",
+      offset: 200,
+      limit: 200,
+    });
+  });
 });

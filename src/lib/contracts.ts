@@ -45,3 +45,60 @@ export interface FridaPreflight {
   type?: string;
   error?: string;
 }
+
+export type EndpointKind = "domain" | "ip";
+
+export interface EndpointSummary {
+  kind: EndpointKind;
+  value: string;
+  count: number;
+}
+
+export interface RawView {
+  content: string;
+  mediaType: string;
+  reconstructed: boolean;
+  truncated: boolean;
+  masked: boolean;
+  artifact: RawArtifactRef | null;
+}
+
+export interface ExchangeRow {
+  requestId: string;
+  requestSequence: number | null;
+  responseSequence: number | null;
+  startedNs: string;
+  method: string | null;
+  scheme: string | null;
+  host: string | null;
+  ip: string | null;
+  path: string | null;
+  status: number | null;
+  protocol: string | null;
+  processName: string | null;
+  durationMs: number | null;
+  requestBytes: number | null;
+  responseBytes: number | null;
+  tls: string | null;
+  evidence: EvidenceClass;
+  warning: string | null;
+  requestRaw: RawView;
+  responseRaw: RawView | null;
+}
+
+export interface ExchangePage {
+  exchanges: ExchangeRow[];
+  total: number;
+}
+
+export interface EndpointFilter {
+  kind: EndpointKind;
+  value: string;
+}
+
+export interface ExchangeQuery {
+  query: string;
+  endpoint: EndpointFilter | null;
+  offset: number;
+  limit: number;
+}

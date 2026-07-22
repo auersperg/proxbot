@@ -2,9 +2,11 @@ use std::path::Path;
 
 use proxbot_lib::{
     commands::{
-        ProviderEventDto, run_frida_preflight, validate_capture_count, validate_page_request,
+        ExchangeRowDto, ProviderEventDto, run_frida_preflight, validate_capture_count,
+        validate_endpoint_limit, validate_page_request,
     },
     domain::{EvidenceClass, ParseStatus, ProviderEvent},
+    store::{ExchangeRow, RawView},
 };
 use serde_json::json;
 use uuid::Uuid;
@@ -54,4 +56,43 @@ fn command_dto_preserves_nanoseconds_as_decimal_strings() {
     assert_eq!(value["sourceTimeNs"], "1800000000000000001");
     assert_eq!(value["hostTimeNs"], "1800000000000000002");
     assert_eq!(value["monotonicTimeNs"], "1800000000000000003");
+}
+
+#[test]
+fn exchange_command_contract_is_bounded_and_preserves_absent_response() {
+    assert_eq!(validate_endpoint_limit(9_000).unwrap(), 2_000);
+    assert!(validate_endpoint_limit(0).is_err());
+    let dto = ExchangeRowDto::from(ExchangeRow {
+        request_id: "request-1".into(),
+        request_sequence: Some(1),
+        response_sequence: None,
+        started_ns: 1_800_000_000_000_000_001,
+        method: Some("POST".into()),
+        scheme: Some("https".into()),
+        host: Some("auth.privy.io".into()),
+        ip: Some("192.0.2.10".into()),
+        path: Some("/rpc".into()),
+        status: None,
+        protocol: Some("HTTP/2".into()),
+        process_name: Some("FixtureApp".into()),
+        duration_ms: None,
+        request_bytes: Some(42),
+        response_bytes: None,
+        tls: Some("decrypted".into()),
+        evidence: EvidenceClass::Observed,
+        warning: Some("response_missing".into()),
+        request_raw: RawView {
+            content: "POST /rpc HTTP/2\r\n\r\n".into(),
+            media_type: "application/http".into(),
+            reconstructed: true,
+            truncated: false,
+            masked: false,
+            artifact: None,
+        },
+        response_raw: None,
+    });
+    let value = serde_json::to_value(dto).unwrap();
+    assert_eq!(value["startedNs"], "1800000000000000001");
+    assert!(value["responseRaw"].is_null());
+    assert_eq!(value["requestRaw"]["reconstructed"], true);
 }
