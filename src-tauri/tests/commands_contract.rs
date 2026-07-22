@@ -1,11 +1,13 @@
-use std::path::Path;
+use std::{fs, os::unix::fs::PermissionsExt};
 
 use proxbot_lib::{
     commands::{
-        ExchangeRowDto, run_frida_preflight, validate_capture_count, validate_endpoint_limit,
-        validate_endpoint_value, validate_page_request, validate_query, validate_request_id,
+        ExchangeRowDto, run_frida_preflight_with_runtime, validate_capture_count,
+        validate_endpoint_limit, validate_endpoint_value, validate_page_request, validate_query,
+        validate_request_id,
     },
     domain::EvidenceClass,
+    provider::ProviderRuntime,
     store::{ExchangeRow, RawView},
 };
 
@@ -28,8 +30,16 @@ fn command_bounds_reject_invalid_capture_and_page_sizes() {
 
 #[tokio::test]
 async fn frida_preflight_returns_one_structured_result() {
-    let project = Path::new(env!("CARGO_MANIFEST_DIR")).join("../sidecars/ios-provider");
-    let result = run_frida_preflight(&project).await.unwrap();
+    let root = tempfile::tempdir().unwrap();
+    let provider = root.path().join("provider");
+    fs::write(
+        &provider,
+        "#!/bin/sh\nprintf '%s\\n' '{\"available\":false,\"device\":null}'\n",
+    )
+    .unwrap();
+    fs::set_permissions(&provider, fs::Permissions::from_mode(0o700)).unwrap();
+    let runtime = ProviderRuntime::from_executable(provider).unwrap();
+    let result = run_frida_preflight_with_runtime(&runtime).await.unwrap();
     assert!(
         result
             .get("available")
