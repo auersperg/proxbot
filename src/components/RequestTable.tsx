@@ -50,8 +50,8 @@ export default function RequestTable({ exchanges, total, offset, limit, selected
   return (
     <section className="request-table" aria-label="Captured requests">
       <div className="request-scroll" ref={scroller}>
-        <div className="request-grid table-header" role="row">
-          {columns.map((column) => <span role="columnheader" key={column}>{column}</span>)}
+        <div className="request-grid table-header" aria-hidden="true">
+          {columns.map((column) => <span key={column}>{column}</span>)}
         </div>
         <div className="virtual-space" style={{ height: `${Math.max(virtualizer.getTotalSize(), exchanges.length * 31)}px` }}>
           {renderedItems.map((item) => {
@@ -59,12 +59,29 @@ export default function RequestTable({ exchanges, total, offset, limit, selected
             if (!exchange) return null;
             const warning = warningLabel(exchange.warning);
             const address = exchange.host ?? exchange.ip ?? "Unknown endpoint";
+            const status = responseLabel(exchange.status);
+            const duration = exchange.durationMs === null ? "not reported" : `${exchange.durationMs} ms`;
+            const diagnosticLabel = [
+              `Request ${exchange.requestSequence ?? exchange.responseSequence ?? "not reported"}`,
+              `time ${formatObservedTime(exchange.startedNs)}`,
+              `method ${exchange.method ?? "not reported"}`,
+              `endpoint ${address}`,
+              `path ${exchange.path ?? "not reported"}`,
+              `status ${status === "—" ? "not reported" : status}`,
+              `warning ${warning || "none"}`,
+              `protocol ${exchange.protocol ?? "not reported"}`,
+              `duration ${duration}`,
+              `request size ${formatBytes(exchange.requestBytes)}`,
+              `response size ${formatBytes(exchange.responseBytes)}`,
+              `TLS ${exchange.tls ?? "not reported"}`,
+              `evidence ${exchange.evidence}`,
+            ].join("; ");
             return (
               <button
                 type="button"
                 key={exchange.requestId}
                 className={`request-grid request-row${selectedId === exchange.requestId ? " selected" : ""}`}
-                aria-label={`${exchange.method ?? "Unknown method"} ${address} ${exchange.path ?? ""}`}
+                aria-label={diagnosticLabel}
                 aria-pressed={selectedId === exchange.requestId}
                 data-row-index={item.index}
                 style={{ transform: `translateY(${item.start}px)` }}
@@ -78,9 +95,9 @@ export default function RequestTable({ exchanges, total, offset, limit, selected
                 <span><b className={`method method-${(exchange.method ?? "unknown").toLowerCase()}`}>{exchange.method ?? "—"}</b></span>
                 <span className="endpoint-cell"><strong>{address}</strong><small>{exchange.ip && exchange.host ? exchange.ip : exchange.processName ?? ""}</small></span>
                 <span className="path-cell mono">{exchange.path ?? "—"}</span>
-                <span className="status-stack"><b className={`status status-${statusTone(exchange.status)}`}>{responseLabel(exchange.status)}</b>{warning && <em className="warning-label">{warning}</em>}</span>
+                <span className="status-stack" title={warning ? `${status} · ${warning}` : status}><b className={`status status-${statusTone(exchange.status)}`}>{status}</b>{warning && <em className="warning-label" title={warning}>{warning}</em>}</span>
                 <span className="mono subdued">{exchange.protocol ?? "—"}</span>
-                <span className="mono subdued">{exchange.durationMs === null ? "—" : `${exchange.durationMs} ms`}</span>
+                <span className="mono subdued">{exchange.durationMs === null ? "—" : duration}</span>
                 <span className="mono subdued">{formatBytes(exchange.requestBytes)}</span>
                 <span className="mono subdued">{formatBytes(exchange.responseBytes)}</span>
                 <span className="tls-state"><span>{exchange.tls ?? "—"}</span><em className="evidence-label">{exchange.evidence.toUpperCase()}</em></span>

@@ -6,6 +6,6 @@ import App from "./App";
 describe("proxbot shell", () => {
   it("renders the observability workspace", () => {
     render(<App />);
-    expect(screen.getByRole("application", { name: "proxbot" })).toBeVisible();
+    expect(screen.getByRole("main", { name: "proxbot" })).toBeVisible();
   });
 });

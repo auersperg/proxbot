@@ -24,6 +24,20 @@ async fn fake_capture_persists_and_indexes_every_event() {
 }
 
 #[tokio::test]
+async fn deleted_sqlite_index_is_rebuilt_from_authoritative_jsonl() {
+    let root = tempdir().unwrap();
+    let provider =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../sidecars/ios-provider");
+    let summary = run_fake_capture(root.path(), &provider, 9).await.unwrap();
+    let database = summary.session_dir.join("database/session.sqlite");
+    std::fs::remove_file(&database).unwrap();
+
+    let rebuilt = EventIndex::open(&database).unwrap();
+    assert_eq!(rebuilt.page(summary.session_id, 0, 50).unwrap().total, 9);
+    assert!(database.exists());
+}
+
+#[tokio::test]
 async fn fake_capture_rejects_zero_events_before_creating_a_session() {
     let root = tempdir().unwrap();
     let provider =

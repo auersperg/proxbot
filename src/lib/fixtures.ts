@@ -23,6 +23,7 @@ export function fixtureExchange(overrides: Partial<ExchangeRow> = {}): ExchangeR
     requestRaw: {
       content: 'POST /api/v1/wallets/rpc HTTP/2\r\nHost: auth.privy.io\r\nContent-Type: application/json\r\n\r\n{"method":"signTransaction"}',
       mediaType: "application/http",
+      evidence: "observed",
       reconstructed: true,
       truncated: false,
       masked: false,
@@ -31,6 +32,7 @@ export function fixtureExchange(overrides: Partial<ExchangeRow> = {}): ExchangeR
     responseRaw: {
       content: 'HTTP/2 200 OK\r\nContent-Type: application/json\r\nContent-Length: 46\r\n\r\n{"method":"signTransaction","status":"signed"}',
       mediaType: "application/http",
+      evidence: "observed",
       reconstructed: true,
       truncated: false,
       masked: false,

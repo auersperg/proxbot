@@ -30,9 +30,10 @@ pub struct EndpointSummary {
 pub struct RawView {
     pub content: String,
     pub media_type: String,
-    pub reconstructed: bool,
-    pub truncated: bool,
-    pub masked: bool,
+    pub evidence: EvidenceClass,
+    pub reconstructed: Option<bool>,
+    pub truncated: Option<bool>,
+    pub masked: Option<bool>,
     pub artifact: Option<RawArtifactRef>,
 }
 
@@ -74,12 +75,16 @@ fn unsigned(event: &ProviderEvent, key: &str) -> Option<u64> {
     event.payload.get(key)?.as_u64()
 }
 
-fn flag(event: &ProviderEvent, key: &str) -> bool {
-    event
-        .payload
-        .get(key)
-        .and_then(|value| value.as_bool())
-        .unwrap_or(false)
+fn flag(event: &ProviderEvent, key: &str) -> Option<bool> {
+    event.payload.get(key).and_then(|value| value.as_bool())
+}
+
+fn sqlite_i64(value: u64, field: &str) -> anyhow::Result<i64> {
+    i64::try_from(value).map_err(|_| anyhow::anyhow!("{field} exceeds SQLite INTEGER range"))
+}
+
+fn optional_sqlite_i64(value: Option<u64>, field: &str) -> anyhow::Result<Option<i64>> {
+    value.map(|number| sqlite_i64(number, field)).transpose()
 }
 
 fn evidence_text(evidence: EvidenceClass) -> &'static str {
@@ -100,6 +105,11 @@ pub(super) fn materialize_event(
     let Some(request_id) = text(event, "request_id") else {
         return Ok(());
     };
+    anyhow::ensure!(
+        !request_id.trim().is_empty() && request_id.len() <= 512,
+        "network event request_id must contain 1..=512 bytes"
+    );
+    let sequence = sqlite_i64(event.sequence, "event sequence")?;
     let raw = text(event, "raw");
     let media_type = text(event, "media_type").unwrap_or_else(|| "application/octet-stream".into());
     let artifact = event
@@ -107,24 +117,32 @@ pub(super) fn materialize_event(
         .as_ref()
         .map(serde_json::to_string)
         .transpose()?;
+    let event_evidence = evidence_text(event.evidence);
 
     if event.kind == "network.request" {
         transaction.execute(
             "INSERT INTO exchanges (
                 session_id, request_id, request_sequence, started_ns, method, scheme, host, ip,
-                path, protocol, process_name, request_bytes, tls, evidence, warning,
-                request_raw, request_media_type, request_reconstructed, request_truncated,
-                request_masked, request_artifact_json
+                path, protocol, process_name, request_bytes, tls, evidence, request_evidence,
+                warning, request_raw, request_media_type, request_reconstructed_state,
+                request_truncated_state, request_masked_state, request_artifact_json
              ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14,
-                       'response_missing', ?15, ?16, ?17, ?18, ?19, ?20)
+                       ?14, 'response_missing', ?15, ?16, ?17, ?18, ?19, ?20)
              ON CONFLICT(session_id, request_id) DO UPDATE SET
                 request_sequence=excluded.request_sequence, started_ns=excluded.started_ns,
                 method=excluded.method, scheme=excluded.scheme, host=excluded.host, ip=excluded.ip,
                 path=excluded.path, protocol=excluded.protocol, process_name=excluded.process_name,
-                request_bytes=excluded.request_bytes, tls=excluded.tls, evidence=excluded.evidence,
+                request_bytes=excluded.request_bytes, tls=excluded.tls,
+                request_evidence=excluded.request_evidence,
+                evidence=CASE
+                    WHEN excluded.request_evidence = 'inferred' OR exchanges.response_evidence = 'inferred' THEN 'inferred'
+                    WHEN excluded.request_evidence = 'enriched' OR exchanges.response_evidence = 'enriched' THEN 'enriched'
+                    ELSE 'observed'
+                END,
                 request_raw=excluded.request_raw, request_media_type=excluded.request_media_type,
-                request_reconstructed=excluded.request_reconstructed,
-                request_truncated=excluded.request_truncated, request_masked=excluded.request_masked,
+                request_reconstructed_state=excluded.request_reconstructed_state,
+                request_truncated_state=excluded.request_truncated_state,
+                request_masked_state=excluded.request_masked_state,
                 request_artifact_json=excluded.request_artifact_json,
                 warning=CASE
                     WHEN exchanges.response_sequence IS NULL THEN 'response_missing'
@@ -132,17 +150,33 @@ pub(super) fn materialize_event(
                     ELSE NULL
                 END",
             params![
-                event.session_id.to_string(), request_id, event.sequence as i64, event.host_time_ns,
-                text(event, "method"), text(event, "scheme"), text(event, "host"), text(event, "ip"),
-                text(event, "path"), text(event, "protocol"), event.process_name,
-                unsigned(event, "request_bytes").map(|v| v as i64), text(event, "tls"),
-                evidence_text(event.evidence), raw, media_type, flag(event, "reconstructed"),
-                flag(event, "truncated"), flag(event, "masked"), artifact,
+                event.session_id.to_string(),
+                request_id,
+                sequence,
+                event.host_time_ns,
+                text(event, "method"),
+                text(event, "scheme"),
+                text(event, "host"),
+                text(event, "ip"),
+                text(event, "path"),
+                text(event, "protocol"),
+                event.process_name,
+                optional_sqlite_i64(unsigned(event, "request_bytes"), "request_bytes")?,
+                text(event, "tls"),
+                event_evidence,
+                raw,
+                media_type,
+                flag(event, "reconstructed"),
+                flag(event, "truncated"),
+                flag(event, "masked"),
+                artifact,
             ],
         )?;
     } else {
-        let supplied_status = unsigned(event, "status");
-        let status = supplied_status.and_then(|value| u16::try_from(value).ok());
+        let supplied_status = event.payload.get("status");
+        let status = supplied_status
+            .and_then(|value| value.as_u64())
+            .filter(|value| (100..=599).contains(value));
         let invalid_status = supplied_status.is_some() && status.is_none();
         let missing_request_warning = if invalid_status {
             "request_missing;invalid_status"
@@ -153,27 +187,47 @@ pub(super) fn materialize_event(
         transaction.execute(
             "INSERT INTO exchanges (
                 session_id, request_id, response_sequence, started_ns, status, protocol,
-                process_name, duration_ms, response_bytes, evidence, warning, response_raw,
-                response_media_type, response_reconstructed, response_truncated,
-                response_masked, response_artifact_json, request_raw, request_media_type
-             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12,
+                process_name, duration_ms, response_bytes, evidence, response_evidence, warning,
+                response_raw, response_media_type, response_reconstructed_state,
+                response_truncated_state, response_masked_state, response_artifact_json,
+                request_raw, request_media_type
+             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?10, ?11, ?12,
                        ?13, ?14, ?15, ?16, ?17, NULL, NULL)
              ON CONFLICT(session_id, request_id) DO UPDATE SET
                 response_sequence=excluded.response_sequence, status=excluded.status,
                 protocol=COALESCE(exchanges.protocol, excluded.protocol),
                 duration_ms=excluded.duration_ms, response_bytes=excluded.response_bytes,
+                response_evidence=excluded.response_evidence,
+                evidence=CASE
+                    WHEN exchanges.request_evidence = 'inferred' OR excluded.response_evidence = 'inferred' THEN 'inferred'
+                    WHEN exchanges.request_evidence = 'enriched' OR excluded.response_evidence = 'enriched' THEN 'enriched'
+                    ELSE 'observed'
+                END,
                 response_raw=excluded.response_raw, response_media_type=excluded.response_media_type,
-                response_reconstructed=excluded.response_reconstructed,
-                response_truncated=excluded.response_truncated, response_masked=excluded.response_masked,
+                response_reconstructed_state=excluded.response_reconstructed_state,
+                response_truncated_state=excluded.response_truncated_state,
+                response_masked_state=excluded.response_masked_state,
                 response_artifact_json=excluded.response_artifact_json,
                 warning=CASE WHEN exchanges.request_sequence IS NULL THEN excluded.warning ELSE ?18 END",
             params![
-                event.session_id.to_string(), request_id, event.sequence as i64, event.host_time_ns,
-                status.map(i64::from), text(event, "protocol"),
-                event.process_name, unsigned(event, "duration_ms").map(|v| v as i64),
-                unsigned(event, "response_bytes").map(|v| v as i64), evidence_text(event.evidence),
-                missing_request_warning, raw, media_type, flag(event, "reconstructed"),
-                flag(event, "truncated"), flag(event, "masked"), artifact, paired_warning,
+                event.session_id.to_string(),
+                request_id,
+                sequence,
+                event.host_time_ns,
+                status.map(|value| value as i64),
+                text(event, "protocol"),
+                event.process_name,
+                optional_sqlite_i64(unsigned(event, "duration_ms"), "duration_ms")?,
+                optional_sqlite_i64(unsigned(event, "response_bytes"), "response_bytes")?,
+                event_evidence,
+                missing_request_warning,
+                raw,
+                media_type,
+                flag(event, "reconstructed"),
+                flag(event, "truncated"),
+                flag(event, "masked"),
+                artifact,
+                paired_warning,
             ],
         )?;
     }
@@ -218,51 +272,145 @@ fn artifact(value: Option<String>) -> rusqlite::Result<Option<RawArtifactRef>> {
         .transpose()
 }
 
+fn conversion_error(
+    index: usize,
+    data_type: rusqlite::types::Type,
+    message: String,
+) -> rusqlite::Error {
+    rusqlite::Error::FromSqlConversionFailure(
+        index,
+        data_type,
+        Box::new(std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            message,
+        )),
+    )
+}
+
+fn optional_u64(
+    row: &rusqlite::Row<'_>,
+    index: usize,
+    field: &str,
+) -> rusqlite::Result<Option<u64>> {
+    row.get::<_, Option<i64>>(index)?
+        .map(|value| {
+            u64::try_from(value).map_err(|_| {
+                conversion_error(
+                    index,
+                    rusqlite::types::Type::Integer,
+                    format!("{field} must be a non-negative 64-bit value; found {value}"),
+                )
+            })
+        })
+        .transpose()
+}
+
+fn optional_status(row: &rusqlite::Row<'_>, index: usize) -> rusqlite::Result<Option<u16>> {
+    row.get::<_, Option<i64>>(index)?
+        .map(|value| {
+            if (100..=599).contains(&value) {
+                Ok(value as u16)
+            } else {
+                Err(conversion_error(
+                    index,
+                    rusqlite::types::Type::Integer,
+                    format!("status must be a valid HTTP status (100..=599); found {value}"),
+                ))
+            }
+        })
+        .transpose()
+}
+
+fn optional_flag(
+    row: &rusqlite::Row<'_>,
+    index: usize,
+    field: &str,
+) -> rusqlite::Result<Option<bool>> {
+    match row.get::<_, Option<i64>>(index)? {
+        None => Ok(None),
+        Some(0) => Ok(Some(false)),
+        Some(1) => Ok(Some(true)),
+        Some(value) => Err(conversion_error(
+            index,
+            rusqlite::types::Type::Integer,
+            format!("{field} must be 0, 1, or NULL; found {value}"),
+        )),
+    }
+}
+
+fn required_evidence(
+    value: Option<String>,
+    index: usize,
+    field: &str,
+) -> rusqlite::Result<EvidenceClass> {
+    let value = value.ok_or_else(|| {
+        conversion_error(
+            index,
+            rusqlite::types::Type::Null,
+            format!("{field} is missing for raw evidence"),
+        )
+    })?;
+    evidence(value)
+}
+
 fn exchange_detail_from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<ExchangeRow> {
     let request_content: Option<String> = row.get(18)?;
     let response_content: Option<String> = row.get(19)?;
-    let request_artifact = artifact(row.get(28)?)?;
-    let response_artifact = artifact(row.get(29)?)?;
+    let request_artifact = artifact(row.get(30)?)?;
+    let response_artifact = artifact(row.get(31)?)?;
     let request_media_type: Option<String> = row.get(20)?;
     let response_media_type: Option<String> = row.get(21)?;
-    let request_reconstructed: bool = row.get(22)?;
-    let response_reconstructed: bool = row.get(23)?;
-    let request_truncated: bool = row.get(24)?;
-    let response_truncated: bool = row.get(25)?;
-    let request_masked: bool = row.get(26)?;
-    let response_masked: bool = row.get(27)?;
-    let request_raw = request_content.map(|content| RawView {
-        content,
-        media_type: request_media_type.unwrap_or_else(|| "application/octet-stream".into()),
-        reconstructed: request_reconstructed,
-        truncated: request_truncated,
-        masked: request_masked,
-        artifact: request_artifact,
-    });
-    let response_raw = response_content.map(|content| RawView {
-        content,
-        media_type: response_media_type.unwrap_or_else(|| "application/octet-stream".into()),
-        reconstructed: response_reconstructed,
-        truncated: response_truncated,
-        masked: response_masked,
-        artifact: response_artifact,
-    });
+    let request_evidence: Option<String> = row.get(22)?;
+    let response_evidence: Option<String> = row.get(23)?;
+    let request_reconstructed = optional_flag(row, 24, "request_reconstructed")?;
+    let response_reconstructed = optional_flag(row, 25, "response_reconstructed")?;
+    let request_truncated = optional_flag(row, 26, "request_truncated")?;
+    let response_truncated = optional_flag(row, 27, "response_truncated")?;
+    let request_masked = optional_flag(row, 28, "request_masked")?;
+    let response_masked = optional_flag(row, 29, "response_masked")?;
+    let request_raw = request_content
+        .map(|content| {
+            Ok::<RawView, rusqlite::Error>(RawView {
+                content,
+                media_type: request_media_type.unwrap_or_else(|| "application/octet-stream".into()),
+                evidence: required_evidence(request_evidence, 22, "request_evidence")?,
+                reconstructed: request_reconstructed,
+                truncated: request_truncated,
+                masked: request_masked,
+                artifact: request_artifact,
+            })
+        })
+        .transpose()?;
+    let response_raw = response_content
+        .map(|content| {
+            Ok::<RawView, rusqlite::Error>(RawView {
+                content,
+                media_type: response_media_type
+                    .unwrap_or_else(|| "application/octet-stream".into()),
+                evidence: required_evidence(response_evidence, 23, "response_evidence")?,
+                reconstructed: response_reconstructed,
+                truncated: response_truncated,
+                masked: response_masked,
+                artifact: response_artifact,
+            })
+        })
+        .transpose()?;
     Ok(ExchangeRow {
         request_id: row.get(0)?,
-        request_sequence: row.get::<_, Option<i64>>(1)?.map(|v| v as u64),
-        response_sequence: row.get::<_, Option<i64>>(2)?.map(|v| v as u64),
+        request_sequence: optional_u64(row, 1, "request_sequence")?,
+        response_sequence: optional_u64(row, 2, "response_sequence")?,
         started_ns: row.get(3)?,
         method: row.get(4)?,
         scheme: row.get(5)?,
         host: row.get(6)?,
         ip: row.get(7)?,
         path: row.get(8)?,
-        status: row.get::<_, Option<i64>>(9)?.map(|v| v as u16),
+        status: optional_status(row, 9)?,
         protocol: row.get(10)?,
         process_name: row.get(11)?,
-        duration_ms: row.get::<_, Option<i64>>(12)?.map(|v| v as u64),
-        request_bytes: row.get::<_, Option<i64>>(13)?.map(|v| v as u64),
-        response_bytes: row.get::<_, Option<i64>>(14)?.map(|v| v as u64),
+        duration_ms: optional_u64(row, 12, "duration_ms")?,
+        request_bytes: optional_u64(row, 13, "request_bytes")?,
+        response_bytes: optional_u64(row, 14, "response_bytes")?,
         tls: row.get(15)?,
         evidence: evidence(row.get(16)?)?,
         warning: row.get(17)?,
@@ -279,6 +427,13 @@ pub(super) fn page_exchanges(
     offset: u64,
     limit: u64,
 ) -> anyhow::Result<ExchangePage> {
+    anyhow::ensure!(query.len() <= 1_024, "query must not exceed 1024 bytes");
+    if let Some(endpoint) = endpoint {
+        anyhow::ensure!(
+            !endpoint.value.trim().is_empty() && endpoint.value.len() <= 512,
+            "endpoint value must contain 1..=512 bytes"
+        );
+    }
     let mut where_sql = String::from("session_id = ?1");
     let mut values = vec![SqlValue::Text(session_id.to_string())];
     if !query.trim().is_empty() {
@@ -303,7 +458,7 @@ pub(super) fn page_exchanges(
     let mut page_values = values;
     page_values.push(SqlValue::Integer(bounded_limit as i64));
     let limit_parameter = page_values.len();
-    page_values.push(SqlValue::Integer(offset as i64));
+    page_values.push(SqlValue::Integer(sqlite_i64(offset, "page offset")?));
     let offset_parameter = page_values.len();
     let mut statement = transaction.prepare(&format!(
         "SELECT request_id, request_sequence, response_sequence, started_ns, method, scheme,
@@ -315,20 +470,20 @@ pub(super) fn page_exchanges(
     let rows = statement.query_map(params_from_iter(page_values.iter()), |row| {
         Ok(ExchangeRow {
             request_id: row.get(0)?,
-            request_sequence: row.get::<_, Option<i64>>(1)?.map(|v| v as u64),
-            response_sequence: row.get::<_, Option<i64>>(2)?.map(|v| v as u64),
+            request_sequence: optional_u64(row, 1, "request_sequence")?,
+            response_sequence: optional_u64(row, 2, "response_sequence")?,
             started_ns: row.get(3)?,
             method: row.get(4)?,
             scheme: row.get(5)?,
             host: row.get(6)?,
             ip: row.get(7)?,
             path: row.get(8)?,
-            status: row.get::<_, Option<i64>>(9)?.map(|v| v as u16),
+            status: optional_status(row, 9)?,
             protocol: row.get(10)?,
             process_name: row.get(11)?,
-            duration_ms: row.get::<_, Option<i64>>(12)?.map(|v| v as u64),
-            request_bytes: row.get::<_, Option<i64>>(13)?.map(|v| v as u64),
-            response_bytes: row.get::<_, Option<i64>>(14)?.map(|v| v as u64),
+            duration_ms: optional_u64(row, 12, "duration_ms")?,
+            request_bytes: optional_u64(row, 13, "request_bytes")?,
+            response_bytes: optional_u64(row, 14, "response_bytes")?,
             tls: row.get(15)?,
             evidence: evidence(row.get(16)?)?,
             warning: row.get(17)?,
@@ -339,7 +494,7 @@ pub(super) fn page_exchanges(
     let exchanges = rows.collect::<rusqlite::Result<Vec<_>>>()?;
     Ok(ExchangePage {
         exchanges,
-        total: total as u64,
+        total: u64::try_from(total)?,
     })
 }
 
@@ -352,9 +507,11 @@ pub(super) fn get_exchange(
         "SELECT request_id, request_sequence, response_sequence, started_ns, method, scheme,
                 host, ip, path, status, protocol, process_name, duration_ms, request_bytes,
                 response_bytes, tls, evidence, warning, request_raw, response_raw,
-                request_media_type, response_media_type, request_reconstructed,
-                response_reconstructed, request_truncated, response_truncated,
-                request_masked, response_masked, request_artifact_json, response_artifact_json
+                request_media_type, response_media_type, request_evidence, response_evidence,
+                request_reconstructed_state, response_reconstructed_state,
+                request_truncated_state, response_truncated_state,
+                request_masked_state, response_masked_state,
+                request_artifact_json, response_artifact_json
          FROM exchanges WHERE session_id = ?1 AND request_id = ?2",
     )?;
     Ok(statement
@@ -371,6 +528,7 @@ pub(super) fn list_endpoints(
     query: &str,
     limit: u64,
 ) -> anyhow::Result<Vec<EndpointSummary>> {
+    anyhow::ensure!(query.len() <= 1_024, "query must not exceed 1024 bytes");
     let bounded_limit = limit.clamp(1, 2000);
     let like = escaped_like(query.trim());
     let mut summaries = Vec::new();
@@ -393,7 +551,9 @@ pub(super) fn list_endpoints(
                 Ok(EndpointSummary {
                     kind,
                     value: row.get(0)?,
-                    count: row.get::<_, i64>(1)? as u64,
+                    count: u64::try_from(row.get::<_, i64>(1)?).map_err(|error| {
+                        conversion_error(1, rusqlite::types::Type::Integer, error.to_string())
+                    })?,
                 })
             },
         )?;

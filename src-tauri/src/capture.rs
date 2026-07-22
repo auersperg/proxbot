@@ -64,7 +64,17 @@ pub async fn run_fake_capture_with_runtime(
             "provider sequence gap: expected {expected}, received {}",
             event.sequence
         );
+    }
+
+    // JSONL is the authoritative evidence stream. Persist the complete stream
+    // before updating the derived SQLite index so a crash cannot leave SQLite
+    // claiming that evidence exists when it has not reached stable storage.
+    for event in &events {
         store.append(event)?;
+    }
+    store.checkpoint()?;
+
+    for event in &events {
         index.insert(event)?;
     }
 

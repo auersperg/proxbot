@@ -41,4 +41,23 @@ describe("browser demo evidence", () => {
       type: "usb",
     });
   });
+
+  it("uses the same global predicate for endpoint summaries and exchange pages", async () => {
+    const page = await browserDemoApi.pageExchanges("browser-fixture-session", {
+      query: "CONNECT",
+      endpoint: null,
+      offset: 0,
+      limit: 200,
+    });
+    const endpoints = await browserDemoApi.listEndpoints("browser-fixture-session", "CONNECT", 2_000);
+    expect(page.total).toBe(20);
+    expect(endpoints).toHaveLength(4);
+    expect(endpoints.every((endpoint) => endpoint.count === 10)).toBe(true);
+    expect(endpoints.map((endpoint) => endpoint.value)).toEqual([
+      "gateway.icloud.com",
+      "192.0.2.40",
+      "smp-device-content.apple.com",
+      "198.51.100.44",
+    ]);
+  });
 });

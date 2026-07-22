@@ -1,6 +1,4 @@
 export type EvidenceClass = "observed" | "enriched" | "inferred";
-export type ParseStatus = "raw" | "parsed" | "malformed";
-
 export interface RawArtifactRef {
   relativePath: string;
   offset: number;
@@ -8,34 +6,10 @@ export interface RawArtifactRef {
   sha256: string | null;
 }
 
-export interface ProviderEvent {
-  schemaVersion: number;
-  providerId: string;
-  providerVersion: string;
-  sessionId: string;
-  sequence: number;
-  sourceTimeNs: string;
-  hostTimeNs: string;
-  monotonicTimeNs: string | null;
-  deviceId: string | null;
-  processId: number | null;
-  processName: string | null;
-  evidence: EvidenceClass;
-  kind: string;
-  payload: unknown;
-  rawRef: RawArtifactRef | null;
-  parseStatus: ParseStatus;
-}
-
 export interface CaptureSummary {
   sessionId: string;
   sessionDir: string;
   eventCount: number;
-}
-
-export interface EventPage {
-  events: ProviderEvent[];
-  total: number;
 }
 
 export interface FridaPreflight {
@@ -57,9 +31,10 @@ export interface EndpointSummary {
 export interface RawView {
   content: string;
   mediaType: string;
-  reconstructed: boolean;
-  truncated: boolean;
-  masked: boolean;
+  evidence: EvidenceClass;
+  reconstructed: boolean | null;
+  truncated: boolean | null;
+  masked: boolean | null;
   artifact: RawArtifactRef | null;
 }
 

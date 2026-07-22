@@ -16,18 +16,6 @@ describe("proxbot command client", () => {
     expect(invoke).toHaveBeenCalledWith("create_demo_session", { count: 30 });
   });
 
-  it("requests a bounded event page", async () => {
-    const invoke = vi.fn().mockResolvedValue({ events: [], total: 0 });
-    const api = createApi(invoke);
-
-    await api.pageEvents("session", 100, 200);
-    expect(invoke).toHaveBeenCalledWith("page_events", {
-      sessionId: "session",
-      offset: 100,
-      limit: 200,
-    });
-  });
-
   it("requests endpoint summaries with an explicit bound", async () => {
     const invoke = vi.fn().mockResolvedValue([]);
     const api = createApi(invoke);

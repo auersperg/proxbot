@@ -12,7 +12,7 @@ describe("RawInspector", () => {
     expect(screen.getByText(/HTTP\/2 200 OK/)).toBeVisible();
     expect(screen.getAllByText("Reconstructed")).toHaveLength(2);
     expect(screen.getAllByText("application/http")).toHaveLength(2);
-    expect(screen.getAllByText("EXCHANGE OBSERVED")).toHaveLength(2);
+    expect(screen.getAllByText("EVIDENCE OBSERVED")).toHaveLength(2);
     expect(screen.getAllByText("Complete")).toHaveLength(2);
     expect(screen.getAllByText("Unmasked")).toHaveLength(2);
     expect(screen.getAllByText("Raw")).toHaveLength(2);
@@ -25,6 +25,7 @@ describe("RawInspector", () => {
       requestRaw: {
         content: "AAEC",
         mediaType: "application/octet-stream; encoding=base64",
+        evidence: "enriched",
         reconstructed: false,
         truncated: true,
         masked: true,
@@ -37,11 +38,40 @@ describe("RawInspector", () => {
     expect(pane).toHaveTextContent("Truncated");
     expect(pane).toHaveTextContent("Masked");
     expect(pane).toHaveTextContent("offset 19 · 3 B · a1");
+    expect(pane).toHaveTextContent("EVIDENCE ENRICHED");
+  });
+
+  it("keeps pane-specific evidence and unknown transformation metadata explicit", () => {
+    const exchange = fixtureExchange({
+      evidence: "inferred",
+      requestRaw: { ...fixtureExchange().requestRaw!, evidence: "observed" },
+      responseRaw: {
+        ...fixtureExchange().responseRaw!,
+        evidence: "inferred",
+        reconstructed: null,
+        truncated: null,
+        masked: null,
+      },
+    });
+    render(<RawInspector exchange={exchange} />);
+    const request = screen.getByRole("region", { name: "RAW Request" });
+    const response = screen.getByRole("region", { name: "RAW Response" });
+    expect(request).toHaveTextContent("EVIDENCE OBSERVED");
+    expect(response).toHaveTextContent("EVIDENCE INFERRED");
+    expect(response).toHaveTextContent("Origin unknown");
+    expect(response).toHaveTextContent("Completeness unknown");
+    expect(response).toHaveTextContent("Masking unknown");
   });
 
   it("does not synthesize an absent response", () => {
-    render(<RawInspector exchange={fixtureExchange({ responseRaw: null, status: null })} />);
+    render(<RawInspector exchange={fixtureExchange({ responseSequence: null, responseRaw: null, status: null, warning: "response_missing" })} />);
     expect(screen.getByText("No response was observed for this request.")).toBeVisible();
+  });
+
+  it("distinguishes an observed response without supplied raw evidence", () => {
+    render(<RawInspector exchange={fixtureExchange({ responseRaw: null })} />);
+    expect(screen.getByText("No raw response evidence was supplied for this exchange.")).toBeVisible();
+    expect(screen.queryByText("No response was observed for this request.")).not.toBeInTheDocument();
   });
 
   it("does not present the response-only placeholder as an empty raw request", () => {

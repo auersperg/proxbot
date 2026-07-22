@@ -12,7 +12,7 @@ describe("RequestTable", () => {
     for (const heading of ["Method", "Host / IP", "Status", "Protocol", "Duration", "Request", "Response", "TLS"]) {
       expect(screen.getByText(heading)).toBeVisible();
     }
-    const row = screen.getByRole("button", { name: /POST auth\.privy\.io/ });
+    const row = screen.getByRole("button", { name: /method POST; endpoint auth\.privy\.io/ });
     await userEvent.click(row);
     expect(onSelect).toHaveBeenCalledWith("request-000001");
   });
@@ -20,17 +20,21 @@ describe("RequestTable", () => {
   it("shows a missing response explicitly", () => {
     const exchange = fixtureExchange({ status: 504, responseRaw: null, warning: "response_missing", evidence: "enriched" });
     render(<RequestTable exchanges={[exchange]} total={1} offset={0} limit={200} selectedId={exchange.requestId} busy={false} onSelect={() => {}} onPage={() => {}} />);
-    expect(screen.getByText("Response missing")).toBeVisible();
+    const warning = screen.getByText("Response missing");
+    expect(warning).toBeVisible();
+    expect(warning).toHaveAttribute("title", "Response missing");
     expect(screen.getByText("504")).toBeVisible();
     expect(screen.getByText("ENRICHED")).toBeVisible();
+    expect(screen.getByRole("button", { name: /status 504; warning Response missing;.*evidence enriched/ })).toBeVisible();
   });
 
   it("keeps the header and virtualized rows in one horizontal scroll surface", () => {
     const exchange = fixtureExchange();
     render(<RequestTable exchanges={[exchange]} total={1} offset={0} limit={200} selectedId={exchange.requestId} busy={false} onSelect={() => {}} onPage={() => {}} />);
-    const header = screen.getByRole("columnheader", { name: "Method" }).parentElement;
-    const row = screen.getByRole("button", { name: /POST auth\.privy\.io/ });
+    const header = screen.getByText("Method").parentElement;
+    const row = screen.getByRole("button", { name: /method POST; endpoint auth\.privy\.io/ });
     expect(header?.parentElement).toBe(row.closest(".request-scroll"));
+    expect(screen.queryByRole("columnheader")).not.toBeInTheDocument();
   });
 
   it("moves selection and focus with the diagnostic arrow-key workflow", async () => {
@@ -40,12 +44,12 @@ describe("RequestTable", () => {
       host: `${requestId}.example`,
     }));
     render(<RequestTable exchanges={exchanges} total={3} offset={0} limit={200} selectedId="second" busy={false} onSelect={onSelect} onPage={() => {}} />);
-    const selected = screen.getByRole("button", { name: /POST second\.example/ });
+    const selected = screen.getByRole("button", { name: /method POST; endpoint second\.example/ });
     selected.focus();
 
     await userEvent.keyboard("{ArrowDown}");
 
     expect(onSelect).toHaveBeenCalledWith("third");
-    await waitFor(() => expect(screen.getByRole("button", { name: /POST third\.example/ })).toHaveFocus());
+    await waitFor(() => expect(screen.getByRole("button", { name: /method POST; endpoint third\.example/ })).toHaveFocus());
   });
 });

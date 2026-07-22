@@ -43,20 +43,31 @@ const exchanges: ExchangeRow[] = Array.from({ length: 80 }, (_, index) => {
   };
 });
 
-const endpointSummaries: EndpointSummary[] = hosts.flatMap(([host, ip]) => [
-  { kind: "domain" as const, value: host, count: exchanges.filter((exchange) => exchange.host === host).length },
-  { kind: "ip" as const, value: ip, count: exchanges.filter((exchange) => exchange.ip === ip).length },
-]);
+function matchesQuery(exchange: ExchangeRow, query: string) {
+  const needle = query.trim().toLowerCase();
+  return !needle || [exchange.method, exchange.host, exchange.ip, exchange.path, exchange.protocol, exchange.processName]
+    .some((value) => value?.toLowerCase().includes(needle));
+}
+
+function endpointSummaries(query: string): EndpointSummary[] {
+  const matching = exchanges.filter((exchange) => matchesQuery(exchange, query));
+  return hosts.flatMap(([host, ip]) => {
+    const domainCount = matching.filter((exchange) => exchange.host === host).length;
+    const ipCount = matching.filter((exchange) => exchange.ip === ip).length;
+    return [
+      ...(domainCount ? [{ kind: "domain" as const, value: host, count: domainCount }] : []),
+      ...(ipCount ? [{ kind: "ip" as const, value: ip, count: ipCount }] : []),
+    ];
+  });
+}
 
 export const browserDemoApi: ApiClient = {
   async createDemoSession(count) {
     return { sessionId: "browser-fixture-session", sessionDir: "/tmp/proxbot/browser-fixture-session", eventCount: Math.min(count, exchanges.length * 2 + 1) };
   },
-  async pageEvents() { return { events: [], total: 0 }; },
   async fridaPreflight() { return { available: true, id: "LAB-DEVICE-FIXTURE-0001", name: "Lab iPhone", type: "usb" }; },
   async listEndpoints(_sessionId, query, limit) {
-    const needle = query.trim().toLowerCase();
-    return endpointSummaries.filter((item) => !needle || item.value.toLowerCase().includes(needle)).slice(0, limit);
+    return endpointSummaries(query).slice(0, limit);
   },
   async pageExchanges(_sessionId, filter) {
     const needle = filter.query.trim().toLowerCase();
@@ -65,7 +76,7 @@ export const browserDemoApi: ApiClient = {
         const value = filter.endpoint.kind === "domain" ? exchange.host : exchange.ip;
         if (value !== filter.endpoint.value) return false;
       }
-      return !needle || [exchange.method, exchange.host, exchange.ip, exchange.path, exchange.protocol, exchange.processName].some((value) => value?.toLowerCase().includes(needle));
+      return matchesQuery(exchange, needle);
     });
     return { exchanges: filtered.slice(filter.offset, filter.offset + filter.limit).map(withoutRaw), total: filtered.length };
   },

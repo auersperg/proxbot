@@ -9,7 +9,7 @@ use std::path::PathBuf;
 
 use app_state::AppState;
 use commands::{
-    create_demo_session, frida_preflight, get_exchange, list_endpoints, page_events, page_exchanges,
+    create_demo_session, frida_preflight, get_exchange, list_endpoints, page_exchanges,
 };
 use provider::ProviderRuntime;
 use tauri::Manager;
@@ -34,7 +34,6 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             create_demo_session,
-            page_events,
             list_endpoints,
             page_exchanges,
             get_exchange,

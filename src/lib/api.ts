@@ -2,7 +2,6 @@ import { invoke as tauriInvoke } from "@tauri-apps/api/core";
 import type {
   CaptureSummary,
   EndpointSummary,
-  EventPage,
   ExchangePage,
   ExchangeQuery,
   ExchangeRow,
@@ -18,8 +17,6 @@ export function createApi(invoke: Invoke = tauriInvoke) {
   return {
     createDemoSession: (count: number) =>
       invoke<CaptureSummary>("create_demo_session", { count }),
-    pageEvents: (sessionId: string, offset: number, limit: number) =>
-      invoke<EventPage>("page_events", { sessionId, offset, limit }),
     fridaPreflight: () => invoke<FridaPreflight>("frida_preflight"),
     listEndpoints: (sessionId: string, query: string, limit: number) =>
       invoke<EndpointSummary[]>("list_endpoints", { sessionId, query, limit }),

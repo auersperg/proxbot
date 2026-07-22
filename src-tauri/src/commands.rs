@@ -1,4 +1,4 @@
-use std::{path::Path, process::Stdio};
+use std::{path::Path, process::Stdio, sync::Arc};
 
 use serde::Serialize;
 use serde_json::Value;
@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::{
     app_state::AppState,
     capture::run_fake_capture_with_runtime,
-    domain::{EvidenceClass, ParseStatus, ProviderEvent, RawArtifactRef},
+    domain::{EvidenceClass, RawArtifactRef},
     provider::ProviderRuntime,
     store::{EndpointFilter, EndpointKind, EndpointSummary, EventIndex, ExchangeRow, RawView},
 };
@@ -44,57 +44,6 @@ impl From<RawArtifactRef> for RawArtifactRefDto {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ProviderEventDto {
-    pub schema_version: u16,
-    pub provider_id: String,
-    pub provider_version: String,
-    pub session_id: Uuid,
-    pub sequence: u64,
-    pub source_time_ns: String,
-    pub host_time_ns: String,
-    pub monotonic_time_ns: Option<String>,
-    pub device_id: Option<String>,
-    pub process_id: Option<u32>,
-    pub process_name: Option<String>,
-    pub evidence: EvidenceClass,
-    pub kind: String,
-    pub payload: Value,
-    pub raw_ref: Option<RawArtifactRefDto>,
-    pub parse_status: ParseStatus,
-}
-
-impl From<ProviderEvent> for ProviderEventDto {
-    fn from(value: ProviderEvent) -> Self {
-        Self {
-            schema_version: value.schema_version,
-            provider_id: value.provider_id,
-            provider_version: value.provider_version,
-            session_id: value.session_id,
-            sequence: value.sequence,
-            source_time_ns: value.source_time_ns.to_string(),
-            host_time_ns: value.host_time_ns.to_string(),
-            monotonic_time_ns: value.monotonic_time_ns.map(|time| time.to_string()),
-            device_id: value.device_id,
-            process_id: value.process_id,
-            process_name: value.process_name,
-            evidence: value.evidence,
-            kind: value.kind,
-            payload: value.payload,
-            raw_ref: value.raw_ref.map(Into::into),
-            parse_status: value.parse_status,
-        }
-    }
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct EventPageDto {
-    pub events: Vec<ProviderEventDto>,
-    pub total: u64,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct EndpointSummaryDto {
     pub kind: EndpointKind,
     pub value: String,
@@ -116,9 +65,10 @@ impl From<EndpointSummary> for EndpointSummaryDto {
 pub struct RawViewDto {
     pub content: String,
     pub media_type: String,
-    pub reconstructed: bool,
-    pub truncated: bool,
-    pub masked: bool,
+    pub evidence: EvidenceClass,
+    pub reconstructed: Option<bool>,
+    pub truncated: Option<bool>,
+    pub masked: Option<bool>,
     pub artifact: Option<RawArtifactRefDto>,
 }
 
@@ -127,6 +77,7 @@ impl From<RawView> for RawViewDto {
         Self {
             content: value.content,
             media_type: value.media_type,
+            evidence: value.evidence,
             reconstructed: value.reconstructed,
             truncated: value.truncated,
             masked: value.masked,
@@ -224,13 +175,28 @@ pub fn validate_request_id(request_id: &str) -> anyhow::Result<&str> {
     Ok(request_id)
 }
 
+pub fn validate_query(query: &str) -> anyhow::Result<&str> {
+    anyhow::ensure!(query.len() <= 1_024, "query must not exceed 1024 bytes");
+    Ok(query)
+}
+
+pub fn validate_endpoint_value(value: &str) -> anyhow::Result<&str> {
+    anyhow::ensure!(!value.trim().is_empty(), "endpoint value must not be empty");
+    anyhow::ensure!(
+        value.len() <= 512,
+        "endpoint value must not exceed 512 bytes"
+    );
+    Ok(value)
+}
+
 fn parse_endpoint(
     kind: Option<String>,
     value: Option<String>,
 ) -> Result<Option<EndpointFilter>, String> {
     match (kind, value) {
         (None, None) => Ok(None),
-        (Some(kind), Some(value)) if !value.trim().is_empty() => {
+        (Some(kind), Some(value)) => {
+            validate_endpoint_value(&value).map_err(|error| error.to_string())?;
             let kind = match kind.as_str() {
                 "domain" => EndpointKind::Domain,
                 "ip" => EndpointKind::Ip,
@@ -247,6 +213,23 @@ fn session_database(state: &AppState, session_id: Uuid) -> std::path::PathBuf {
         .sessions_root
         .join(session_id.to_string())
         .join("database/session.sqlite")
+}
+
+async fn cached_session_index(
+    state: &AppState,
+    session_id: Uuid,
+) -> anyhow::Result<Arc<EventIndex>> {
+    let mut cached = state.session_index.lock().await;
+    if let Some((cached_id, index)) = cached.as_ref()
+        && *cached_id == session_id
+    {
+        return Ok(Arc::clone(index));
+    }
+    let database = session_database(state, session_id);
+    let index = tokio::task::spawn_blocking(move || EventIndex::open(&database)).await??;
+    let index = Arc::new(index);
+    *cached = Some((session_id, Arc::clone(&index)));
+    Ok(index)
 }
 
 pub async fn run_frida_preflight(provider_project: &Path) -> anyhow::Result<Value> {
@@ -282,6 +265,7 @@ pub async fn create_demo_session(
         }
         *active = true;
     }
+    *state.session_index.lock().await = None;
     let result =
         run_fake_capture_with_runtime(&state.sessions_root, &state.provider_runtime, count).await;
     *state.active_capture.lock().await = false;
@@ -294,28 +278,6 @@ pub async fn create_demo_session(
 }
 
 #[tauri::command]
-pub async fn page_events(
-    session_id: String,
-    offset: u64,
-    limit: u64,
-    state: State<'_, AppState>,
-) -> Result<EventPageDto, String> {
-    let session_id = Uuid::parse_str(&session_id).map_err(|error| error.to_string())?;
-    let limit = validate_page_request(limit).map_err(|error| error.to_string())?;
-    let database = state
-        .sessions_root
-        .join(session_id.to_string())
-        .join("database/session.sqlite");
-    let page = EventIndex::open(&database)
-        .and_then(|index| index.page(session_id, offset, limit))
-        .map_err(|error| error.to_string())?;
-    Ok(EventPageDto {
-        events: page.events.into_iter().map(Into::into).collect(),
-        total: page.total,
-    })
-}
-
-#[tauri::command]
 pub async fn list_endpoints(
     session_id: String,
     query: String,
@@ -324,8 +286,13 @@ pub async fn list_endpoints(
 ) -> Result<Vec<EndpointSummaryDto>, String> {
     let session_id = Uuid::parse_str(&session_id).map_err(|error| error.to_string())?;
     let limit = validate_endpoint_limit(limit).map_err(|error| error.to_string())?;
-    EventIndex::open(&session_database(&state, session_id))
-        .and_then(|index| index.list_endpoints(session_id, &query, limit))
+    validate_query(&query).map_err(|error| error.to_string())?;
+    let index = cached_session_index(&state, session_id)
+        .await
+        .map_err(|error| error.to_string())?;
+    tokio::task::spawn_blocking(move || index.list_endpoints(session_id, &query, limit))
+        .await
+        .map_err(|error| error.to_string())?
         .map(|items| items.into_iter().map(Into::into).collect())
         .map_err(|error| error.to_string())
 }
@@ -342,12 +309,17 @@ pub async fn page_exchanges(
 ) -> Result<ExchangePageDto, String> {
     let session_id = Uuid::parse_str(&session_id).map_err(|error| error.to_string())?;
     let limit = validate_page_request(limit).map_err(|error| error.to_string())?;
+    validate_query(&query).map_err(|error| error.to_string())?;
     let endpoint = parse_endpoint(endpoint_kind, endpoint_value)?;
-    let page = EventIndex::open(&session_database(&state, session_id))
-        .and_then(|index| {
-            index.page_exchanges(session_id, &query, endpoint.as_ref(), offset, limit)
-        })
+    let index = cached_session_index(&state, session_id)
+        .await
         .map_err(|error| error.to_string())?;
+    let page = tokio::task::spawn_blocking(move || {
+        index.page_exchanges(session_id, &query, endpoint.as_ref(), offset, limit)
+    })
+    .await
+    .map_err(|error| error.to_string())?
+    .map_err(|error| error.to_string())?;
     Ok(ExchangePageDto {
         exchanges: page.exchanges.into_iter().map(Into::into).collect(),
         total: page.total,
@@ -362,8 +334,12 @@ pub async fn get_exchange(
 ) -> Result<Option<ExchangeRowDto>, String> {
     let session_id = Uuid::parse_str(&session_id).map_err(|error| error.to_string())?;
     validate_request_id(&request_id).map_err(|error| error.to_string())?;
-    EventIndex::open(&session_database(&state, session_id))
-        .and_then(|index| index.get_exchange(session_id, &request_id))
+    let index = cached_session_index(&state, session_id)
+        .await
+        .map_err(|error| error.to_string())?;
+    tokio::task::spawn_blocking(move || index.get_exchange(session_id, &request_id))
+        .await
+        .map_err(|error| error.to_string())?
         .map(|exchange| exchange.map(Into::into))
         .map_err(|error| error.to_string())
 }

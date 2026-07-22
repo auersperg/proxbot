@@ -80,7 +80,10 @@ fn materializes_paired_raw_exchange_and_endpoint_counts() {
         detail.response_raw.as_ref().unwrap().content,
         "HTTP/2 200 OK\r\nContent-Length: 2\r\n\r\n{}"
     );
-    assert!(detail.request_raw.as_ref().unwrap().reconstructed);
+    assert_eq!(
+        detail.request_raw.as_ref().unwrap().reconstructed,
+        Some(true)
+    );
 
     let endpoints = index.list_endpoints(session, "", 2000).unwrap();
     assert!(
@@ -93,6 +96,75 @@ fn materializes_paired_raw_exchange_and_endpoint_counts() {
     assert!(endpoints.iter().any(|item| item.kind == EndpointKind::Ip
         && item.value == "192.0.2.10"
         && item.count == 1));
+}
+
+#[test]
+fn preserves_side_specific_evidence_and_unknown_raw_metadata() {
+    let dir = tempdir().unwrap();
+    let index = EventIndex::open(&dir.path().join("session.sqlite")).unwrap();
+    let session = Uuid::new_v4();
+    index
+        .insert(&event(
+            session,
+            1,
+            "network.request",
+            json!({
+                "request_id": "request-1", "raw": "GET / HTTP/1.1\r\n\r\n",
+                "reconstructed": false, "truncated": false, "masked": false
+            }),
+        ))
+        .unwrap();
+    let mut response = event(
+        session,
+        2,
+        "network.response",
+        json!({
+            "request_id": "request-1", "status": 200,
+            "raw": "HTTP/1.1 200 OK\r\n\r\n", "masked": "not-a-boolean"
+        }),
+    );
+    response.evidence = EvidenceClass::Inferred;
+    index.insert(&response).unwrap();
+
+    let detail = index.get_exchange(session, "request-1").unwrap().unwrap();
+    let request = detail.request_raw.unwrap();
+    let response = detail.response_raw.unwrap();
+    assert_eq!(detail.evidence, EvidenceClass::Inferred);
+    assert_eq!(request.evidence, EvidenceClass::Observed);
+    assert_eq!(response.evidence, EvidenceClass::Inferred);
+    assert_eq!(request.reconstructed, Some(false));
+    assert_eq!(request.truncated, Some(false));
+    assert_eq!(request.masked, Some(false));
+    assert_eq!(response.reconstructed, None);
+    assert_eq!(response.truncated, None);
+    assert_eq!(response.masked, None);
+}
+
+#[test]
+fn wrong_typed_status_is_null_with_an_explicit_warning() {
+    let dir = tempdir().unwrap();
+    let index = EventIndex::open(&dir.path().join("session.sqlite")).unwrap();
+    let session = Uuid::new_v4();
+    index
+        .insert(&event(
+            session,
+            1,
+            "network.request",
+            json!({"request_id": "request-1", "raw": "GET / HTTP/1.1\r\n\r\n"}),
+        ))
+        .unwrap();
+    index
+        .insert(&event(
+            session,
+            2,
+            "network.response",
+            json!({"request_id": "request-1", "status": "200", "raw": "HTTP/1.1 200 OK\r\n\r\n"}),
+        ))
+        .unwrap();
+
+    let detail = index.get_exchange(session, "request-1").unwrap().unwrap();
+    assert_eq!(detail.status, None);
+    assert_eq!(detail.warning.as_deref(), Some("invalid_status"));
 }
 
 #[test]
@@ -169,7 +241,7 @@ fn endpoint_summary_limit_bounds_the_combined_domain_and_ip_result() {
 }
 
 #[test]
-fn exchange_query_reports_corrupted_response_provenance() {
+fn live_query_repairs_corrupted_response_provenance_from_events() {
     let dir = tempdir().unwrap();
     let database = dir.path().join("session.sqlite");
     let index = EventIndex::open(&database).unwrap();
@@ -207,11 +279,15 @@ fn exchange_query_reports_corrupted_response_provenance() {
     let page = index.page_exchanges(session, "", None, 0, 50).unwrap();
     assert!(page.exchanges[0].request_raw.is_none());
     assert!(page.exchanges[0].response_raw.is_none());
-    assert!(index.get_exchange(session, "request-1").is_err());
+    let repaired = index.get_exchange(session, "request-1").unwrap().unwrap();
+    assert_eq!(
+        repaired.response_raw.unwrap().artifact.unwrap().sha256,
+        Some("fixture".into())
+    );
 }
 
 #[test]
-fn exchange_query_never_relabels_unknown_evidence_as_observed() {
+fn live_query_rebuilds_corrupted_evidence_from_the_authoritative_event() {
     let dir = tempdir().unwrap();
     let database = dir.path().join("session.sqlite");
     let index = EventIndex::open(&database).unwrap();
@@ -233,7 +309,8 @@ fn exchange_query_never_relabels_unknown_evidence_as_observed() {
         )
         .unwrap();
 
-    assert!(index.page_exchanges(session, "", None, 0, 50).is_err());
+    let page = index.page_exchanges(session, "", None, 0, 50).unwrap();
+    assert_eq!(page.exchanges[0].evidence, EvidenceClass::Observed);
 }
 
 #[test]
@@ -345,7 +422,7 @@ fn selected_exchange_preserves_missing_raw_payloads_as_absent() {
 }
 
 #[test]
-fn invalid_response_status_is_null_with_an_explicit_warning() {
+fn out_of_range_response_status_is_null_with_an_explicit_warning() {
     let dir = tempdir().unwrap();
     let index = EventIndex::open(&dir.path().join("session.sqlite")).unwrap();
     let session = Uuid::new_v4();
@@ -363,7 +440,7 @@ fn invalid_response_status_is_null_with_an_explicit_warning() {
             2,
             "network.response",
             json!({
-                "request_id": "request-1", "status": 70_000,
+                "request_id": "request-1", "status": 700,
                 "raw": "HTTP/1.1 invalid\r\n\r\n"
             }),
         ))
@@ -551,4 +628,104 @@ fn legacy_backfill_failure_rolls_back_all_materialized_rows() {
         .query_row("SELECT COUNT(*) FROM exchanges", [], |row| row.get(0))
         .unwrap();
     assert_eq!(count, 0);
+}
+
+#[test]
+fn reopening_repairs_a_nonempty_partial_exchange_index() {
+    let dir = tempdir().unwrap();
+    let database = dir.path().join("session.sqlite");
+    let session = Uuid::new_v4();
+    let index = EventIndex::open(&database).unwrap();
+    for sequence in 1..=2 {
+        index
+            .insert(&event(
+                session,
+                sequence,
+                "network.request",
+                json!({
+                    "request_id": format!("request-{sequence}"),
+                    "host": "api.example.test",
+                    "raw": "GET / HTTP/1.1\r\n\r\n"
+                }),
+            ))
+            .unwrap();
+    }
+    drop(index);
+    rusqlite::Connection::open(&database)
+        .unwrap()
+        .execute("DELETE FROM exchanges WHERE request_id = 'request-2'", [])
+        .unwrap();
+
+    let repaired = EventIndex::open(&database).unwrap();
+    let page = repaired.page_exchanges(session, "", None, 0, 50).unwrap();
+    assert_eq!(page.total, 2);
+    assert_eq!(page.exchanges.len(), 2);
+}
+
+#[test]
+fn live_queries_repair_corrupted_persisted_numbers_and_flags() {
+    let dir = tempdir().unwrap();
+    let database = dir.path().join("session.sqlite");
+    let session = Uuid::new_v4();
+    let index = EventIndex::open(&database).unwrap();
+    index
+        .insert(&event(
+            session,
+            1,
+            "network.request",
+            json!({
+                "request_id": "request-1", "raw": "GET / HTTP/1.1\r\n\r\n",
+                "reconstructed": false
+            }),
+        ))
+        .unwrap();
+    rusqlite::Connection::open(&database)
+        .unwrap()
+        .execute(
+            "UPDATE exchanges SET request_sequence = -1 WHERE session_id = ?1",
+            [session.to_string()],
+        )
+        .unwrap();
+    assert_eq!(
+        index
+            .page_exchanges(session, "", None, 0, 50)
+            .unwrap()
+            .exchanges[0]
+            .request_sequence,
+        Some(1)
+    );
+
+    rusqlite::Connection::open(&database)
+        .unwrap()
+        .execute(
+            "UPDATE exchanges SET request_sequence = 1, request_reconstructed_state = 2 WHERE session_id = ?1",
+            [session.to_string()],
+        )
+        .unwrap();
+    assert_eq!(
+        index
+            .get_exchange(session, "request-1")
+            .unwrap()
+            .unwrap()
+            .request_raw
+            .unwrap()
+            .reconstructed,
+        Some(false)
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn sqlite_index_refuses_a_final_component_symlink() {
+    use std::os::unix::fs::symlink;
+
+    let dir = tempdir().unwrap();
+    let target = dir.path().join("outside.sqlite");
+    std::fs::write(&target, b"unchanged").unwrap();
+    let database = dir.path().join("session.sqlite");
+    symlink(&target, &database).unwrap();
+
+    let error = EventIndex::open(&database).err().unwrap();
+    assert!(error.to_string().contains("refusing symlink SQLite index"));
+    assert_eq!(std::fs::read(&target).unwrap(), b"unchanged");
 }
