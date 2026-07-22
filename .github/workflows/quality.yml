@@ -78,6 +78,13 @@ jobs:
         with:
           toolchain: stable
           components: clippy,rustfmt
+      - name: Install uv for provider-backed Rust integration tests
+        uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff # v6
+        with:
+          version: 0.9.18
+          enable-cache: true
+      - name: Install locked iOS provider environment
+        run: uv sync --project sidecars/ios-provider --extra test --locked
       - name: Restore Rust build cache
         uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
