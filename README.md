@@ -23,7 +23,7 @@ proxbot is a local-first macOS application for building loss-aware, inspectable 
 
 This repository is the independently usable **foundation milestone** described in the design specification. The **Run verified demo** action exercises the complete desktop/core/provider/storage/UI path with deterministic evidence; it does not label fixture traffic as device traffic. USB PCAP, syslog/process collection, the optional HTTP(S) proxy, laboratory-build instrumentation, pinned-TLS observation profiles, Solana decoding/correlation, exports, sanitization, and recovery/performance qualification remain separate milestones in the approved architecture.
 
-The locally built application currently launches the Python provider from this checkout through `uv`; keep the checkout and `uv` environment available when moving the debug `.app` on this Mac. A self-contained release sidecar is part of the packaging milestone.
+The macOS bundle includes a standalone Apple Silicon `proxbot-ios-provider` executable. The packaged application can be moved away from the source checkout and performs Frida preflight and provider capture without a system Python or `uv` installation. Development and provider rebuilds still use Python and `uv`.
 
 ## Requirements
 
@@ -61,12 +61,18 @@ In the application:
 ## Build the macOS application
 
 ```bash
-pnpm tauri build --debug --bundles app
+pnpm tauri:build --debug --bundles app
 
 APP="src-tauri/target/debug/bundle/macos/proxbot.app"
 xattr -cr "$APP"
 codesign --force --deep --sign - --timestamp=none "$APP"
 codesign --verify --deep --strict --verbose=2 "$APP"
+```
+
+To rebuild only the standalone provider binary, use:
+
+```bash
+pnpm build:provider
 ```
 
 The bundle is produced at:

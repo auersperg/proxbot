@@ -8,8 +8,9 @@ use uuid::Uuid;
 
 use crate::{
     app_state::AppState,
-    capture::run_fake_capture,
+    capture::run_fake_capture_with_runtime,
     domain::{EvidenceClass, ParseStatus, ProviderEvent, RawArtifactRef},
+    provider::ProviderRuntime,
     store::EventIndex,
 };
 
@@ -106,20 +107,14 @@ pub fn validate_page_request(limit: u64) -> anyhow::Result<u64> {
 }
 
 pub async fn run_frida_preflight(provider_project: &Path) -> anyhow::Result<Value> {
-    let uv = [
-        std::env::var("TRACELAB_UV").ok(),
-        Some("/opt/homebrew/bin/uv".to_owned()),
-        Some("/usr/local/bin/uv".to_owned()),
-        Some("uv".to_owned()),
-    ]
-    .into_iter()
-    .flatten()
-    .find(|candidate| candidate == "uv" || Path::new(candidate).exists())
-    .expect("uv fallback is always present");
-    let output = Command::new(uv)
-        .args(["run", "--project"])
-        .arg(provider_project)
-        .args(["proxbot-ios-provider", "frida-preflight"])
+    let runtime = ProviderRuntime::discover(&[], provider_project.to_path_buf())?;
+    run_frida_preflight_with_runtime(&runtime).await
+}
+
+pub async fn run_frida_preflight_with_runtime(runtime: &ProviderRuntime) -> anyhow::Result<Value> {
+    let invocation = runtime.invocation("frida-preflight", &[]);
+    let output = Command::new(invocation.program)
+        .args(invocation.arguments)
         .stdin(Stdio::null())
         .output()
         .await?;
@@ -144,7 +139,8 @@ pub async fn create_demo_session(
         }
         *active = true;
     }
-    let result = run_fake_capture(&state.sessions_root, &state.provider_project, count).await;
+    let result =
+        run_fake_capture_with_runtime(&state.sessions_root, &state.provider_runtime, count).await;
     *state.active_capture.lock().await = false;
     let summary = result.map_err(|error| error.to_string())?;
     Ok(CaptureSummaryDto {
@@ -178,7 +174,7 @@ pub async fn page_events(
 
 #[tauri::command]
 pub async fn frida_preflight(state: State<'_, AppState>) -> Result<Value, String> {
-    run_frida_preflight(&state.provider_project)
+    run_frida_preflight_with_runtime(&state.provider_runtime)
         .await
         .map_err(|error| error.to_string())
 }

@@ -9,6 +9,7 @@ use std::path::PathBuf;
 
 use app_state::AppState;
 use commands::{create_demo_session, frida_preflight, page_events};
+use provider::ProviderRuntime;
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -18,9 +19,15 @@ pub fn run() {
         .setup(|app| {
             let sessions_root = app.path().app_data_dir()?.join("sessions");
             std::fs::create_dir_all(&sessions_root)?;
-            let provider_project =
+            let source_project =
                 PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../sidecars/ios-provider");
-            app.manage(AppState::new(sessions_root, provider_project));
+            let search_directories = std::env::current_exe()?
+                .parent()
+                .map(std::path::Path::to_path_buf)
+                .into_iter()
+                .collect::<Vec<_>>();
+            let provider_runtime = ProviderRuntime::discover(&search_directories, source_project)?;
+            app.manage(AppState::new(sessions_root, provider_runtime));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

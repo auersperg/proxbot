@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     domain::SessionCoordinator,
-    provider::ProviderSupervisor,
+    provider::{ProviderRuntime, ProviderSupervisor},
     store::{EventIndex, SessionStore},
 };
 
@@ -23,6 +23,15 @@ pub async fn run_fake_capture(
     provider_project: &Path,
     count: u64,
 ) -> anyhow::Result<CaptureSummary> {
+    let runtime = ProviderRuntime::discover(&[], provider_project.to_path_buf())?;
+    run_fake_capture_with_runtime(root, &runtime, count).await
+}
+
+pub async fn run_fake_capture_with_runtime(
+    root: &Path,
+    runtime: &ProviderRuntime,
+    count: u64,
+) -> anyhow::Result<CaptureSummary> {
     anyhow::ensure!(
         (1..=10_000).contains(&count),
         "count must be between 1 and 10000"
@@ -37,8 +46,7 @@ pub async fn run_fake_capture(
     let index = EventIndex::open(&store.session_dir().join("database/session.sqlite"))?;
     let socket_name = format!("proxbot-{}.sock", &session_id.simple().to_string()[..12]);
     let socket_path = std::env::temp_dir().join(socket_name);
-    let events =
-        ProviderSupervisor::run_fake(provider_project, &socket_path, session_id, count).await?;
+    let events = ProviderSupervisor::run_fake(runtime, &socket_path, session_id, count).await?;
 
     anyhow::ensure!(
         events.len() == count as usize,

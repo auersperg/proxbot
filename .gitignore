@@ -4,6 +4,9 @@ node_modules
 /.svelte-kit
 /package
 /artifacts
+/.provider-build
+/src-tauri/binaries/*
+!/src-tauri/binaries/.gitkeep
 .env
 .env.*
 !.env.example

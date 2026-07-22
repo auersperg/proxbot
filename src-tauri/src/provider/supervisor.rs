@@ -3,13 +3,16 @@ use std::{path::Path, process::Stdio, time::Duration};
 use tokio::{io::BufReader, net::UnixListener, process::Command, time::timeout};
 use uuid::Uuid;
 
-use crate::{domain::ProviderEvent, provider::read_frame};
+use crate::{
+    domain::ProviderEvent,
+    provider::{ProviderRuntime, read_frame},
+};
 
 pub struct ProviderSupervisor;
 
 impl ProviderSupervisor {
     pub async fn run_fake(
-        provider_project: &Path,
+        runtime: &ProviderRuntime,
         socket_path: &Path,
         session_id: Uuid,
         count: u64,
@@ -19,13 +22,22 @@ impl ProviderSupervisor {
         }
         let _cleanup = SocketCleanup(socket_path.to_owned());
         let listener = UnixListener::bind(socket_path)?;
-        let child = Command::new("uv")
-            .args(["run", "--project"])
-            .arg(provider_project)
-            .args(["proxbot-ios-provider", "fake", "--socket"])
-            .arg(socket_path)
-            .args(["--session-id", &session_id.to_string()])
-            .args(["--count", &count.to_string()])
+        let socket = socket_path.display().to_string();
+        let session = session_id.to_string();
+        let count_argument = count.to_string();
+        let invocation = runtime.invocation(
+            "fake",
+            &[
+                "--socket",
+                &socket,
+                "--session-id",
+                &session,
+                "--count",
+                &count_argument,
+            ],
+        );
+        let child = Command::new(invocation.program)
+            .args(invocation.arguments)
             .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::piped())

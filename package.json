@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "build:provider": "./scripts/build-provider-sidecar.sh",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "tauri:build": "pnpm build:provider && tauri build"
   },
   "license": "MIT",
   "dependencies": {
