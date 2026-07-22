@@ -1,6 +1,6 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { memo, useMemo, useRef } from "react";
-import type { EndpointFilter, EndpointSummary } from "../lib/contracts";
+import type { EndpointFilter, EndpointSummary, EvidenceSource } from "../lib/contracts";
 
 interface DeviceSummary { name: string; id: string; available: boolean }
 interface Props {
@@ -9,6 +9,7 @@ interface Props {
   total: number;
   selected: EndpointFilter | null;
   onSelect: (filter: EndpointFilter | null) => void;
+  sources: EvidenceSource[];
 }
 
 type TreeEntry =
@@ -20,7 +21,7 @@ function redacted(identifier: string) {
   return identifier.length <= 12 ? identifier : `${identifier.slice(0, 4)}…${identifier.slice(-4)}`;
 }
 
-function EndpointSidebar({ device, endpoints, total, selected, onSelect }: Props) {
+function EndpointSidebar({ device, endpoints, total, selected, onSelect, sources }: Props) {
   const entries = useMemo<TreeEntry[]>(() => {
     const domains = endpoints.filter((item) => item.kind === "domain");
     const ips = endpoints.filter((item) => item.kind === "ip");
@@ -109,13 +110,10 @@ function EndpointSidebar({ device, endpoints, total, selected, onSelect }: Props
           })}
         </div>
       </div>
-      <section className="sidebar-sources">
+      {sources.length > 0 && <section className="sidebar-sources" aria-label="Evidence sources">
         <h2>Evidence sources</h2>
-        <div><i className="state-dot idle" />USB packet capture<span>not reported</span></div>
-        <div><i className="state-dot idle" />System logs<span>not reported</span></div>
-        <div><i className="state-dot idle" />Process map<span>not reported</span></div>
-        <div><i className="state-dot idle" />TLS plaintext<span>not configured</span></div>
-      </section>
+        {sources.map((source) => <div key={source.id}><i className={`state-dot ${source.status}`} /><span className="source-label">{source.label}</span><span title={source.detail ?? source.status}>{source.detail ?? source.status}</span></div>)}
+      </section>}
     </aside>
   );
 }

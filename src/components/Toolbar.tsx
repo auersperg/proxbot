@@ -1,17 +1,21 @@
-import type { FridaPreflight } from "../lib/contracts";
+import type { CaptureProfile, CaptureStatus, DevicePreflight } from "../lib/contracts";
 import { useEffect, useState } from "react";
 
 interface Props {
   busy: boolean;
-  status: "idle" | "capturing" | "ready" | "error" | "degraded";
-  device: FridaPreflight | null;
+  status: CaptureStatus;
+  device: DevicePreflight | null;
+  profile: CaptureProfile;
   query: string;
   onQuery: (query: string) => void;
-  onPreflight: () => void;
+  onProfile: (profile: CaptureProfile) => void;
   onStart: () => void;
+  onStop: () => void;
+  onRefresh: () => void;
+  onMarker: () => void;
 }
 
-export default function Toolbar({ busy, status, device, query, onQuery, onPreflight, onStart }: Props) {
+export default function Toolbar({ busy, status, device, profile, query, onQuery, onProfile, onStart, onStop, onRefresh, onMarker }: Props) {
   const [localQuery, setLocalQuery] = useState(query);
   useEffect(() => setLocalQuery(query), [query]);
 
@@ -19,17 +23,22 @@ export default function Toolbar({ busy, status, device, query, onQuery, onPrefli
     setLocalQuery(value);
     onQuery(value);
   };
+  const active = status === "capturing" || status === "degraded";
+  const transitioning = status === "starting" || status === "stopping";
+  const deviceReady = device?.available === true && device.paired === true && device.trusted === true;
+  const deviceTrust = !device?.available ? "unavailable" : device.paired !== true ? "not paired" : device.trusted !== true ? "not trusted" : "paired · trusted";
+  const deviceLabel = device?.name ?? "iPhone";
 
   return (
     <header className="toolbar">
       <div className="window-brand"><div className="brand-lens" aria-hidden="true"><i /><i /><i /></div><span><strong>proxbot</strong><small>Network observability</small></span></div>
-      <div className={`device-pill ${device?.available ? "connected" : ""}`}><i /><span><small>IOS USB</small><strong>{device?.available ? device.name ?? "iPhone" : "No verified device"}</strong></span></div>
-      <label className="profile-select"><small>PROFILE</small><select aria-label="Capture profile" title="Capture profiles require an active capture provider" defaultValue="deep" disabled><option value="deep">Deep capture</option><option value="passive">Passive USB</option></select></label>
-      <div className="capture-actions"><button type="button" className="tool-button" aria-label="Pause capture" title="Pause requires an active capture provider" disabled>Ⅱ</button><button type="button" className="tool-button" aria-label="Add marker" title="Markers require an active capture provider" disabled>◇</button></div>
+      <div className={`device-pill ${deviceReady ? "connected" : ""}`} aria-label={`iOS device ${deviceLabel}; available ${device?.available === true ? "yes" : "no"}; paired ${device?.paired === true ? "yes" : "no"}; trusted ${device?.trusted === true ? "yes" : "no"}; version ${device?.productVersion ?? "unknown"}`}><i /><span><small>{device?.productVersion ? `iOS ${device.productVersion}` : "iOS USB"} · {deviceTrust}</small><strong>{device?.available ? deviceLabel : "No connected device"}</strong></span></div>
+      <label className="profile-select"><small>PROFILE</small><select aria-label="Capture profile" value={profile} disabled={active || transitioning || busy} onChange={(event) => onProfile(event.target.value as CaptureProfile)}><option value="deep">Synchronized USB</option><option value="passive">Packets only</option></select></label>
+      <div className="capture-actions"><button type="button" className="tool-button" aria-label="Add capture marker" title="Add a timestamped capture marker" disabled={!active || busy} onClick={onMarker}>◇</button><button type="button" className="tool-button" aria-label="Refresh capture" title="Refresh device, status, and traffic" disabled={busy} onClick={onRefresh}>↻</button></div>
       <label className="global-search"><span aria-hidden="true">⌕</span><input type="search" aria-label="Filter requests" placeholder="Filter host, path, method, protocol…" maxLength={1024} value={localQuery} onChange={(event) => updateQuery(event.target.value)} />{localQuery && <button type="button" aria-label="Clear filter" onClick={() => updateQuery("")}>×</button>}</label>
-      <div className={`capture-status capture-${status}`}><i />{status}</div>
-      <button type="button" className="secondary-button" disabled={busy} onClick={onPreflight}>Check iPhone</button>
-      <button type="button" className="primary-button" disabled={busy} onClick={onStart}>{busy ? "Working…" : "Run verified demo"}</button>
+      <div className={`capture-status capture-${status}`} role="status" aria-live="polite"><i />{status}</div>
+      <button type="button" className="secondary-button stop-button" disabled={!active || busy} onClick={onStop}>Stop</button>
+      <button type="button" className="primary-button" disabled={active || transitioning || busy || !deviceReady} onClick={onStart}>{status === "starting" ? "Starting…" : "Start capture"}</button>
     </header>
   );
 }

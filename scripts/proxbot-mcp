@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+ROOT="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+exec bun run --cwd "$ROOT/apps/mcp-server" start

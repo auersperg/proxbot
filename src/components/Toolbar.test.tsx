@@ -3,22 +3,46 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import Toolbar from "./Toolbar";
 
+const callbacks = () => ({
+  onQuery: vi.fn(), onProfile: vi.fn(), onStart: vi.fn(), onStop: vi.fn(), onRefresh: vi.fn(), onMarker: vi.fn(),
+});
+
 describe("Toolbar", () => {
-  it("exposes device, capture state, filtering, and actions", async () => {
-    const onPreflight = vi.fn();
-    const onStart = vi.fn();
-    const onFilter = vi.fn();
-    render(<Toolbar busy={false} status="ready" device={null} query="" onQuery={onFilter} onPreflight={onPreflight} onStart={onStart} />);
-    await userEvent.click(screen.getByRole("button", { name: "Check iPhone" }));
-    await userEvent.click(screen.getByRole("button", { name: "Run verified demo" }));
+  it("exposes only production capture controls while idle", async () => {
+    const actions = callbacks();
+    render(<Toolbar busy={false} status="idle" device={{ available: true, paired: true, trusted: true, id: "usb-1", name: "iPhone", productVersion: "18.5" }} profile="deep" query="" {...actions} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Start capture" }));
+    await userEvent.click(screen.getByRole("button", { name: "Refresh capture" }));
     await userEvent.type(screen.getByRole("searchbox", { name: "Filter requests" }), "privy");
-    expect(onPreflight).toHaveBeenCalledOnce();
-    expect(onStart).toHaveBeenCalledOnce();
-    expect(onFilter).toHaveBeenLastCalledWith("privy");
-    expect(screen.getByRole("button", { name: "Pause capture" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Add marker" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Add marker" })).toHaveAttribute("title", "Markers require an active capture provider");
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Capture profile" }), "passive");
+
+    expect(actions.onStart).toHaveBeenCalledOnce();
+    expect(actions.onRefresh).toHaveBeenCalledOnce();
+    expect(actions.onQuery).toHaveBeenLastCalledWith("privy");
+    expect(actions.onProfile).toHaveBeenCalledWith("passive");
+    expect(screen.getByRole("button", { name: "Stop" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Add capture marker" })).toBeDisabled();
+    expect(screen.queryByText(/demo/i)).not.toBeInTheDocument();
+  });
+
+  it("enables stop and marker only for an active capture", async () => {
+    const actions = callbacks();
+    render(<Toolbar busy={false} status="capturing" device={{ available: true, paired: true, trusted: true, id: "usb-1", name: "iPhone", productVersion: "18.5" }} profile="deep" query="" {...actions} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Stop" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add capture marker" }));
+    expect(actions.onStop).toHaveBeenCalledOnce();
+    expect(actions.onMarker).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "Start capture" })).toBeDisabled();
     expect(screen.getByRole("combobox", { name: "Capture profile" })).toBeDisabled();
-    expect(screen.getByRole("combobox", { name: "Capture profile" })).toHaveAttribute("title", "Capture profiles require an active capture provider");
+  });
+
+  it("keeps stop available when an active device disconnects", async () => {
+    const actions = callbacks();
+    render(<Toolbar busy={false} status="capturing" device={{ available: false, paired: false, trusted: false, error: "disconnected" }} profile="deep" query="" {...actions} />);
+    expect(screen.getByRole("button", { name: "Start capture" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Stop" }));
+    expect(actions.onStop).toHaveBeenCalledOnce();
   });
 });

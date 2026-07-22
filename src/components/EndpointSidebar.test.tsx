@@ -7,17 +7,21 @@ const endpoints = [
   { kind: "domain" as const, value: "auth.privy.io", count: 12 },
   { kind: "ip" as const, value: "192.0.2.10", count: 7 },
 ];
+const sources = [
+  { id: "proxy", label: "HTTP proxy", status: "active" as const, detail: "listening" },
+  { id: "tls", label: "TLS plaintext", status: "idle" as const, detail: "not configured" },
+];
 
 describe("EndpointSidebar", () => {
   it("separates domain and IP identities and emits exact filters", async () => {
     const onSelect = vi.fn();
-    render(<EndpointSidebar device={{ name: "Lab iPhone", id: "fixture-device", available: true }} endpoints={endpoints} total={12} selected={null} onSelect={onSelect} />);
+    render(<EndpointSidebar device={{ name: "Lab iPhone", id: "fixture-device", available: true }} endpoints={endpoints} total={12} selected={null} sources={sources} onSelect={onSelect} />);
     expect(screen.getByRole("heading", { name: "Domains" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "IP addresses" })).toBeVisible();
     expect(screen.getAllByText("12")).toHaveLength(2);
     expect(screen.getByRole("button", { name: /Lab iPhone.*12/ })).toBeVisible();
     expect(screen.queryByRole("button", { name: /Lab iPhone.*19/ })).not.toBeInTheDocument();
-    expect(screen.getAllByText("not reported")).toHaveLength(3);
+    expect(screen.getByText("listening")).toBeVisible();
     expect(screen.getByText("not configured")).toBeVisible();
     expect(screen.queryByText("ready")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /auth\.privy\.io/ }));
@@ -36,6 +40,7 @@ describe("EndpointSidebar", () => {
         endpoints={manyEndpoints}
         total={2_001_000}
         selected={null}
+        sources={sources}
         onSelect={vi.fn()}
       />,
     );
@@ -55,6 +60,7 @@ describe("EndpointSidebar", () => {
         endpoints={endpoints}
         total={19}
         selected={null}
+        sources={sources}
         onSelect={onSelect}
       />,
     );

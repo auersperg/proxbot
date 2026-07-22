@@ -27,13 +27,13 @@ impl ProviderRuntime {
         if let Some(path) = std::env::var_os("PROXBOT_PROVIDER") {
             let path = PathBuf::from(path);
             anyhow::ensure!(path.is_file(), "PROXBOT_PROVIDER is not a file");
-            return Ok(Self::bundled(path));
+            return Self::from_executable(path);
         }
 
         for directory in search_directories {
             let path = directory.join("proxbot-ios-provider");
             if path.is_file() {
-                return Ok(Self::bundled(path));
+                return Self::from_executable(path);
             }
         }
 
@@ -60,12 +60,13 @@ impl ProviderRuntime {
         })
     }
 
-    fn bundled(program: PathBuf) -> Self {
-        Self {
+    pub fn from_executable(program: PathBuf) -> anyhow::Result<Self> {
+        anyhow::ensure!(program.is_file(), "provider executable is not a file");
+        Ok(Self {
             mode: ProviderMode::Bundled,
             program,
             prefix: Vec::new(),
-        }
+        })
     }
 
     pub fn mode(&self) -> ProviderMode {

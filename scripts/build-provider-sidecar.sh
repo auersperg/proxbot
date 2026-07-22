@@ -9,7 +9,7 @@ DESTINATION="$ROOT/src-tauri/binaries/proxbot-ios-provider-$TARGET_TRIPLE"
 
 mkdir -p "$BUILD_ROOT" "$(dirname "$DESTINATION")"
 
-uv run --project "$PROJECT" --with 'pyinstaller==6.21.0' \
+uv run --project "$PROJECT" --extra build --locked \
   pyinstaller \
   --noconfirm \
   --clean \

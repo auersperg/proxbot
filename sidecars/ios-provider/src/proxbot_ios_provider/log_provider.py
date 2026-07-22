@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from collections.abc import AsyncIterable, AsyncIterator
 from pathlib import Path
@@ -37,6 +38,7 @@ async def capture_logs(
                 stream.write("\n")
                 written += 1
             stream.flush()
+            os.fsync(stream.fileno())
         return {
             "path": str(output),
             "record_count": written,

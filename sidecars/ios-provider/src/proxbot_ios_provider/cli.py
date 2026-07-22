@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import json
+import os
 import socket
 from pathlib import Path
 
@@ -9,16 +10,16 @@ import frida
 from .fake import fake_events
 from .frida_provider import usb_preflight
 from .log_provider import capture_logs
+from .live_provider import run_live_capture
 from .device_provider import device_preflight
 from .pcap_provider import capture_pcap
-from .protocol import send_frame
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="proxbot-ios-provider")
     subcommands = parser.add_subparsers(dest="command", required=True)
 
-    fake = subcommands.add_parser("fake")
+    fake = subcommands.add_parser("fake", help=argparse.SUPPRESS)
     fake.add_argument("--socket", required=True)
     fake.add_argument("--session-id", required=True)
     fake.add_argument("--count", type=int, default=30)
@@ -37,6 +38,15 @@ def build_parser() -> argparse.ArgumentParser:
     logs.add_argument("--out", required=True)
     logs.add_argument("--udid")
     logs.add_argument("--count", type=int, default=-1)
+
+    live = subcommands.add_parser("live-capture")
+    live.add_argument("--socket", required=True)
+    live.add_argument("--session-id", required=True)
+    live.add_argument("--udid", required=True)
+    live.add_argument("--pcap-out", required=True)
+    live.add_argument("--log-out", required=True)
+    live.add_argument("--health-interval", type=float, default=1.0)
+    live.add_argument("--providers", default="pcap,syslog")
     return parser
 
 
@@ -69,10 +79,31 @@ def main() -> None:
         print(json.dumps(result, separators=(",", ":")))
         return
 
-    if arguments.count < 1 or arguments.count > 10_000:
-        raise SystemExit("--count must be between 1 and 10000")
+    if arguments.command == "live-capture":
+        if arguments.health_interval <= 0:
+            raise SystemExit("--health-interval must be positive")
+        asyncio.run(
+            run_live_capture(
+                Path(arguments.socket),
+                arguments.session_id,
+                arguments.udid,
+                Path(arguments.pcap_out),
+                Path(arguments.log_out),
+                arguments.health_interval,
+                tuple(filter(None, arguments.providers.split(","))),
+            )
+        )
+        return
 
-    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
-        connection.connect(arguments.socket)
-        for event in fake_events(arguments.session_id, arguments.count):
-            send_frame(connection, event)
+    if arguments.command == "fake":
+        if os.environ.get("PROXBOT_ENABLE_TEST_PROVIDER") != "1":
+            raise SystemExit("test provider is disabled")
+        if arguments.count < 1 or arguments.count > 10_000:
+            raise SystemExit("--count must be between 1 and 10000")
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
+            connection.connect(arguments.socket)
+            for event in fake_events(arguments.session_id, arguments.count):
+                from .protocol import send_frame
+                send_frame(connection, event)
+        return
+    raise SystemExit(f"unsupported provider command: {arguments.command}")

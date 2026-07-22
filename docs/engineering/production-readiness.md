@@ -1,71 +1,77 @@
-# Production readiness and agent automation
+# proxbot production readiness and verified boundary
 
-This document is the integration checklist for the production capture workspace and its agent-facing MCP surface. A checked item must be supported by an automated test or a reproducible release artifact; UI labels and fixture output are not completion evidence.
+This record describes what `v0.2.0-rc.1` actually executes. A UI label, fixture, or planned milestone is not treated as evidence.
 
-## Bun workspace boundary
+## Verified runtime
 
-- `bun.lock` is the only JavaScript dependency lockfile.
-- Bun is the only JavaScript installer and script runner used by active source, CI, Tauri hooks, and release automation.
-- `bun install --frozen-lockfile` is mandatory in CI and release jobs.
-- `bun scripts/repository-hygiene.mjs` rejects alternative package-manager artifacts, legacy frontend source/configuration, and active-source references to retired tooling.
-- Root scripts remain the single command surface; packages added later must be declared as Bun workspaces rather than introducing another workspace orchestrator.
+- [x] React 19/Vite frontend contains no production demo client or demo action.
+- [x] Device preflight returns a typed available/paired/trusted USB result.
+- [x] Preflight calls are serialized and briefly cached to prevent concurrent usbmux contention.
+- [x] `passive` starts USB PCAPNG; `deep` starts USB PCAPNG plus syslog JSONL.
+- [x] Provider readiness is emitted only after requested capture outputs initialize.
+- [x] Early/missing artifacts produce an explicit provider failure instead of a ready claim.
+- [x] Tauri and MCP use the same `LiveCaptureService` source of truth.
+- [x] `capture://status` publishes small monotonic snapshots; raw evidence remains paged.
+- [x] Stop uses SIGTERM, a bounded deadline, forced termination fallback, provider join, durable finalization, and terminal snapshot.
+- [x] Final session JSONL, PCAPNG, and syslog artifacts are owner-only and SHA-256 recorded.
+- [x] Manifest is written last and identifies every checksummed authoritative artifact.
+- [x] PCAPNG finalization validates block lengths, trims only an incomplete cancellation tail, and writes an explicit libpcap-compatible snaplen.
+- [x] Hardware smoke exercises agent → official MCP stdio → owner-only UDS → Tauri → bundled provider → USB iPhone → finalized session.
 
-## Production capture acceptance gates
+## Evidence semantics
 
-- [ ] Starting capture selects a real paired USB device and returns a stable session ID.
-- [ ] Device metadata, packet capture, device logs, proxy events, and approved instrumentation events share one monotonic session timeline.
-- [ ] The UI opens an existing or newly created real session; production startup never silently selects fixture evidence.
-- [ ] Capture start, stop, cancellation, provider crash, reconnect, backpressure, and disk-pressure behavior have integration tests.
-- [ ] Health counters are sourced from provider/runtime state rather than UI placeholders.
-- [ ] Raw request and response bytes retain side-specific provenance, hashes, offsets, reconstruction, truncation, and masking state.
-- [ ] HTTP/1.1, HTTP/2, WebSocket, binary bodies, absent responses, and CONNECT tunnels have local end-to-end fixture-server tests.
-- [ ] TLS interception uses an explicitly managed local CA with install, trust-state, rotation, removal, and rollback workflows.
-- [ ] Instrumentation is scoped to owned laboratory builds and reports exact hook coverage and gaps.
-- [ ] Session export supports deterministic manifests, checksums, redaction profiles, and integrity verification.
-- [ ] Solana analysis distinguishes message construction, wallet signature, Privy RPC signing, application backend calls, RPC submission, transaction signature, confirmation, and failure.
-- [ ] A four-hour device soak and a ten-million-event browse test publish machine specifications, throughput, memory, latency, loss, and recovery results.
+- USB PCAP is `encrypted_network_packets` and never presented as application plaintext.
+- USB syslog is `device_syslog` and never presented as network payload decryption.
+- Live events carry `fixture:false`, `application_plaintext:false`, and `tls_decryption:false`.
+- The optional mitmproxy provider reports plaintext only for clients explicitly routed through it whose trust policy accepts its CA.
+- CA installation and certificate-pinning bypass are not performed; provider capabilities report `certificate_pinning_bypass:false`.
+- Solana transaction decoding/signature/broadcast correlation is not inferred from packet capture alone. It becomes an analysis claim only when corresponding indexed proxy or instrumentation evidence exists.
 
-## MCP server contract
+## MCP server
 
-The MCP server is a thin adapter over the same capture/session contracts used by Tauri. Mutating operations always cross the capture coordinator's control boundary. Bounded reads may use the versioned, read-only session index through one repository adapter; tools never write SQLite directly or spawn provider processes independently of the coordinator.
+Transport: official MCP JSON-RPC over stdio. The MCP process opens no network listener.
 
-### Transport and lifecycle
+Mutating tools use the running app's owner-only, non-symlink Unix socket and a strict one-request/one-response envelope:
 
-- Local `stdio` transport is the default for desktop agent automation.
-- Optional local Streamable HTTP binds to loopback only, uses an ephemeral bearer token, and is disabled unless the user enables it.
-- The desktop app owns the capture/session runtime. MCP attaches through a versioned local IPC boundary and exits cleanly when the app is unavailable.
-- Every tool accepts `request_id`; mutating calls are idempotent and return the effective state.
-- Long-running capture/export operations return an operation ID and expose progress/cancellation rather than holding one request indefinitely.
+```json
+{"version":1,"id":"UUID","method":"METHOD","params":{}}
+```
 
-### Minimal tool surface
+The bridge enforces a 64 KiB line/frame limit, exact protocol version, UUID correlation, allowlisted method, closed params, owner UID, `0600` mode, connect/response deadlines, and response-ID match.
 
-| Tool | Purpose | Mutating |
-|---|---|---:|
-| `devices.list` | Return paired USB devices and trust/developer-mode state | no |
-| `sessions.list` | Page bounded session metadata | no |
-| `sessions.get` | Read one session state and health summary | no |
-| `capture.start` | Start a real capture with explicit device/providers/options | yes |
-| `capture.stop` | Flush, finalize, checksum, and publish one session | yes |
-| `capture.cancel` | Cancel a pending/running operation with explicit final state | yes |
-| `exchanges.list` | Page metadata with bounded query/endpoint/cursor inputs | no |
-| `exchanges.get` | Read one exchange and side-specific raw provenance | no |
-| `artifacts.read` | Read a bounded byte range after policy/redaction checks | no |
-| `analysis.run` | Run a named deterministic analyzer against a finalized session | yes |
-| `exports.create` | Create a redacted HAR/JSONL/session bundle | yes |
-| `operations.get` | Read progress and terminal result | no |
+Finalized-session reads use one confined repository adapter:
 
-### MCP safety and observability
+- UUID-only session paths directly below the configured root;
+- symlink/traversal refusal;
+- SQLite `readonly`, `query_only=ON`, `trusted_schema=OFF`;
+- dirty-index refusal;
+- metadata pages before one selected raw exchange;
+- independent UTF-8 byte caps and credential redaction;
+- metadata-only `0600` export with exclusive partial write, `fsync`, atomic rename, and directory `fsync`.
 
-- Tool schemas use closed JSON objects, explicit enums, byte/row/time limits, and opaque cursor tokens.
-- Mutating tools require the desktop application's local approval policy; external agents never receive signing keys, private keys, seed phrases, CA private material, or refresh tokens.
-- Tool results distinguish observed evidence, deterministic enrichment, and inference.
-- Secrets are redacted before serialization and are never written to MCP logs.
-- Audit records include timestamp, agent/client identity, tool, sanitized arguments hash, operation/session ID, result status, duration, and cancellation state.
-- Trace context propagates MCP request → service command → provider → storage so one operation is diagnosable end to end.
-- Subscriptions expose bounded progress/event notifications; slow consumers receive gap markers and resume cursors instead of causing unbounded buffering.
+The exposed tool surface is the 13 `proxbot_*` tools documented in the root README. Tool inputs use Zod schemas and MCP annotations; stdout is reserved for protocol frames and diagnostics go to stderr.
 
-## CI and release gates
+## Bun workspace and CI
 
-`.github/workflows/quality.yml` runs repository hygiene, the locked Bun frontend suite/build, provider tests, Rust formatting, Rust tests, and Clippy. `.github/workflows/release.yml` repeats the complete gate from a version tag, checks version parity, builds the macOS arm64 bundle, verifies its signature and ZIP integrity, emits SHA-256, retains the workflow artifact, and publishes the same files to the GitHub release.
+- [x] `bun@1.3.14` pinned in root `packageManager`.
+- [x] a single root `bun.lock`.
+- [x] `apps/*` uses Bun workspaces with isolated linking.
+- [x] no alternate JavaScript package-manager files or commands in active source.
+- [x] frontend and MCP test/type/build commands originate at the root.
+- [x] both Python providers have isolated, frozen `uv.lock` environments.
+- [x] CI covers Bun hygiene/install/test/check/build, both Python suites/compileall, Rust fmt/test/Clippy.
+- [x] tag release repeats quality gates and requires Developer ID signing and notarization before publication.
 
-Public distribution additionally requires configured Apple Developer ID signing and notarization. A release is production-distributable only when Gatekeeper assessment and notarization verification are included in the release record.
+## Remaining post-RC qualification
+
+These are not represented as completed by this RC:
+
+- automatic iPhone proxy profile/CA installation and removal UX;
+- lab-build instrumentation integration and per-hook coverage UI;
+- deterministic protocol/Solana analyzer and cross-source correlation;
+- HAR/session bundle export with configurable redaction profiles;
+- disk-pressure/fault-injection campaign;
+- four-hour device soak and ten-million-event browse benchmark;
+- verified Apple Developer ID notarized artifact, pending repository release credentials.
+
+The RC is therefore a production-quality capture/automation foundation, not a claim that every broader research milestone is already integrated.

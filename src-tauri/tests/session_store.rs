@@ -66,6 +66,12 @@ fn finalization_atomically_promotes_artifacts_and_writes_checksums() {
             .unwrap();
     assert_eq!(manifest["status"], "ready");
     assert_eq!(manifest["event_count"], 1);
+    assert_eq!(manifest["artifacts"].as_array().unwrap().len(), 1);
+    assert_eq!(
+        manifest["artifacts"][0]["relative_path"],
+        "events/provider-events.jsonl"
+    );
+    assert!(manifest["artifacts"][0]["bytes"].as_u64().unwrap() > 0);
     let event_bytes = fs::read(summary.session_dir.join("events/provider-events.jsonl")).unwrap();
     let expected_checksum = hex::encode(Sha256::digest(&event_bytes));
     assert_eq!(
@@ -101,6 +107,44 @@ fn finalization_atomically_promotes_artifacts_and_writes_checksums() {
             "{artifact} must remain owner-only"
         );
     }
+}
+
+#[test]
+fn finalization_includes_live_capture_artifacts_in_manifest_and_checksums() {
+    let root = tempdir().unwrap();
+    let session_id = Uuid::new_v4();
+    let mut store = SessionStore::create(root.path(), session_id).unwrap();
+    store.append(&fixture_event(session_id, 1)).unwrap();
+    for (relative, content) in [
+        ("capture/device.pcapng", b"pcap evidence".as_slice()),
+        ("logs/device.jsonl", b"syslog evidence\n".as_slice()),
+    ] {
+        let path = store.session_dir().join(relative);
+        fs::write(&path, content).unwrap();
+        fs::set_permissions(path, fs::Permissions::from_mode(0o600)).unwrap();
+    }
+
+    let summary = store.finalize().unwrap();
+    let manifest: serde_json::Value =
+        serde_json::from_slice(&fs::read(summary.session_dir.join("manifest.json")).unwrap())
+            .unwrap();
+    let artifacts = manifest["artifacts"].as_array().unwrap();
+    assert_eq!(artifacts.len(), 3);
+    assert_eq!(
+        artifacts
+            .iter()
+            .filter_map(|artifact| artifact["relative_path"].as_str())
+            .collect::<Vec<_>>(),
+        vec![
+            "events/provider-events.jsonl",
+            "capture/device.pcapng",
+            "logs/device.jsonl"
+        ]
+    );
+    let checksums = fs::read_to_string(summary.session_dir.join("checksums.sha256")).unwrap();
+    assert_eq!(checksums.lines().count(), 3);
+    assert!(checksums.contains("  capture/device.pcapng"));
+    assert!(checksums.contains("  logs/device.jsonl"));
 }
 
 #[test]

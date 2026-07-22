@@ -1,18 +1,36 @@
 {
   "name": "proxbot",
-  "version": "0.1.0",
+  "version": "0.2.0-rc.1",
+  "private": true,
+  "packageManager": "bun@1.3.14",
+  "workspaces": [
+    "apps/*"
+  ],
   "description": "High-fidelity iOS application traffic capture and analysis",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "bun run check:frontend && vite build",
     "build:provider": "./scripts/build-provider-sidecar.sh",
+    "build:sidecars": "bun run notices:generate && bun run build:provider && bun run mcp:compile",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "bun run test:all",
+    "test:frontend": "vitest run",
+    "test:all": "bun run test:frontend && bun run mcp:test",
     "test:watch": "vitest",
-    "check": "tsc --noEmit",
+    "check": "bun run check:all",
+    "check:frontend": "tsc --noEmit",
+    "check:all": "bun run check:frontend && bun run mcp:check",
+    "mcp:start": "bun run --cwd apps/mcp-server start",
+    "mcp:check": "bun run --cwd apps/mcp-server check",
+    "mcp:test": "bun run --cwd apps/mcp-server test",
+    "mcp:compile": "bun run --cwd apps/mcp-server compile:macos",
+    "mcp:hardware-smoke": "bun run --cwd apps/mcp-server hardware-smoke",
+    "hygiene": "bun scripts/repository-hygiene.mjs",
+    "version:check": "bun scripts/verify-version-parity.mjs",
+    "notices:generate": "python3 scripts/generate-third-party-notices.py",
     "tauri": "tauri",
-    "tauri:build": "bun run build:provider && tauri build"
+    "tauri:build": "bun run build:sidecars && tauri build"
   },
   "license": "MIT",
   "dependencies": {

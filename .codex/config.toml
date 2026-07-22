@@ -1,0 +1,20 @@
+[mcp_servers.proxbot]
+command = "./scripts/proxbot-mcp"
+required = false
+startup_timeout_sec = 15.0
+tool_timeout_sec = 120.0
+enabled_tools = [
+  "proxbot_health",
+  "proxbot_device_preflight",
+  "proxbot_start_capture",
+  "proxbot_capture_status",
+  "proxbot_add_marker",
+  "proxbot_stop_capture",
+  "proxbot_list_sessions",
+  "proxbot_session_status",
+  "proxbot_list_endpoints",
+  "proxbot_query_exchanges",
+  "proxbot_get_exchange",
+  "proxbot_analyze_session",
+  "proxbot_export_exchanges",
+]

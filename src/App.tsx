@@ -5,7 +5,7 @@ import RawInspector from "./components/RawInspector";
 import RequestTable from "./components/RequestTable";
 import Toolbar from "./components/Toolbar";
 import { api, type ApiClient } from "./lib/api";
-import type { CaptureSummary, EndpointFilter, EndpointSummary, ExchangePage, FridaPreflight } from "./lib/contracts";
+import type { CaptureMetrics, CaptureProfile, CaptureSnapshot, CaptureStatus, DevicePreflight, EndpointFilter, EndpointSummary, EvidenceSource, ExchangePage } from "./lib/contracts";
 import "./styles.css";
 
 const PAGE_LIMIT = 200;
@@ -16,14 +16,23 @@ const INSPECTOR_MAX = 520;
 const SIDEBAR_STORAGE = "proxbot.layout.sidebarWidth";
 const INSPECTOR_STORAGE = "proxbot.layout.inspectorHeight";
 
-type CaptureStatus = "idle" | "capturing" | "ready" | "error" | "degraded";
 type ErrorLane = "capture" | "query" | "preflight" | "detail";
+
+const EMPTY_METRICS: CaptureMetrics = {
+  received: null, persisted: null, malformed: null, dropped: null, queueDepth: null,
+  throughputPerSecond: null, driftMs: null, reconnects: null, lastEventAgeMs: null,
+};
 
 interface WorkspaceState {
   operations: string[];
+  revision: number;
   status: CaptureStatus;
-  device: FridaPreflight | null;
-  summary: CaptureSummary | null;
+  profile: CaptureProfile;
+  device: DevicePreflight | null;
+  sessionId: string | null;
+  sessionDir: string | null;
+  metrics: CaptureMetrics;
+  sources: EvidenceSource[];
   endpoints: EndpointSummary[];
   page: ExchangePage;
   deviceTotal: number;
@@ -42,6 +51,7 @@ type WorkspaceAction =
   | { type: "patch"; value: Partial<WorkspaceState> }
   | { type: "operation-started"; token: string }
   | { type: "operation-finished"; token: string }
+  | { type: "snapshot-received"; snapshot: CaptureSnapshot }
   | { type: "page-loaded"; page: ExchangePage; endpoints: EndpointSummary[] | null; offset: number; deviceTotal: number | null }
   | { type: "sidebar-resized"; value: number }
   | { type: "inspector-resized"; value: number }
@@ -61,9 +71,14 @@ function storedNumber(key: string, fallback: number, minimum: number, maximum: n
 function initialState(): WorkspaceState {
   return {
     operations: [],
+    revision: -1,
     status: "idle",
+    profile: "deep",
     device: null,
-    summary: null,
+    sessionId: null,
+    sessionDir: null,
+    metrics: EMPTY_METRICS,
+    sources: [],
     endpoints: [],
     page: { exchanges: [], total: 0 },
     deviceTotal: 0,
@@ -84,6 +99,27 @@ function reducer(state: WorkspaceState, action: WorkspaceAction): WorkspaceState
     case "patch": return { ...state, ...action.value };
     case "operation-started": return state.operations.includes(action.token) ? state : { ...state, operations: [...state.operations, action.token] };
     case "operation-finished": return { ...state, operations: state.operations.filter((token) => token !== action.token) };
+    case "snapshot-received": {
+      const snapshot = action.snapshot;
+      if (snapshot.revision < state.revision) return state;
+      const newSession = snapshot.sessionId !== state.sessionId;
+      return {
+        ...state,
+        revision: snapshot.revision,
+        status: snapshot.status,
+        profile: snapshot.profile ?? state.profile,
+        device: snapshot.device ?? state.device,
+        sessionId: snapshot.sessionId,
+        sessionDir: snapshot.sessionDir,
+        metrics: snapshot.metrics,
+        sources: snapshot.sources,
+        ...(newSession ? {
+          endpoints: [], page: { exchanges: [], total: 0 }, deviceTotal: 0,
+          selectedId: null, selectedDetail: null, endpoint: null, offset: 0,
+        } : {}),
+        errors: { ...state.errors, capture: snapshot.error },
+      };
+    }
     case "page-loaded": {
       const selectedId = action.page.exchanges.some((item) => item.requestId === state.selectedId)
         ? state.selectedId
@@ -159,9 +195,19 @@ export default function App({ client = api }: { client?: ApiClient }) {
   const requestEpoch = useRef(0);
   const detailEpoch = useRef(0);
   const captureEpoch = useRef(0);
+  const statusInFlight = useRef(false);
+  const latestRevision = useRef(-1);
+  const latestSession = useRef<string | null>(null);
+  const queryRef = useRef("");
+  const endpointRef = useRef<EndpointFilter | null>(null);
+  const deviceIdRef = useRef<string | null>(null);
   const operationSequence = useRef(0);
   const lastQueryKey = useRef<string | null>(null);
   const busy = state.operations.length > 0;
+  const controlsBusy = state.operations.some((token) => !token.startsWith("query:"));
+  queryRef.current = state.query;
+  endpointRef.current = state.endpoint;
+  deviceIdRef.current = state.device?.id ?? null;
 
   const beginOperation = useCallback((kind: string) => {
     const token = `${kind}:${++operationSequence.current}`;
@@ -206,32 +252,66 @@ export default function App({ client = api }: { client?: ApiClient }) {
     }
   }, [beginOperation, client, finishOperation]);
 
-  const runPreflight = async () => {
-    const token = beginOperation("preflight");
+  const refreshDevice = useCallback(async (tracked: boolean) => {
+    const token = tracked ? beginOperation("preflight") : null;
     dispatch({ type: "error-set", lane: "preflight", value: null });
     try {
-      const result = await client.fridaPreflight();
+      const result = await client.devicePreflight(deviceIdRef.current);
       dispatch({ type: "patch", value: { device: result } });
-      dispatch({ type: "error-set", lane: "preflight", value: result.available ? null : result.error ?? "USB iPhone is unavailable." });
+      const ready = result.available && result.paired && result.trusted;
+      dispatch({ type: "error-set", lane: "preflight", value: ready ? null : result.error ?? "USB iPhone is not available, paired, and trusted." });
     } catch (reason) {
       dispatch({ type: "error-set", lane: "preflight", value: errorText(reason) });
     } finally {
-      finishOperation(token);
+      if (token) finishOperation(token);
     }
-  };
+  }, [beginOperation, client, finishOperation]);
 
-  const runCapture = async () => {
+  const acceptSnapshot = useCallback(async (snapshot: CaptureSnapshot, refreshData: boolean) => {
+    const previousSession = latestSession.current;
+    if (snapshot.revision < latestRevision.current) return;
+    const changed = snapshot.revision !== latestRevision.current || snapshot.sessionId !== previousSession;
+    latestRevision.current = snapshot.revision;
+    latestSession.current = snapshot.sessionId;
+    dispatch({ type: "snapshot-received", snapshot });
+    if (!refreshData || !changed || !snapshot.sessionId || snapshot.status === "idle" || snapshot.status === "starting") return;
+    const nextEndpoint = snapshot.sessionId === previousSession ? endpointRef.current : null;
+    const nextQuery = snapshot.sessionId === previousSession ? queryRef.current : "";
+    try {
+      await load(snapshot.sessionId, nextQuery, nextEndpoint, 0, true, true);
+      lastQueryKey.current = `${snapshot.sessionId}\u0000${nextQuery}`;
+    } catch (reason) {
+      dispatch({ type: "error-set", lane: "query", value: errorText(reason) });
+    }
+  }, [load]);
+
+  const pollStatus = useCallback(async (reportError: boolean, refreshData: boolean) => {
+    if (statusInFlight.current) return;
+    statusInFlight.current = true;
+    try {
+      await acceptSnapshot(await client.getCaptureStatus(), refreshData);
+    } catch (reason) {
+      if (reportError) dispatch({ type: "error-set", lane: "capture", value: errorText(reason) });
+    } finally {
+      statusInFlight.current = false;
+    }
+  }, [acceptSnapshot, client]);
+
+  const startCapture = async () => {
     const epoch = ++captureEpoch.current;
     requestEpoch.current += 1;
     detailEpoch.current += 1;
-    const token = beginOperation("capture");
+    const token = beginOperation("start");
     dispatch({
       type: "patch",
       value: {
-        status: "capturing",
+        status: "starting",
         endpoint: null,
         query: "",
-        summary: null,
+        sessionId: null,
+        sessionDir: null,
+        metrics: EMPTY_METRICS,
+        sources: [],
         endpoints: [],
         page: { exchanges: [], total: 0 },
         deviceTotal: 0,
@@ -242,12 +322,9 @@ export default function App({ client = api }: { client?: ApiClient }) {
     });
     dispatch({ type: "errors-cleared" });
     try {
-      const nextSummary = await client.createDemoSession(161);
+      const snapshot = await client.startCapture({ profile: state.profile, deviceId: state.device?.id ?? null });
       if (epoch !== captureEpoch.current) return;
-      dispatch({ type: "patch", value: { summary: nextSummary } });
-      lastQueryKey.current = `${nextSummary.sessionId}\u0000`;
-      await load(nextSummary.sessionId, "", null, 0, true, true);
-      if (epoch === captureEpoch.current) dispatch({ type: "patch", value: { status: "ready" } });
+      await acceptSnapshot(snapshot, true);
     } catch (reason) {
       if (epoch === captureEpoch.current) {
         dispatch({ type: "patch", value: { status: "error" } });
@@ -258,41 +335,82 @@ export default function App({ client = api }: { client?: ApiClient }) {
     }
   };
 
+  const stopCapture = async () => {
+    ++captureEpoch.current;
+    const token = beginOperation("stop");
+    dispatch({ type: "patch", value: { status: "stopping" } });
+    dispatch({ type: "error-set", lane: "capture", value: null });
+    try {
+      await acceptSnapshot(await client.stopCapture(), true);
+    } catch (reason) {
+      dispatch({ type: "patch", value: { status: "error" } });
+      dispatch({ type: "error-set", lane: "capture", value: errorText(reason) });
+    } finally {
+      finishOperation(token);
+    }
+  };
+
+  const addMarker = async () => {
+    const token = beginOperation("marker");
+    dispatch({ type: "error-set", lane: "capture", value: null });
+    try {
+      await client.addMarker(null);
+    } catch (reason) {
+      dispatch({ type: "error-set", lane: "capture", value: errorText(reason) });
+    } finally {
+      finishOperation(token);
+    }
+  };
+
+  const refreshCapture = async () => {
+    const token = beginOperation("refresh");
+    dispatch({ type: "errors-cleared" });
+    try {
+      await Promise.all([refreshDevice(false), pollStatus(true, false)]);
+      const sessionId = latestSession.current;
+      if (sessionId) await load(sessionId, queryRef.current, endpointRef.current, 0, true, true);
+    } catch (reason) {
+      dispatch({ type: "error-set", lane: "capture", value: errorText(reason) });
+    } finally {
+      finishOperation(token);
+    }
+  };
+
   const selectEndpoint = useCallback(async (nextEndpoint: EndpointFilter | null) => {
     dispatch({ type: "patch", value: { endpoint: nextEndpoint } });
     dispatch({ type: "error-set", lane: "query", value: null });
-    if (!state.summary) return;
+    if (!state.sessionId) return;
     try {
-      await load(state.summary.sessionId, state.query, nextEndpoint, 0, false, false);
+      await load(state.sessionId, state.query, nextEndpoint, 0, false, false);
     } catch (reason) {
       dispatch({ type: "error-set", lane: "query", value: errorText(reason) });
     }
-  }, [load, state.query, state.summary]);
+  }, [load, state.query, state.sessionId]);
 
   const changePage = useCallback(async (nextOffset: number) => {
-    if (!state.summary) return;
+    if (!state.sessionId) return;
     dispatch({ type: "error-set", lane: "query", value: null });
     try {
-      await load(state.summary.sessionId, state.query, state.endpoint, nextOffset, false, false);
+      await load(state.sessionId, state.query, state.endpoint, nextOffset, false, false);
     } catch (reason) {
       dispatch({ type: "error-set", lane: "query", value: errorText(reason) });
     }
-  }, [load, state.endpoint, state.query, state.summary]);
+  }, [load, state.endpoint, state.query, state.sessionId]);
 
   useEffect(() => {
-    if (!state.summary) return;
-    const key = `${state.summary.sessionId}\u0000${state.query}`;
+    if (!state.sessionId) return;
+    const key = `${state.sessionId}\u0000${state.query}`;
     if (lastQueryKey.current === key) return;
     lastQueryKey.current = key;
     const timer = window.setTimeout(() => {
-      load(state.summary!.sessionId, state.query, state.endpoint, 0, true, true)
+      load(state.sessionId!, state.query, state.endpoint, 0, true, true)
         .catch((reason) => dispatch({ type: "error-set", lane: "query", value: errorText(reason) }));
     }, 180);
     return () => window.clearTimeout(timer);
-  }, [load, state.endpoint, state.query, state.summary]);
+  }, [load, state.endpoint, state.query, state.sessionId]);
 
   useEffect(() => {
-    if (!state.summary || !state.selectedId) {
+    if (!state.sessionId || !state.selectedId) {
       detailEpoch.current += 1;
       dispatch({ type: "patch", value: { selectedDetail: null } });
       return;
@@ -300,7 +418,7 @@ export default function App({ client = api }: { client?: ApiClient }) {
     const epoch = ++detailEpoch.current;
     dispatch({ type: "patch", value: { selectedDetail: null } });
     dispatch({ type: "error-set", lane: "detail", value: null });
-    const sessionId = state.summary.sessionId;
+    const sessionId = state.sessionId;
     const selectedId = state.selectedId;
     const timer = window.setTimeout(() => {
       client.getExchange(sessionId, selectedId)
@@ -315,7 +433,35 @@ export default function App({ client = api }: { client?: ApiClient }) {
       window.clearTimeout(timer);
       if (epoch === detailEpoch.current) detailEpoch.current += 1;
     };
-  }, [client, state.selectedId, state.summary]);
+  }, [client, state.selectedId, state.sessionId]);
+
+  useEffect(() => {
+    let disposed = false;
+    let unlisten: (() => void) | null = null;
+    let eventRefreshTimer: number | null = null;
+    client.subscribeCaptureStatus((snapshot) => {
+      if (disposed) return;
+      void acceptSnapshot(snapshot, false);
+      if (!snapshot.sessionId || snapshot.status === "idle" || snapshot.status === "starting") return;
+      if (eventRefreshTimer !== null) window.clearTimeout(eventRefreshTimer);
+      eventRefreshTimer = window.setTimeout(() => {
+        if (disposed || latestSession.current !== snapshot.sessionId) return;
+        load(snapshot.sessionId!, queryRef.current, endpointRef.current, 0, true, true)
+          .catch((reason) => dispatch({ type: "error-set", lane: "query", value: errorText(reason) }));
+      }, 120);
+    }).then((dispose) => {
+      if (disposed) dispose(); else unlisten = dispose;
+    }).catch(() => { /* polling remains the compatibility path */ });
+    void refreshDevice(false);
+    void pollStatus(true, true);
+    const timer = window.setInterval(() => void pollStatus(false, true), 1_000);
+    return () => {
+      disposed = true;
+      window.clearInterval(timer);
+      if (eventRefreshTimer !== null) window.clearTimeout(eventRefreshTimer);
+      unlisten?.();
+    };
+  }, [acceptSnapshot, client, load, pollStatus, refreshDevice]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -351,16 +497,40 @@ export default function App({ client = api }: { client?: ApiClient }) {
 
   return (
     <main className="app-shell" aria-label="proxbot">
-      <Toolbar busy={busy} status={state.status} device={state.device} query={state.query} onQuery={(query) => dispatch({ type: "patch", value: { query } })} onPreflight={runPreflight} onStart={runCapture} />
+      <Toolbar
+        busy={controlsBusy}
+        status={state.status}
+        device={state.device}
+        profile={state.profile}
+        query={state.query}
+        onQuery={(query) => dispatch({ type: "patch", value: { query } })}
+        onProfile={(profile) => dispatch({ type: "patch", value: { profile } })}
+        onStart={startCapture}
+        onStop={stopCapture}
+        onRefresh={refreshCapture}
+        onMarker={addMarker}
+      />
       {error && <div className="error-banner" role="alert"><strong>Capture warning</strong><span>{error}</span><button type="button" aria-label="Dismiss warning" onClick={() => dispatch({ type: "errors-cleared" })}>×</button></div>}
       <div className={`workspace${error ? " has-error" : ""}`} style={workspaceStyle}>
-        <EndpointSidebar device={fallbackDevice} endpoints={state.endpoints} total={state.deviceTotal} selected={state.endpoint} onSelect={selectEndpoint} />
+        <EndpointSidebar device={fallbackDevice} endpoints={state.endpoints} total={state.deviceTotal} selected={state.endpoint} sources={state.sources} onSelect={selectEndpoint} />
         <WorkspaceSplitter orientation="vertical" label="Resize endpoint sidebar" value={state.sidebarWidth} minimum={SIDEBAR_MIN} maximum={SIDEBAR_MAX} onResize={(value) => dispatch({ type: "sidebar-resized", value })} />
         <RequestTable exchanges={state.page.exchanges} total={state.page.total} offset={state.offset} limit={PAGE_LIMIT} selectedId={state.selectedId} busy={busy} onSelect={(selectedId) => dispatch({ type: "patch", value: { selectedId } })} onPage={changePage} />
         <WorkspaceSplitter orientation="horizontal" label="Resize raw inspector" value={inspectorHeight} minimum={INSPECTOR_MIN} maximum={inspectorMaximum} onResize={(value) => dispatch({ type: "inspector-resized", value: Math.min(inspectorMaximum, value) })} />
         <RawInspector exchange={state.selectedDetail} />
       </div>
-      <HealthStrip status={state.status} received={null} persisted={state.summary?.eventCount ?? null} malformed={null} dropped={null} queueDepth={null} throughput={null} drift={null} reconnects={null} lastEventAge={null} sessionPath={state.summary?.sessionDir ?? null} />
+      <HealthStrip
+        status={state.status}
+        received={state.metrics.received}
+        persisted={state.metrics.persisted}
+        malformed={state.metrics.malformed}
+        dropped={state.metrics.dropped}
+        queueDepth={state.metrics.queueDepth}
+        throughput={state.metrics.throughputPerSecond === null ? null : `${state.metrics.throughputPerSecond.toFixed(1)} evt/s`}
+        drift={state.metrics.driftMs === null ? null : `${state.metrics.driftMs.toFixed(1)} ms`}
+        reconnects={state.metrics.reconnects}
+        lastEventAge={state.metrics.lastEventAgeMs === null ? null : `${state.metrics.lastEventAgeMs} ms`}
+        sessionPath={state.sessionDir}
+      />
     </main>
   );
 }

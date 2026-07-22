@@ -34,15 +34,15 @@ jobs:
         run: bun run check
       - name: Build frontend
         run: bun run build
-      - name: Type-check MCP server workspace
-        run: bun run --cwd apps/mcp-server check
-      - name: Run MCP server workspace tests
-        run: bun run --cwd apps/mcp-server test
 
   provider:
-    name: Python provider
+    name: Python / ${{ matrix.provider }}
     runs-on: macos-14
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: [ios-provider, proxy-provider]
     steps:
       - name: Check out repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -52,9 +52,19 @@ jobs:
           version: 0.9.18
           enable-cache: true
       - name: Install locked provider environment
-        run: uv sync --project sidecars/ios-provider --extra test --frozen
+        run: |
+          uv lock --check --project sidecars/${{ matrix.provider }}
+          uv sync --project sidecars/${{ matrix.provider }} --extra test --locked
       - name: Run provider tests
-        run: uv run --project sidecars/ios-provider --extra test pytest -q
+        run: >-
+          uv run --project sidecars/${{ matrix.provider }} --extra test --locked
+          pytest -q sidecars/${{ matrix.provider }}/tests
+      - name: Compile provider sources
+        run: >-
+          uv run --project sidecars/${{ matrix.provider }} --locked
+          python -m compileall -q
+          sidecars/${{ matrix.provider }}/src
+          sidecars/${{ matrix.provider }}/tests
 
   rust:
     name: Rust / Tauri core

@@ -1,11 +1,14 @@
 import { invoke as tauriInvoke } from "@tauri-apps/api/core";
+import { listen as tauriListen, type UnlistenFn } from "@tauri-apps/api/event";
 import type {
-  CaptureSummary,
+  CaptureMarker,
+  CaptureSnapshot,
   EndpointSummary,
   ExchangePage,
   ExchangeQuery,
   ExchangeRow,
-  FridaPreflight,
+  DevicePreflight,
+  StartCaptureRequest,
 } from "./contracts";
 
 export type Invoke = <T>(
@@ -13,11 +16,23 @@ export type Invoke = <T>(
   args?: Record<string, unknown>,
 ) => Promise<T>;
 
-export function createApi(invoke: Invoke = tauriInvoke) {
+export type Listen = <T>(event: string, handler: (payload: T) => void) => Promise<UnlistenFn>;
+
+const listenPayload: Listen = <T,>(event: string, handler: (payload: T) => void) =>
+  tauriListen<T>(event, ({ payload }) => handler(payload));
+
+export function createApi(invoke: Invoke = tauriInvoke, listen: Listen = listenPayload) {
   return {
-    createDemoSession: (count: number) =>
-      invoke<CaptureSummary>("create_demo_session", { count }),
-    fridaPreflight: () => invoke<FridaPreflight>("frida_preflight"),
+    startCapture: (request: StartCaptureRequest) =>
+      invoke<CaptureSnapshot>("start_capture", { profile: request.profile, deviceId: request.deviceId }),
+    stopCapture: () => invoke<CaptureSnapshot>("stop_capture"),
+    getCaptureStatus: () => invoke<CaptureSnapshot>("get_capture_status"),
+    addMarker: (label: string | null = null) =>
+      invoke<CaptureMarker>("add_capture_marker", { label }),
+    subscribeCaptureStatus: (handler: (snapshot: CaptureSnapshot) => void) =>
+      listen<CaptureSnapshot>("capture://status", handler),
+    devicePreflight: (deviceId: string | null = null) =>
+      invoke<DevicePreflight>("device_preflight", { deviceId }),
     listEndpoints: (sessionId: string, query: string, limit: number) =>
       invoke<EndpointSummary[]>("list_endpoints", { sessionId, query, limit }),
     pageExchanges: (sessionId: string, filter: ExchangeQuery) =>

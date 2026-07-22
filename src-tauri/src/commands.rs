@@ -2,25 +2,17 @@ use std::{path::Path, process::Stdio, sync::Arc};
 
 use serde::Serialize;
 use serde_json::Value;
-use tauri::State;
+use tauri::{AppHandle, Emitter, State};
 use tokio::process::Command;
 use uuid::Uuid;
 
 use crate::{
     app_state::AppState,
-    capture::run_fake_capture_with_runtime,
+    capture::{CaptureMarker, CaptureSnapshot, DevicePreflight},
     domain::{EvidenceClass, RawArtifactRef},
     provider::ProviderRuntime,
     store::{EndpointFilter, EndpointKind, EndpointSummary, EventIndex, ExchangeRow, RawView},
 };
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct CaptureSummaryDto {
-    pub session_id: Uuid,
-    pub session_dir: String,
-    pub event_count: u64,
-}
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -253,31 +245,6 @@ pub async fn run_frida_preflight_with_runtime(runtime: &ProviderRuntime) -> anyh
 }
 
 #[tauri::command]
-pub async fn create_demo_session(
-    count: u64,
-    state: State<'_, AppState>,
-) -> Result<CaptureSummaryDto, String> {
-    let count = validate_capture_count(count).map_err(|error| error.to_string())?;
-    {
-        let mut active = state.active_capture.lock().await;
-        if *active {
-            return Err("another capture is already active".into());
-        }
-        *active = true;
-    }
-    *state.session_index.lock().await = None;
-    let result =
-        run_fake_capture_with_runtime(&state.sessions_root, &state.provider_runtime, count).await;
-    *state.active_capture.lock().await = false;
-    let summary = result.map_err(|error| error.to_string())?;
-    Ok(CaptureSummaryDto {
-        session_id: summary.session_id,
-        session_dir: summary.session_dir.display().to_string(),
-        event_count: summary.event_count,
-    })
-}
-
-#[tauri::command]
 pub async fn list_endpoints(
     session_id: String,
     query: String,
@@ -347,6 +314,76 @@ pub async fn get_exchange(
 #[tauri::command]
 pub async fn frida_preflight(state: State<'_, AppState>) -> Result<Value, String> {
     run_frida_preflight_with_runtime(&state.provider_runtime)
+        .await
+        .map_err(|error| error.to_string())
+}
+
+fn emit_capture_status(app: &AppHandle, snapshot: &CaptureSnapshot) {
+    let _ = app.emit("capture://status", snapshot);
+}
+
+#[tauri::command]
+pub async fn device_preflight(
+    device_id: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<DevicePreflight, String> {
+    state
+        .live_capture
+        .device_preflight(device_id.as_deref())
+        .await
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub async fn start_capture(
+    profile: String,
+    device_id: Option<String>,
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<CaptureSnapshot, String> {
+    *state.session_index.lock().await = None;
+    let snapshot = state
+        .live_capture
+        .start_capture(&profile, device_id)
+        .await
+        .map_err(|error| error.to_string())?;
+    emit_capture_status(&app, &snapshot);
+    Ok(snapshot)
+}
+
+#[tauri::command]
+pub async fn get_capture_status(
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<CaptureSnapshot, String> {
+    let snapshot = state.live_capture.status().await;
+    emit_capture_status(&app, &snapshot);
+    Ok(snapshot)
+}
+
+#[tauri::command]
+pub async fn stop_capture(
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<CaptureSnapshot, String> {
+    let snapshot = state
+        .live_capture
+        .stop_capture()
+        .await
+        .map_err(|error| error.to_string())?;
+    *state.session_index.lock().await = None;
+    emit_capture_status(&app, &snapshot);
+    Ok(snapshot)
+}
+
+#[tauri::command]
+pub async fn add_capture_marker(
+    label: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<CaptureMarker, String> {
+    state
+        .live_capture
+        .add_marker(label)
         .await
         .map_err(|error| error.to_string())
 }

@@ -1,0 +1,29 @@
+{
+  "name": "@proxbot/mcp-server",
+  "version": "0.2.0-rc.1",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "proxbot-mcp": "./src/index.ts"
+  },
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "compile:macos": "bun build --compile --target=bun-darwin-arm64 src/index.ts --outfile ../../src-tauri/binaries/proxbot-mcp-aarch64-apple-darwin",
+    "check": "tsc --noEmit",
+    "test": "bun test",
+    "test:unit": "bun test tests/unit",
+    "test:integration": "bun test tests/integration",
+    "hardware-smoke": "bun run scripts/hardware-smoke.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.14",
+    "typescript": "7.0.2"
+  },
+  "engines": {
+    "bun": ">=1.3.0"
+  }
+}

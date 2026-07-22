@@ -36,18 +36,7 @@ jobs:
           toolchain: stable
           components: clippy,rustfmt
       - name: Verify tag and application versions
-        shell: bash
-        run: |
-          set -euo pipefail
-          tag_version="${GITHUB_REF_NAME#v}"
-          package_version="$(bun -e 'console.log((await Bun.file("package.json").json()).version)')"
-          mcp_version="$(bun -e 'console.log((await Bun.file("apps/mcp-server/package.json").json()).version)')"
-          tauri_version="$(bun -e 'console.log((await Bun.file("src-tauri/tauri.conf.json").json()).version)')"
-          cargo_version="$(sed -nE 's/^version = "([^"]+)"/\1/p' src-tauri/Cargo.toml | head -1)"
-          test "$tag_version" = "$package_version"
-          test "$tag_version" = "$mcp_version"
-          test "$tag_version" = "$tauri_version"
-          test "$tag_version" = "$cargo_version"
+        run: bun run version:check -- "$GITHUB_REF_NAME"
       - name: Require production signing and notarization credentials
         shell: bash
         env:
@@ -67,7 +56,13 @@ jobs:
       - name: Install locked dependencies
         run: bun install --frozen-lockfile
       - name: Install locked provider environment
-        run: uv sync --project sidecars/ios-provider --extra test --frozen
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv lock --check --project sidecars/ios-provider
+          uv lock --check --project sidecars/proxy-provider
+          uv sync --project sidecars/ios-provider --extra test --extra build --locked
+          uv sync --project sidecars/proxy-provider --extra test --locked
       - name: Run complete quality gate
         shell: bash
         run: |
@@ -75,9 +70,11 @@ jobs:
           bun run test
           bun run check
           bun run build
-          bun run --cwd apps/mcp-server check
-          bun run --cwd apps/mcp-server test
-          uv run --project sidecars/ios-provider --extra test pytest -q
+          bun run version:check -- "$GITHUB_REF_NAME"
+          uv run --project sidecars/ios-provider --extra test --locked pytest -q sidecars/ios-provider/tests
+          uv run --project sidecars/proxy-provider --extra test --locked pytest -q sidecars/proxy-provider/tests
+          uv run --project sidecars/ios-provider --locked python -m compileall -q sidecars/ios-provider/src sidecars/ios-provider/tests
+          uv run --project sidecars/proxy-provider --locked python -m compileall -q sidecars/proxy-provider/src sidecars/proxy-provider/tests
           cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
           cargo test --locked --manifest-path src-tauri/Cargo.toml --all-targets
           cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets --all-features -- -D warnings
