@@ -4,6 +4,7 @@ interface DeviceSummary { name: string; id: string; available: boolean }
 interface Props {
   device: DeviceSummary;
   endpoints: EndpointSummary[];
+  total: number;
   selected: EndpointFilter | null;
   onSelect: (filter: EndpointFilter | null) => void;
 }
@@ -12,7 +13,7 @@ function redacted(identifier: string) {
   return identifier.length <= 12 ? identifier : `${identifier.slice(0, 4)}…${identifier.slice(-4)}`;
 }
 
-export default function EndpointSidebar({ device, endpoints, selected, onSelect }: Props) {
+export default function EndpointSidebar({ device, endpoints, total, selected, onSelect }: Props) {
   const domains = endpoints.filter((item) => item.kind === "domain");
   const ips = endpoints.filter((item) => item.kind === "ip");
   const endpointButton = (item: EndpointSummary) => {
@@ -32,7 +33,7 @@ export default function EndpointSidebar({ device, endpoints, selected, onSelect 
       <button className={`device-row${selected === null ? " selected" : ""}`} type="button" aria-pressed={selected === null} onClick={() => onSelect(null)}>
         <span className={`device-indicator ${device.available ? "online" : "offline"}`} aria-hidden="true" />
         <span><strong>{device.name}</strong><small>{redacted(device.id)}</small></span>
-        <span className="endpoint-count">{endpoints.reduce((sum, item) => sum + item.count, 0)}</span>
+        <span className="endpoint-count">{total}</span>
       </button>
       <section className="endpoint-group" aria-labelledby="domains-heading">
         <h2 id="domains-heading">Domains</h2>
@@ -44,10 +45,10 @@ export default function EndpointSidebar({ device, endpoints, selected, onSelect 
       </section>
       <section className="sidebar-sources">
         <h2>Evidence sources</h2>
-        <div><i className="state-dot good" />USB packet capture<span>ready</span></div>
-        <div><i className="state-dot good" />System logs<span>ready</span></div>
-        <div><i className="state-dot good" />Process map<span>ready</span></div>
-        <div><i className="state-dot idle" />TLS plaintext<span>on demand</span></div>
+        <div><i className="state-dot idle" />USB packet capture<span>not reported</span></div>
+        <div><i className="state-dot idle" />System logs<span>not reported</span></div>
+        <div><i className="state-dot idle" />Process map<span>not reported</span></div>
+        <div><i className="state-dot idle" />TLS plaintext<span>not configured</span></div>
       </section>
     </aside>
   );

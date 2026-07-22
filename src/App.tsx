@@ -23,11 +23,13 @@ export default function App({ client = api }: { client?: ApiClient }) {
   const [endpoints, setEndpoints] = useState<EndpointSummary[]>([]);
   const [page, setPage] = useState<ExchangePage>({ exchanges: [], total: 0 });
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState<ExchangePage["exchanges"][number] | null>(null);
   const [endpoint, setEndpoint] = useState<EndpointFilter | null>(null);
   const [query, setQuery] = useState("");
   const [offset, setOffset] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const requestEpoch = useRef(0);
+  const detailEpoch = useRef(0);
   const lastQueryKey = useRef<string | null>(null);
 
   const applyPage = useCallback((nextPage: ExchangePage) => {
@@ -37,14 +39,22 @@ export default function App({ client = api }: { client?: ApiClient }) {
 
   const load = useCallback(async (sessionId: string, nextQuery: string, nextEndpoint: EndpointFilter | null, nextOffset: number) => {
     const epoch = ++requestEpoch.current;
-    const [nextEndpoints, nextPage] = await Promise.all([
-      client.listEndpoints(sessionId, nextQuery, 2_000),
-      client.pageExchanges(sessionId, { query: nextQuery, endpoint: nextEndpoint, offset: nextOffset, limit: PAGE_LIMIT }),
-    ]);
-    if (epoch !== requestEpoch.current) return;
-    setEndpoints(nextEndpoints);
-    setOffset(nextOffset);
-    applyPage(nextPage);
+    setBusy(true);
+    setError(null);
+    try {
+      const [nextEndpoints, nextPage] = await Promise.all([
+        client.listEndpoints(sessionId, nextQuery, 2_000),
+        client.pageExchanges(sessionId, { query: nextQuery, endpoint: nextEndpoint, offset: nextOffset, limit: PAGE_LIMIT }),
+      ]);
+      if (epoch !== requestEpoch.current) return;
+      setEndpoints(nextEndpoints);
+      setOffset(nextOffset);
+      applyPage(nextPage);
+    } catch (reason) {
+      if (epoch === requestEpoch.current) throw reason;
+    } finally {
+      if (epoch === requestEpoch.current) setBusy(false);
+    }
   }, [applyPage, client]);
 
   const runPreflight = async () => {
@@ -59,6 +69,8 @@ export default function App({ client = api }: { client?: ApiClient }) {
 
   const runCapture = async () => {
     setBusy(true); setStatus("capturing"); setError(null); setEndpoint(null); setQuery("");
+    detailEpoch.current += 1;
+    setSelectedDetail(null);
     try {
       const nextSummary = await client.createDemoSession(161);
       setSummary(nextSummary);
@@ -72,18 +84,15 @@ export default function App({ client = api }: { client?: ApiClient }) {
   const selectEndpoint = async (nextEndpoint: EndpointFilter | null) => {
     setEndpoint(nextEndpoint); setError(null);
     if (!summary) return;
-    setBusy(true);
     try { await load(summary.sessionId, query, nextEndpoint, 0); }
     catch (reason) { setError(errorText(reason)); }
-    finally { setBusy(false); }
   };
 
   const changePage = async (nextOffset: number) => {
     if (!summary) return;
-    setBusy(true); setError(null);
+    setError(null);
     try { await load(summary.sessionId, query, endpoint, nextOffset); }
     catch (reason) { setError(errorText(reason)); }
-    finally { setBusy(false); }
   };
 
   useEffect(() => {
@@ -97,7 +106,26 @@ export default function App({ client = api }: { client?: ApiClient }) {
     return () => window.clearTimeout(timer);
   }, [endpoint, load, query, summary]);
 
-  const selected = page.exchanges.find((item) => item.requestId === selectedId) ?? null;
+  useEffect(() => {
+    if (!summary || !selectedId) {
+      detailEpoch.current += 1;
+      setSelectedDetail(null);
+      return;
+    }
+    const epoch = ++detailEpoch.current;
+    setSelectedDetail(null);
+    client.getExchange(summary.sessionId, selectedId)
+      .then((exchange) => {
+        if (epoch === detailEpoch.current) setSelectedDetail(exchange);
+      })
+      .catch((reason) => {
+        if (epoch === detailEpoch.current) setError(errorText(reason));
+      });
+    return () => {
+      if (epoch === detailEpoch.current) detailEpoch.current += 1;
+    };
+  }, [client, selectedId, summary]);
+
   const fallbackDevice = { name: device?.name ?? "USB iPhone", id: device?.id ?? "Device preflight required", available: device?.available === true };
 
   return (
@@ -105,11 +133,11 @@ export default function App({ client = api }: { client?: ApiClient }) {
       <Toolbar busy={busy} status={status} device={device} query={query} onQuery={setQuery} onPreflight={runPreflight} onStart={runCapture} />
       {error && <div className="error-banner" role="alert"><strong>Capture warning</strong><span>{error}</span><button type="button" aria-label="Dismiss warning" onClick={() => setError(null)}>×</button></div>}
       <div className={`workspace${error ? " has-error" : ""}`}>
-        <EndpointSidebar device={fallbackDevice} endpoints={endpoints} selected={endpoint} onSelect={selectEndpoint} />
+        <EndpointSidebar device={fallbackDevice} endpoints={endpoints} total={page.total} selected={endpoint} onSelect={selectEndpoint} />
         <RequestTable exchanges={page.exchanges} total={page.total} offset={offset} limit={PAGE_LIMIT} selectedId={selectedId} busy={busy} onSelect={setSelectedId} onPage={changePage} />
-        <RawInspector exchange={selected} />
+        <RawInspector exchange={selectedDetail} />
       </div>
-      <HealthStrip status={status} received={summary?.eventCount ?? 0} persisted={summary?.eventCount ?? 0} malformed={0} dropped={0} queueDepth={0} throughput={summary ? "7 KB/s" : "0 B/s"} drift={device?.available ? "0.4 ms" : "—"} reconnects={0} lastEventAge={summary ? "42 ms" : "—"} sessionPath={summary?.sessionDir ?? null} />
+      <HealthStrip status={status} received={null} persisted={summary?.eventCount ?? null} malformed={null} dropped={null} queueDepth={null} throughput={null} drift={null} reconnects={null} lastEventAge={null} sessionPath={summary?.sessionDir ?? null} />
     </main>
   );
 }

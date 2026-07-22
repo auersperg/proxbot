@@ -12,10 +12,59 @@ describe("RawInspector", () => {
     expect(screen.getByText(/HTTP\/2 200 OK/)).toBeVisible();
     expect(screen.getAllByText("Reconstructed")).toHaveLength(2);
     expect(screen.getAllByText("application/http")).toHaveLength(2);
+    expect(screen.getAllByText("EXCHANGE OBSERVED")).toHaveLength(2);
+    expect(screen.getAllByText("Complete")).toHaveLength(2);
+    expect(screen.getAllByText("Unmasked")).toHaveLength(2);
+    expect(screen.getAllByText("Raw")).toHaveLength(2);
+    expect(screen.queryByRole("button", { name: "Headers" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Body" })).not.toBeInTheDocument();
+  });
+
+  it("states every raw transformation flag even when the view is original", () => {
+    const exchange = fixtureExchange({
+      requestRaw: {
+        content: "AAEC",
+        mediaType: "application/octet-stream; encoding=base64",
+        reconstructed: false,
+        truncated: true,
+        masked: true,
+        artifact: { relativePath: "objects/sha256/a1", offset: 19, length: 3, sha256: "a1" },
+      },
+    });
+    render(<RawInspector exchange={exchange} />);
+    const pane = screen.getByRole("region", { name: "RAW Request" });
+    expect(pane).toHaveTextContent("Original");
+    expect(pane).toHaveTextContent("Truncated");
+    expect(pane).toHaveTextContent("Masked");
+    expect(pane).toHaveTextContent("offset 19 · 3 B · a1");
   });
 
   it("does not synthesize an absent response", () => {
     render(<RawInspector exchange={fixtureExchange({ responseRaw: null, status: null })} />);
     expect(screen.getByText("No response was observed for this request.")).toBeVisible();
+  });
+
+  it("does not present the response-only placeholder as an empty raw request", () => {
+    render(<RawInspector exchange={fixtureExchange({
+      requestSequence: null,
+      warning: "request_missing",
+      requestRaw: null,
+    })} />);
+    expect(screen.getByText("No request was observed for this response.")).toBeVisible();
+  });
+
+  it("recognizes request-missing inside a composed warning", () => {
+    render(<RawInspector exchange={fixtureExchange({
+      requestSequence: null,
+      warning: "request_missing;invalid_status",
+      requestRaw: null,
+    })} />);
+    expect(screen.getByText("No request was observed for this response.")).toBeVisible();
+  });
+
+  it("distinguishes selected detail without supplied raw request evidence from no selection", () => {
+    render(<RawInspector exchange={fixtureExchange({ requestRaw: null })} />);
+    expect(screen.getByText("No raw request evidence was supplied for this exchange.")).toBeVisible();
+    expect(screen.queryByText("Select a request to inspect its exact raw evidence.")).not.toBeInTheDocument();
   });
 });

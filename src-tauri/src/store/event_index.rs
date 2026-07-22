@@ -6,8 +6,8 @@ use uuid::Uuid;
 use crate::domain::ProviderEvent;
 
 use super::{
-    EndpointFilter, EndpointSummary, ExchangePage,
-    exchange_index::{list_endpoints, materialize_event, page_exchanges},
+    EndpointFilter, EndpointSummary, ExchangePage, ExchangeRow,
+    exchange_index::{get_exchange, list_endpoints, materialize_event, page_exchanges},
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -22,9 +22,10 @@ pub struct EventIndex {
 
 impl EventIndex {
     pub fn open(path: &Path) -> anyhow::Result<Self> {
-        let connection = Connection::open(path)?;
+        let mut connection = Connection::open(path)?;
         connection.execute_batch(include_str!("../../migrations/0001_events.sql"))?;
         connection.execute_batch(include_str!("../../migrations/0002_exchanges.sql"))?;
+        backfill_exchanges(&mut connection)?;
         Ok(Self {
             connection: Mutex::new(connection),
         })
@@ -97,6 +98,15 @@ impl EventIndex {
         page_exchanges(&connection, session_id, query, endpoint, offset, limit)
     }
 
+    pub fn get_exchange(
+        &self,
+        session_id: Uuid,
+        request_id: &str,
+    ) -> anyhow::Result<Option<ExchangeRow>> {
+        let connection = self.connection.lock().expect("event index lock poisoned");
+        get_exchange(&connection, session_id, request_id)
+    }
+
     pub fn list_endpoints(
         &self,
         session_id: Uuid,
@@ -106,4 +116,35 @@ impl EventIndex {
         let connection = self.connection.lock().expect("event index lock poisoned");
         list_endpoints(&connection, session_id, query, limit)
     }
+}
+
+fn backfill_exchanges(connection: &mut Connection) -> anyhow::Result<()> {
+    let exchange_count: i64 =
+        connection.query_row("SELECT COUNT(*) FROM exchanges", [], |row| row.get(0))?;
+    if exchange_count != 0 {
+        return Ok(());
+    }
+
+    let serialized_events = {
+        let mut statement = connection.prepare(
+            "SELECT event_json
+             FROM events
+             WHERE kind IN ('network.request', 'network.response')
+             ORDER BY host_time_ns, provider_id, sequence",
+        )?;
+        statement
+            .query_map([], |row| row.get::<_, String>(0))?
+            .collect::<rusqlite::Result<Vec<_>>>()?
+    };
+    if serialized_events.is_empty() {
+        return Ok(());
+    }
+
+    let transaction = connection.transaction()?;
+    for serialized in serialized_events {
+        let event: ProviderEvent = serde_json::from_str(&serialized)?;
+        materialize_event(&transaction, &event)?;
+    }
+    transaction.commit()?;
+    Ok(())
 }

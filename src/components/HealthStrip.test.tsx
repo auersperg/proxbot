@@ -10,4 +10,12 @@ describe("HealthStrip", () => {
     }
     expect(screen.getByTitle("/tmp/session")).toBeVisible();
   });
+
+  it("labels unavailable health evidence instead of presenting synthetic zeroes", () => {
+    render(<HealthStrip status="ready" received={null} persisted={30} malformed={null} dropped={null} queueDepth={null} throughput={null} drift={null} reconnects={null} lastEventAge={null} sessionPath="/tmp/session" />);
+    expect(screen.getByLabelText("PERSISTED: 30")).toBeVisible();
+    for (const label of ["RECEIVED", "MALFORMED", "DROPPED", "QUEUE", "THROUGHPUT", "DRIFT", "RECONNECTS", "LAST EVENT"]) {
+      expect(screen.getByLabelText(`${label}: not reported`)).toBeVisible();
+    }
+  });
 });

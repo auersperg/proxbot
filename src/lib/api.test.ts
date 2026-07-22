@@ -59,4 +59,16 @@ describe("proxbot command client", () => {
       limit: 200,
     });
   });
+
+  it("requests exactly one selected exchange by immutable identity", async () => {
+    const invoke = vi.fn().mockResolvedValue({ requestId: "request-42" });
+    const api = createApi(invoke);
+
+    await api.getExchange("session", "request-42");
+
+    expect(invoke).toHaveBeenCalledWith("get_exchange", {
+      sessionId: "session",
+      requestId: "request-42",
+    });
+  });
 });

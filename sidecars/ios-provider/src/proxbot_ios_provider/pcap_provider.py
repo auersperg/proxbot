@@ -2,6 +2,8 @@ from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 from typing import Any
 
+from .secure_output import open_owner_only
+
 
 async def iter_packet_records(
     service: Any,
@@ -49,7 +51,7 @@ async def capture_pcap(
     service = PcapdService(lockdown)
     output.parent.mkdir(parents=True, exist_ok=True)
     try:
-        with output.open("wb") as stream:
+        with open_owner_only(output, "wb") as stream:
             await service.write_to_pcap(
                 stream,
                 iter_packet_records(service.service, count=count),

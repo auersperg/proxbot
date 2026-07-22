@@ -156,7 +156,7 @@ pub struct ExchangeRowDto {
     pub tls: Option<String>,
     pub evidence: EvidenceClass,
     pub warning: Option<String>,
-    pub request_raw: RawViewDto,
+    pub request_raw: Option<RawViewDto>,
     pub response_raw: Option<RawViewDto>,
 }
 
@@ -181,7 +181,7 @@ impl From<ExchangeRow> for ExchangeRowDto {
             tls: value.tls,
             evidence: value.evidence,
             warning: value.warning,
-            request_raw: value.request_raw.into(),
+            request_raw: value.request_raw.map(Into::into),
             response_raw: value.response_raw.map(Into::into),
         }
     }
@@ -210,6 +210,18 @@ pub fn validate_page_request(limit: u64) -> anyhow::Result<u64> {
 pub fn validate_endpoint_limit(limit: u64) -> anyhow::Result<u64> {
     anyhow::ensure!(limit > 0, "endpoint limit must be positive");
     Ok(limit.min(2_000))
+}
+
+pub fn validate_request_id(request_id: &str) -> anyhow::Result<&str> {
+    anyhow::ensure!(
+        !request_id.trim().is_empty(),
+        "request ID must not be empty"
+    );
+    anyhow::ensure!(
+        request_id.len() <= 512,
+        "request ID must not exceed 512 bytes"
+    );
+    Ok(request_id)
 }
 
 fn parse_endpoint(
@@ -340,6 +352,20 @@ pub async fn page_exchanges(
         exchanges: page.exchanges.into_iter().map(Into::into).collect(),
         total: page.total,
     })
+}
+
+#[tauri::command]
+pub async fn get_exchange(
+    session_id: String,
+    request_id: String,
+    state: State<'_, AppState>,
+) -> Result<Option<ExchangeRowDto>, String> {
+    let session_id = Uuid::parse_str(&session_id).map_err(|error| error.to_string())?;
+    validate_request_id(&request_id).map_err(|error| error.to_string())?;
+    EventIndex::open(&session_database(&state, session_id))
+        .and_then(|index| index.get_exchange(session_id, &request_id))
+        .map(|exchange| exchange.map(Into::into))
+        .map_err(|error| error.to_string())
 }
 
 #[tauri::command]

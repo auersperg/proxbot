@@ -4,6 +4,8 @@ from collections.abc import AsyncIterable, AsyncIterator
 from pathlib import Path
 from typing import Any
 
+from .secure_output import open_owner_only
+
 
 async def iter_log_records(
     lines: AsyncIterable[str], count: int = -1, clock_ns=time.time_ns
@@ -29,7 +31,7 @@ async def capture_logs(
     output.parent.mkdir(parents=True, exist_ok=True)
     written = 0
     try:
-        with output.open("w", encoding="utf-8") as stream:
+        with open_owner_only(output, "w") as stream:
             async for record in iter_log_records(service.watch(), count=count):
                 stream.write(json.dumps(record, ensure_ascii=False, separators=(",", ":")))
                 stream.write("\n")

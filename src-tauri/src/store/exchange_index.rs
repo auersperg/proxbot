@@ -1,4 +1,6 @@
-use rusqlite::{Transaction, params, params_from_iter, types::Value as SqlValue};
+use rusqlite::{
+    OptionalExtension, Transaction, params, params_from_iter, types::Value as SqlValue,
+};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -54,7 +56,7 @@ pub struct ExchangeRow {
     pub tls: Option<String>,
     pub evidence: EvidenceClass,
     pub warning: Option<String>,
-    pub request_raw: RawView,
+    pub request_raw: Option<RawView>,
     pub response_raw: Option<RawView>,
 }
 
@@ -98,7 +100,7 @@ pub(super) fn materialize_event(
     let Some(request_id) = text(event, "request_id") else {
         return Ok(());
     };
-    let raw = text(event, "raw").unwrap_or_default();
+    let raw = text(event, "raw");
     let media_type = text(event, "media_type").unwrap_or_else(|| "application/octet-stream".into());
     let artifact = event
         .raw_ref
@@ -124,7 +126,11 @@ pub(super) fn materialize_event(
                 request_reconstructed=excluded.request_reconstructed,
                 request_truncated=excluded.request_truncated, request_masked=excluded.request_masked,
                 request_artifact_json=excluded.request_artifact_json,
-                warning=CASE WHEN exchanges.response_sequence IS NULL THEN 'response_missing' ELSE NULL END",
+                warning=CASE
+                    WHEN exchanges.response_sequence IS NULL THEN 'response_missing'
+                    WHEN exchanges.warning LIKE '%invalid_status%' THEN 'invalid_status'
+                    ELSE NULL
+                END",
             params![
                 event.session_id.to_string(), request_id, event.sequence as i64, event.host_time_ns,
                 text(event, "method"), text(event, "scheme"), text(event, "host"), text(event, "ip"),
@@ -135,14 +141,23 @@ pub(super) fn materialize_event(
             ],
         )?;
     } else {
+        let supplied_status = unsigned(event, "status");
+        let status = supplied_status.and_then(|value| u16::try_from(value).ok());
+        let invalid_status = supplied_status.is_some() && status.is_none();
+        let missing_request_warning = if invalid_status {
+            "request_missing;invalid_status"
+        } else {
+            "request_missing"
+        };
+        let paired_warning = invalid_status.then_some("invalid_status");
         transaction.execute(
             "INSERT INTO exchanges (
                 session_id, request_id, response_sequence, started_ns, status, protocol,
                 process_name, duration_ms, response_bytes, evidence, warning, response_raw,
                 response_media_type, response_reconstructed, response_truncated,
                 response_masked, response_artifact_json, request_raw, request_media_type
-             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, 'request_missing', ?11,
-                       ?12, ?13, ?14, ?15, ?16, '', 'application/octet-stream')
+             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12,
+                       ?13, ?14, ?15, ?16, ?17, NULL, NULL)
              ON CONFLICT(session_id, request_id) DO UPDATE SET
                 response_sequence=excluded.response_sequence, status=excluded.status,
                 protocol=COALESCE(exchanges.protocol, excluded.protocol),
@@ -151,14 +166,14 @@ pub(super) fn materialize_event(
                 response_reconstructed=excluded.response_reconstructed,
                 response_truncated=excluded.response_truncated, response_masked=excluded.response_masked,
                 response_artifact_json=excluded.response_artifact_json,
-                warning=CASE WHEN exchanges.request_sequence IS NULL THEN 'request_missing' ELSE NULL END",
+                warning=CASE WHEN exchanges.request_sequence IS NULL THEN excluded.warning ELSE ?18 END",
             params![
                 event.session_id.to_string(), request_id, event.sequence as i64, event.host_time_ns,
-                unsigned(event, "status").map(|v| v as i64), text(event, "protocol"),
+                status.map(i64::from), text(event, "protocol"),
                 event.process_name, unsigned(event, "duration_ms").map(|v| v as i64),
                 unsigned(event, "response_bytes").map(|v| v as i64), evidence_text(event.evidence),
-                raw, media_type, flag(event, "reconstructed"), flag(event, "truncated"),
-                flag(event, "masked"), artifact,
+                missing_request_warning, raw, media_type, flag(event, "reconstructed"),
+                flag(event, "truncated"), flag(event, "masked"), artifact, paired_warning,
             ],
         )?;
     }
@@ -173,11 +188,19 @@ fn escaped_like(value: &str) -> String {
     format!("%{escaped}%")
 }
 
-fn evidence(value: String) -> EvidenceClass {
+fn evidence(value: String) -> rusqlite::Result<EvidenceClass> {
     match value.as_str() {
-        "enriched" => EvidenceClass::Enriched,
-        "inferred" => EvidenceClass::Inferred,
-        _ => EvidenceClass::Observed,
+        "observed" => Ok(EvidenceClass::Observed),
+        "enriched" => Ok(EvidenceClass::Enriched),
+        "inferred" => Ok(EvidenceClass::Inferred),
+        _ => Err(rusqlite::Error::FromSqlConversionFailure(
+            16,
+            rusqlite::types::Type::Text,
+            Box::new(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!("unsupported evidence class {value}"),
+            )),
+        )),
     }
 }
 
@@ -193,6 +216,59 @@ fn artifact(value: Option<String>) -> rusqlite::Result<Option<RawArtifactRef>> {
             })
         })
         .transpose()
+}
+
+fn exchange_detail_from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<ExchangeRow> {
+    let request_content: Option<String> = row.get(18)?;
+    let response_content: Option<String> = row.get(19)?;
+    let request_artifact = artifact(row.get(28)?)?;
+    let response_artifact = artifact(row.get(29)?)?;
+    let request_media_type: Option<String> = row.get(20)?;
+    let response_media_type: Option<String> = row.get(21)?;
+    let request_reconstructed: bool = row.get(22)?;
+    let response_reconstructed: bool = row.get(23)?;
+    let request_truncated: bool = row.get(24)?;
+    let response_truncated: bool = row.get(25)?;
+    let request_masked: bool = row.get(26)?;
+    let response_masked: bool = row.get(27)?;
+    let request_raw = request_content.map(|content| RawView {
+        content,
+        media_type: request_media_type.unwrap_or_else(|| "application/octet-stream".into()),
+        reconstructed: request_reconstructed,
+        truncated: request_truncated,
+        masked: request_masked,
+        artifact: request_artifact,
+    });
+    let response_raw = response_content.map(|content| RawView {
+        content,
+        media_type: response_media_type.unwrap_or_else(|| "application/octet-stream".into()),
+        reconstructed: response_reconstructed,
+        truncated: response_truncated,
+        masked: response_masked,
+        artifact: response_artifact,
+    });
+    Ok(ExchangeRow {
+        request_id: row.get(0)?,
+        request_sequence: row.get::<_, Option<i64>>(1)?.map(|v| v as u64),
+        response_sequence: row.get::<_, Option<i64>>(2)?.map(|v| v as u64),
+        started_ns: row.get(3)?,
+        method: row.get(4)?,
+        scheme: row.get(5)?,
+        host: row.get(6)?,
+        ip: row.get(7)?,
+        path: row.get(8)?,
+        status: row.get::<_, Option<i64>>(9)?.map(|v| v as u16),
+        protocol: row.get(10)?,
+        process_name: row.get(11)?,
+        duration_ms: row.get::<_, Option<i64>>(12)?.map(|v| v as u64),
+        request_bytes: row.get::<_, Option<i64>>(13)?.map(|v| v as u64),
+        response_bytes: row.get::<_, Option<i64>>(14)?.map(|v| v as u64),
+        tls: row.get(15)?,
+        evidence: evidence(row.get(16)?)?,
+        warning: row.get(17)?,
+        request_raw,
+        response_raw,
+    })
 }
 
 pub(super) fn page_exchanges(
@@ -232,17 +308,11 @@ pub(super) fn page_exchanges(
     let mut statement = transaction.prepare(&format!(
         "SELECT request_id, request_sequence, response_sequence, started_ns, method, scheme,
                 host, ip, path, status, protocol, process_name, duration_ms, request_bytes,
-                response_bytes, tls, evidence, warning, request_raw, response_raw,
-                request_media_type, response_media_type, request_reconstructed,
-                response_reconstructed, request_truncated, response_truncated,
-                request_masked, response_masked, request_artifact_json, response_artifact_json
+                response_bytes, tls, evidence, warning
          FROM exchanges WHERE {where_sql}
          ORDER BY started_ns, request_id LIMIT ?{limit_parameter} OFFSET ?{offset_parameter}"
     ))?;
     let rows = statement.query_map(params_from_iter(page_values.iter()), |row| {
-        let request_artifact: Option<String> = row.get(28)?;
-        let response_artifact: Option<String> = row.get(29)?;
-        let response_content: Option<String> = row.get(19)?;
         Ok(ExchangeRow {
             request_id: row.get(0)?,
             request_sequence: row.get::<_, Option<i64>>(1)?.map(|v| v as u64),
@@ -260,30 +330,10 @@ pub(super) fn page_exchanges(
             request_bytes: row.get::<_, Option<i64>>(13)?.map(|v| v as u64),
             response_bytes: row.get::<_, Option<i64>>(14)?.map(|v| v as u64),
             tls: row.get(15)?,
-            evidence: evidence(row.get(16)?),
+            evidence: evidence(row.get(16)?)?,
             warning: row.get(17)?,
-            request_raw: RawView {
-                content: row.get::<_, Option<String>>(18)?.unwrap_or_default(),
-                media_type: row
-                    .get::<_, Option<String>>(20)?
-                    .unwrap_or_else(|| "application/octet-stream".into()),
-                reconstructed: row.get(22)?,
-                truncated: row.get(24)?,
-                masked: row.get(26)?,
-                artifact: artifact(request_artifact)?,
-            },
-            response_raw: response_content.map(|content| RawView {
-                content,
-                media_type: row
-                    .get::<_, Option<String>>(21)
-                    .ok()
-                    .flatten()
-                    .unwrap_or_else(|| "application/octet-stream".into()),
-                reconstructed: row.get(23).unwrap_or(false),
-                truncated: row.get(25).unwrap_or(false),
-                masked: row.get(27).unwrap_or(false),
-                artifact: artifact(response_artifact).ok().flatten(),
-            }),
+            request_raw: None,
+            response_raw: None,
         })
     })?;
     let exchanges = rows.collect::<rusqlite::Result<Vec<_>>>()?;
@@ -291,6 +341,28 @@ pub(super) fn page_exchanges(
         exchanges,
         total: total as u64,
     })
+}
+
+pub(super) fn get_exchange(
+    connection: &rusqlite::Connection,
+    session_id: Uuid,
+    request_id: &str,
+) -> anyhow::Result<Option<ExchangeRow>> {
+    let mut statement = connection.prepare(
+        "SELECT request_id, request_sequence, response_sequence, started_ns, method, scheme,
+                host, ip, path, status, protocol, process_name, duration_ms, request_bytes,
+                response_bytes, tls, evidence, warning, request_raw, response_raw,
+                request_media_type, response_media_type, request_reconstructed,
+                response_reconstructed, request_truncated, response_truncated,
+                request_masked, response_masked, request_artifact_json, response_artifact_json
+         FROM exchanges WHERE session_id = ?1 AND request_id = ?2",
+    )?;
+    Ok(statement
+        .query_row(
+            params![session_id.to_string(), request_id],
+            exchange_detail_from_row,
+        )
+        .optional()?)
 }
 
 pub(super) fn list_endpoints(
@@ -306,7 +378,12 @@ pub(super) fn list_endpoints(
         let sql = format!(
             "SELECT {column}, COUNT(*) FROM exchanges
              WHERE session_id = ?1 AND {column} IS NOT NULL AND {column} != ''
-               AND (?2 = '%%' OR {column} LIKE ?2 ESCAPE '\\' OR COALESCE(path,'') LIKE ?2 ESCAPE '\\')
+               AND (?2 = '%%'
+                    OR COALESCE(method,'') LIKE ?2 ESCAPE '\\'
+                    OR COALESCE(host,'') LIKE ?2 ESCAPE '\\'
+                    OR COALESCE(ip,'') LIKE ?2 ESCAPE '\\'
+                    OR COALESCE(path,'') LIKE ?2 ESCAPE '\\'
+                    OR COALESCE(protocol,'') LIKE ?2 ESCAPE '\\')
              GROUP BY {column} ORDER BY COUNT(*) DESC, {column} LIMIT ?3"
         );
         let mut statement = connection.prepare(&sql)?;
@@ -328,6 +405,7 @@ pub(super) fn list_endpoints(
             .then_with(|| b.count.cmp(&a.count))
             .then_with(|| a.value.cmp(&b.value))
     });
+    summaries.truncate(bounded_limit as usize);
     Ok(summaries)
 }
 

@@ -8,7 +8,9 @@ pub mod store;
 use std::path::PathBuf;
 
 use app_state::AppState;
-use commands::{create_demo_session, frida_preflight, list_endpoints, page_events, page_exchanges};
+use commands::{
+    create_demo_session, frida_preflight, get_exchange, list_endpoints, page_events, page_exchanges,
+};
 use provider::ProviderRuntime;
 use tauri::Manager;
 
@@ -35,6 +37,7 @@ pub fn run() {
             page_events,
             list_endpoints,
             page_exchanges,
+            get_exchange,
             frida_preflight
         ])
         .run(tauri::generate_context!())

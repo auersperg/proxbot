@@ -82,7 +82,7 @@ export interface ExchangeRow {
   tls: string | null;
   evidence: EvidenceClass;
   warning: string | null;
-  requestRaw: RawView;
+  requestRaw: RawView | null;
   responseRaw: RawView | null;
 }
 

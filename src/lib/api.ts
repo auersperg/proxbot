@@ -5,6 +5,7 @@ import type {
   EventPage,
   ExchangePage,
   ExchangeQuery,
+  ExchangeRow,
   FridaPreflight,
 } from "./contracts";
 
@@ -31,6 +32,8 @@ export function createApi(invoke: Invoke = tauriInvoke) {
         offset: filter.offset,
         limit: filter.limit,
       }),
+    getExchange: (sessionId: string, requestId: string) =>
+      invoke<ExchangeRow | null>("get_exchange", { sessionId, requestId }),
   };
 }
 

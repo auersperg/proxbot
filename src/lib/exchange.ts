@@ -15,12 +15,11 @@ export function responseLabel(status: number | null): string {
 }
 
 export function warningLabel(warning: string | null): string {
-  switch (warning) {
-    case "response_missing": return "Response missing";
-    case "request_missing": return "Request missing";
-    case null: return "";
-    default: return warning.replaceAll("_", " ");
-  }
+  if (warning === null) return "";
+  return warning.split(";").map((value) => {
+    const words = value.replaceAll("_", " ");
+    return words.charAt(0).toUpperCase() + words.slice(1);
+  }).join("; ");
 }
 
 export function statusTone(status: number | null): string {

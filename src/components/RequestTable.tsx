@@ -30,13 +30,29 @@ export default function RequestTable({ exchanges, total, offset, limit, selected
   const renderedItems = items.length
     ? items
     : exchanges.map((_, index) => ({ index, start: index * 31 }));
+  const moveSelection = (index: number, key: string) => {
+    const nextIndex = key === "ArrowDown" ? Math.min(exchanges.length - 1, index + 1)
+      : key === "ArrowUp" ? Math.max(0, index - 1)
+        : key === "Home" ? 0
+          : key === "End" ? exchanges.length - 1
+            : index;
+    if (nextIndex === index || nextIndex < 0) return false;
+    const next = exchanges[nextIndex];
+    if (!next) return false;
+    virtualizer.scrollToIndex(nextIndex, { align: "auto" });
+    onSelect(next.requestId);
+    window.requestAnimationFrame(() => {
+      scroller.current?.querySelector<HTMLButtonElement>(`[data-row-index="${nextIndex}"]`)?.focus();
+    });
+    return true;
+  };
 
   return (
     <section className="request-table" aria-label="Captured requests">
-      <div className="request-grid table-header" role="row">
-        {columns.map((column) => <span role="columnheader" key={column}>{column}</span>)}
-      </div>
       <div className="request-scroll" ref={scroller}>
+        <div className="request-grid table-header" role="row">
+          {columns.map((column) => <span role="columnheader" key={column}>{column}</span>)}
+        </div>
         <div className="virtual-space" style={{ height: `${Math.max(virtualizer.getTotalSize(), exchanges.length * 31)}px` }}>
           {renderedItems.map((item) => {
             const exchange = exchanges[item.index];
@@ -50,20 +66,24 @@ export default function RequestTable({ exchanges, total, offset, limit, selected
                 className={`request-grid request-row${selectedId === exchange.requestId ? " selected" : ""}`}
                 aria-label={`${exchange.method ?? "Unknown method"} ${address} ${exchange.path ?? ""}`}
                 aria-pressed={selectedId === exchange.requestId}
+                data-row-index={item.index}
                 style={{ transform: `translateY(${item.start}px)` }}
                 onClick={() => onSelect(exchange.requestId)}
+                onKeyDown={(event) => {
+                  if (moveSelection(item.index, event.key)) event.preventDefault();
+                }}
               >
                 <span className="mono sequence">{exchange.requestSequence ?? exchange.responseSequence ?? "—"}</span>
                 <span className="mono subdued">{formatObservedTime(exchange.startedNs)}</span>
                 <span><b className={`method method-${(exchange.method ?? "unknown").toLowerCase()}`}>{exchange.method ?? "—"}</b></span>
                 <span className="endpoint-cell"><strong>{address}</strong><small>{exchange.ip && exchange.host ? exchange.ip : exchange.processName ?? ""}</small></span>
                 <span className="path-cell mono">{exchange.path ?? "—"}</span>
-                <span>{warning ? <em className="warning-label">{warning}</em> : <b className={`status status-${statusTone(exchange.status)}`}>{responseLabel(exchange.status)}</b>}</span>
+                <span className="status-stack"><b className={`status status-${statusTone(exchange.status)}`}>{responseLabel(exchange.status)}</b>{warning && <em className="warning-label">{warning}</em>}</span>
                 <span className="mono subdued">{exchange.protocol ?? "—"}</span>
                 <span className="mono subdued">{exchange.durationMs === null ? "—" : `${exchange.durationMs} ms`}</span>
                 <span className="mono subdued">{formatBytes(exchange.requestBytes)}</span>
                 <span className="mono subdued">{formatBytes(exchange.responseBytes)}</span>
-                <span className="tls-state">{exchange.tls ?? "—"}</span>
+                <span className="tls-state"><span>{exchange.tls ?? "—"}</span><em className="evidence-label">{exchange.evidence.toUpperCase()}</em></span>
               </button>
             );
           })}

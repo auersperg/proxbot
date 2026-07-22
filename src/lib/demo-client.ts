@@ -26,21 +26,26 @@ const exchanges: ExchangeRow[] = Array.from({ length: 80 }, (_, index) => {
     method,
     status,
     durationMs: 32 + (index * 17) % 240,
-    requestBytes: 240 + index * 31,
-    responseBytes: 93 + index * 7,
     tls: method === "CONNECT" ? "tunnel" : "decrypted",
     processName: index % 3 ? "WalletLab" : "SpringApp",
   });
+  const requestContent = `${method} ${path} HTTP/2\r\nHost: ${host}\r\nAccept: application/json\r\nContent-Type: application/json\r\nX-Proxbot-Request-ID: ${base.requestId}\r\n\r\n{"method":"${index % 2 ? "signTransaction" : "sendTransaction"}","sequence":${index}}`;
+  const reason = status === 200 ? "OK" : status === 202 ? "Accepted" : status === 304 ? "Not Modified" : status === 401 ? "Unauthorized" : "Unknown";
+  const responseBody = `{"request_id":"${base.requestId}","ok":${status < 400}}`;
+  const responseLength = new TextEncoder().encode(responseBody).byteLength;
+  const responseContent = `HTTP/2 ${status} ${reason}\r\nContent-Type: application/json\r\nContent-Length: ${responseLength}\r\nStrict-Transport-Security: max-age=31536000\r\n\r\n${responseBody}`;
   return {
     ...base,
-    requestRaw: { ...base.requestRaw, content: `${method} ${path} HTTP/2\r\nHost: ${host}\r\nAccept: application/json\r\nContent-Type: application/json\r\nX-Proxbot-Request-ID: ${base.requestId}\r\n\r\n{"method":"${index % 2 ? "signTransaction" : "sendTransaction"}","sequence":${index}}` },
-    responseRaw: base.responseRaw ? { ...base.responseRaw, content: `HTTP/2 ${status} ${status === 200 ? "OK" : "Observed"}\r\nContent-Type: application/json\r\nContent-Length: 42\r\nStrict-Transport-Security: max-age=31536000\r\n\r\n{"request_id":"${base.requestId}","ok":${status < 400}}` } : null,
+    requestBytes: new TextEncoder().encode(requestContent).byteLength,
+    responseBytes: new TextEncoder().encode(responseContent).byteLength,
+    requestRaw: { ...base.requestRaw!, content: requestContent },
+    responseRaw: base.responseRaw ? { ...base.responseRaw, content: responseContent } : null,
   };
 });
 
-const endpointSummaries: EndpointSummary[] = hosts.flatMap(([host, ip], index) => [
-  { kind: "domain" as const, value: host, count: 10 + index * 3 },
-  { kind: "ip" as const, value: ip, count: 10 + index * 3 },
+const endpointSummaries: EndpointSummary[] = hosts.flatMap(([host, ip]) => [
+  { kind: "domain" as const, value: host, count: exchanges.filter((exchange) => exchange.host === host).length },
+  { kind: "ip" as const, value: ip, count: exchanges.filter((exchange) => exchange.ip === ip).length },
 ]);
 
 export const browserDemoApi: ApiClient = {
@@ -48,7 +53,7 @@ export const browserDemoApi: ApiClient = {
     return { sessionId: "browser-fixture-session", sessionDir: "/tmp/proxbot/browser-fixture-session", eventCount: Math.min(count, exchanges.length * 2 + 1) };
   },
   async pageEvents() { return { events: [], total: 0 }; },
-  async fridaPreflight() { return { available: true, id: "00008140-001251C43E59001C", name: "Adam’s iPhone", type: "usb" }; },
+  async fridaPreflight() { return { available: true, id: "LAB-DEVICE-FIXTURE-0001", name: "Lab iPhone", type: "usb" }; },
   async listEndpoints(_sessionId, query, limit) {
     const needle = query.trim().toLowerCase();
     return endpointSummaries.filter((item) => !needle || item.value.toLowerCase().includes(needle)).slice(0, limit);
@@ -62,6 +67,15 @@ export const browserDemoApi: ApiClient = {
       }
       return !needle || [exchange.method, exchange.host, exchange.ip, exchange.path, exchange.protocol, exchange.processName].some((value) => value?.toLowerCase().includes(needle));
     });
-    return { exchanges: filtered.slice(filter.offset, filter.offset + filter.limit), total: filtered.length };
+    return { exchanges: filtered.slice(filter.offset, filter.offset + filter.limit).map(withoutRaw), total: filtered.length };
+  },
+  async getExchange(_sessionId, requestId) {
+    const exchange = exchanges.find((item) => item.requestId === requestId);
+    if (!exchange) throw new Error(`Exchange ${requestId} was not found`);
+    return exchange;
   },
 };
+
+function withoutRaw(exchange: ExchangeRow): ExchangeRow {
+  return { ...exchange, requestRaw: null, responseRaw: null };
+}

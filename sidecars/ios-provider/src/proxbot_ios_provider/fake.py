@@ -8,6 +8,7 @@ _EXCHANGES = (
         "method": "POST",
         "path": "/api/v1/wallets/rpc",
         "status": 200,
+        "reason": "OK",
         "protocol": "HTTP/2",
         "request_body": '{"method":"signTransaction"}',
         "response_body": '{"method":"signTransaction","status":"signed"}',
@@ -18,6 +19,7 @@ _EXCHANGES = (
         "method": "POST",
         "path": "/",
         "status": 200,
+        "reason": "OK",
         "protocol": "HTTP/2",
         "request_body": '{"jsonrpc":"2.0","method":"sendTransaction","id":1}',
         "response_body": '{"jsonrpc":"2.0","result":"5QnightVisionFixture"}',
@@ -27,7 +29,8 @@ _EXCHANGES = (
         "ip": "203.0.113.30",
         "method": "POST",
         "path": "/2/httpapi",
-        "status": 200,
+        "status": 202,
+        "reason": "Accepted",
         "protocol": "HTTP/1.1",
         "request_body": '{"events":[{"event_type":"wallet_signed"}]}',
         "response_body": '{"code":200,"events_ingested":1}',
@@ -38,6 +41,7 @@ _EXCHANGES = (
         "method": "CONNECT",
         "path": ":443",
         "status": 200,
+        "reason": "Connection Established",
         "protocol": "HTTP/1.1",
         "request_body": "",
         "response_body": "",
@@ -61,7 +65,7 @@ def _raw_request(exchange: dict[str, Any]) -> str:
 def _raw_response(exchange: dict[str, Any]) -> str:
     body = exchange["response_body"]
     return (
-        f'{exchange["protocol"]} {exchange["status"]} OK\r\n'
+        f'{exchange["protocol"]} {exchange["status"]} {exchange["reason"]}\r\n'
         "Content-Type: application/json\r\n"
         f"Content-Length: {len(body.encode())}\r\n"
         "Strict-Transport-Security: max-age=31536000\r\n"

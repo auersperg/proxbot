@@ -11,10 +11,15 @@ const endpoints = [
 describe("EndpointSidebar", () => {
   it("separates domain and IP identities and emits exact filters", async () => {
     const onSelect = vi.fn();
-    render(<EndpointSidebar device={{ name: "Adam’s iPhone", id: "fixture-device", available: true }} endpoints={endpoints} selected={null} onSelect={onSelect} />);
+    render(<EndpointSidebar device={{ name: "Adam’s iPhone", id: "fixture-device", available: true }} endpoints={endpoints} total={12} selected={null} onSelect={onSelect} />);
     expect(screen.getByRole("heading", { name: "Domains" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "IP addresses" })).toBeVisible();
-    expect(screen.getByText("12")).toBeVisible();
+    expect(screen.getAllByText("12")).toHaveLength(2);
+    expect(screen.getByRole("button", { name: /Adam’s iPhone.*12/ })).toBeVisible();
+    expect(screen.queryByRole("button", { name: /Adam’s iPhone.*19/ })).not.toBeInTheDocument();
+    expect(screen.getAllByText("not reported")).toHaveLength(3);
+    expect(screen.getByText("not configured")).toBeVisible();
+    expect(screen.queryByText("ready")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /auth\.privy\.io/ }));
     expect(onSelect).toHaveBeenCalledWith({ kind: "domain", value: "auth.privy.io" });
   });
