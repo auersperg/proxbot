@@ -35,3 +35,4 @@ export function createApi(invoke: Invoke = tauriInvoke) {
 }
 
 export const api = createApi();
+export type ApiClient = ReturnType<typeof createApi>;
