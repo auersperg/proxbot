@@ -156,7 +156,7 @@ SHA-256 01cd46c9129062e1bbb63335e466cf921caa1a55ca379f69e604e9bd09d758a8
 ## Repository and security hygiene
 
 - exactly one JavaScript lockfile exists: `bun.lock`;
-- no pnpm/npm/Yarn lockfile, Svelte configuration/source, or unused legacy frontend remains;
+- no alternative package-manager lockfile, legacy frontend configuration/source, or unused retired frontend remains;
 - tracked and pending release files contain no detected JWT, refresh/access token, seed/private-key, or private-key PEM pattern;
 - browser/provider fixtures use synthetic device metadata and RFC 5737 documentation IP addresses;
 - session directories are owner-only, durable files are owner-only, and exclusive creation plus final-component/ancestor symlink checks prevent redirection into pre-existing targets;

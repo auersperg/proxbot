@@ -109,7 +109,7 @@ The iOS provider is a bundled sidecar based on `pymobiledevice3`, isolated behin
 
 ### 4.1 Frontend and JavaScript toolchain
 
-The desktop interface uses React 19, React DOM 19, TypeScript 7, Vite 8, and Bun 1.3. Bun is the only JavaScript package manager and script runner used by the repository. The repository contains one `bun.lock` and no pnpm, npm, or Yarn lockfiles. Tauri invokes `bun run dev` and `bun run build`; Vite produces `dist`, which Tauri consumes as `../dist`.
+The desktop interface uses React 19, React DOM 19, TypeScript 7, Vite 8, and Bun 1.3. Bun is the only JavaScript package manager and script runner used by the repository. The repository contains exactly one JavaScript lockfile, `bun.lock`, and no alternative package-manager artifacts. Tauri invokes `bun run dev` and `bun run build`; Vite produces `dist`, which Tauri consumes as `../dist`.
 
 The frontend is a client-only application. It has no SSR, frontend router, Redux-style global store, UI component framework, or parallel legacy frontend. Local component state and focused reducers manage presentation state. Rust remains the source of truth for sessions, queries, filtering, sorting, paging, artifact access, and analysis.
 
@@ -573,7 +573,7 @@ Each milestone must be independently testable and leave a usable artifact. Hardw
 
 The MVP is accepted when a user can connect the paired iPhone, select the laboratory application, start a synchronized session, reproduce a pinned-TLS embedded-wallet transaction, stop capture, and inspect a timeline that:
 
-- runs through the single Bun/React/Vite frontend with no retained Svelte or pnpm runtime path;
+- runs through the single Bun/React/Vite frontend with no retained legacy frontend or alternative package-manager runtime path;
 - presents the selected device, indexed domain/IP tree, paged request table, and simultaneous RAW Request and RAW Response panes in one window;
 - shows original request and response bytes with provider, artifact, offset, length, hash, parse, truncation, reconstruction, evidence, and masking state;
 - retains raw PCAP and all provider artifacts;

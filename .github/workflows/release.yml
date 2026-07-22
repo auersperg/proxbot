@@ -1,0 +1,137 @@
+name: Release macOS
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  macos-arm64:
+    name: Build, verify, and publish macOS arm64
+    runs-on: macos-14
+    timeout-minutes: 60
+    environment: production-release
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Install Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.3.14
+      - name: Install uv
+        uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff # v6
+        with:
+          version: 0.9.18
+          enable-cache: true
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          toolchain: stable
+          components: clippy,rustfmt
+      - name: Verify tag and application versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag_version="${GITHUB_REF_NAME#v}"
+          package_version="$(bun -e 'console.log((await Bun.file("package.json").json()).version)')"
+          mcp_version="$(bun -e 'console.log((await Bun.file("apps/mcp-server/package.json").json()).version)')"
+          tauri_version="$(bun -e 'console.log((await Bun.file("src-tauri/tauri.conf.json").json()).version)')"
+          cargo_version="$(sed -nE 's/^version = "([^"]+)"/\1/p' src-tauri/Cargo.toml | head -1)"
+          test "$tag_version" = "$package_version"
+          test "$tag_version" = "$mcp_version"
+          test "$tag_version" = "$tauri_version"
+          test "$tag_version" = "$cargo_version"
+      - name: Require production signing and notarization credentials
+        shell: bash
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          for name in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID; do
+            test -n "${!name}" || { echo "Missing required production secret: $name" >&2; exit 1; }
+          done
+      - name: Verify repository boundaries
+        run: bun scripts/repository-hygiene.mjs
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+      - name: Install locked provider environment
+        run: uv sync --project sidecars/ios-provider --extra test --frozen
+      - name: Run complete quality gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun run test
+          bun run check
+          bun run build
+          bun run --cwd apps/mcp-server check
+          bun run --cwd apps/mcp-server test
+          uv run --project sidecars/ios-provider --extra test pytest -q
+          cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+          cargo test --locked --manifest-path src-tauri/Cargo.toml --all-targets
+          cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets --all-features -- -D warnings
+      - name: Build application bundle
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: bun run tauri:build -- --bundles app
+      - name: Verify and archive bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="src-tauri/target/release/bundle/macos/proxbot.app"
+          test -d "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          spctl --assess --type execute --verbose=2 "$app"
+          xcrun stapler validate "$app"
+          mkdir -p artifacts
+          archive="artifacts/proxbot-${GITHUB_REF_NAME#v}-macos-arm64.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$app" "$archive"
+          unzip -t "$archive"
+          shasum -a 256 "$archive" | tee "${archive}.sha256"
+      - name: Retain verified release artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: proxbot-${{ github.ref_name }}-macos-arm64
+          path: |
+            artifacts/*.zip
+            artifacts/*.sha256
+          if-no-files-found: error
+          retention-days: 30
+  publish:
+    name: Publish verified release
+    needs: macos-arm64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download verified release artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: proxbot-${{ github.ref_name }}-macos-arm64
+          path: artifacts
+      - name: Publish GitHub release assets
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: |
+            artifacts/*.zip
+            artifacts/*.sha256

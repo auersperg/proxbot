@@ -6,7 +6,7 @@
 
 **Architecture:** Tauri 2 and Rust remain the trusted coordinator, evidence store, analysis scheduler, export engine, and UI query boundary. Bundled Python providers implement iOS/Frida integration behind the existing versioned MessagePack protocol; the local Rust proxy and analyzers append raw evidence before normalized or inferred records are created.
 
-**Tech Stack:** Tauri 2, Rust stable, Tokio, rusqlite, rcgen/rustls, pcap-file, serde, MessagePack, Svelte 5, TypeScript, Vitest, Python 3.14, uv, Frida 17, pymobiledevice3, Solana message parsing.
+**Tech Stack:** Tauri 2, Rust stable, Tokio, rusqlite, rcgen/rustls, pcap-file, serde, MessagePack, React 19, TypeScript, Vite, Vitest, Bun, Python 3.14, uv, Frida 17, pymobiledevice3, Solana message parsing.
 
 ## Global Constraints
 
@@ -43,7 +43,7 @@ fixtures/                       deterministic protocol and Solana golden session
 
 **Interfaces:** Produces `APP_META = { name: "proxbot", bundleIdentifier: "com.auersperg.proxbot" }`, `proxbot_lib`, `proxbot.app`, and GitHub `main`.
 
-- [ ] Change the existing APP_META test first to expect the exact proxbot identity and run `pnpm test src/lib/app-meta.test.ts` to observe the TraceLab mismatch.
+- [ ] Change the existing APP_META test first to expect the exact proxbot identity and run `bun test src/lib/app-meta.test.ts` to observe the TraceLab mismatch.
 - [ ] Rename the visible app, package, Rust binary/library, capability description, socket prefix, documentation headings, and bundle identifier while preserving old design history as an explicitly superseded record.
 - [ ] Run frontend, Rust, Python, build, and configuration checks.
 - [ ] Add `origin=https://github.com/auersperg/proxbot.git`, verify the repository is empty, and push the stable commit to `main`.
@@ -87,7 +87,7 @@ fixtures/                       deterministic protocol and Solana golden session
 
 ### Task 5: Local Proxy and Certificate Management
 
-**Files:** `src-tauri/src/proxy/{ca,server,http1,http2,websocket,tls}.rs`, `src-tauri/tests/proxy_capture.rs`, `src/lib/components/ProxyPanel.svelte`
+**Files:** `src-tauri/src/proxy/{ca,server,http1,http2,websocket,tls}.rs`, `src-tauri/tests/proxy_capture.rs`, `src/components/ProxyPanel.tsx`
 
 **Interfaces:** Produces a loopback-only proxy, per-session leaf certificates, CONNECT metadata, HTTP/1.1 flows, HTTP/2 streams, WebSocket frames, TLS metadata, and explicit proxy configuration/cleanup actions.
 
@@ -111,7 +111,7 @@ fixtures/                       deterministic protocol and Solana golden session
 
 ### Task 7: Network, Wallet, and Solana Analysis
 
-**Files:** `src-tauri/src/analysis/{network,correlation,wallet,solana}.rs`, golden fixtures and tests, `src/lib/components/{FlowInspector,WalletTrace,SolanaInspector}.svelte`
+**Files:** `src-tauri/src/analysis/{network,correlation,wallet,solana}.rs`, golden fixtures and tests, `src/components/{FlowInspector,WalletTrace,SolanaInspector}.tsx`
 
 **Interfaces:** Produces normalized flows, confidence-scored correlations, decoded legacy/v0 Solana messages, and explicit `unsigned -> sign request -> signed response -> broadcast -> optional enrichment` traces.
 
@@ -123,7 +123,7 @@ fixtures/                       deterministic protocol and Solana golden session
 
 ### Task 8: Export, Sanitization, and Reindexing
 
-**Files:** `src-tauri/src/export/{har,jsonl,bundle,redact}.rs`, `src-tauri/tests/export_contract.rs`, `src/lib/components/ExportDialog.svelte`
+**Files:** `src-tauri/src/export/{har,jsonl,bundle,redact}.rs`, `src-tauri/tests/export_contract.rs`, `src/components/ExportDialog.tsx`
 
 **Interfaces:** Produces raw, sanitized, and metadata-only bundles plus PCAP, HAR, JSONL, SQLite snapshot, Markdown/JSON summaries, redaction report, and output checksums.
 
@@ -141,7 +141,7 @@ fixtures/                       deterministic protocol and Solana golden session
 
 - [ ] Add fuzz/property targets for MessagePack length frames, truncated JSONL/PCAP, headers/bodies, Solana messages, and redaction invariants.
 - [ ] Add ingestion, paging, recovery, and reindex benchmarks with machine-readable results and enforced queue bounds.
-- [ ] Run all unit/integration/golden tests, `svelte-check`, Rust fmt/clippy, Python lint/tests, bundle build, strict codesign, archive integrity, and copied-app preflight.
+- [ ] Run all unit/integration/golden tests, `bun run check`, Rust fmt/clippy, Python lint/tests, bundle build, strict codesign, archive integrity, and copied-app preflight.
 - [ ] Execute a real iPhone capture with PCAP/log/process coverage and an instrumented laboratory transaction; record observed gaps rather than editing them out.
 - [ ] Push the verified final source and release metadata to GitHub `main` and tag `v0.1.0` only after the gate passes.
 - [ ] Commit `release: verify proxbot 0.1.0 MVP`.
