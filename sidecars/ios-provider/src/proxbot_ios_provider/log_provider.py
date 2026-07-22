@@ -1,15 +1,16 @@
 import json
+import time
 from collections.abc import AsyncIterable, AsyncIterator
 from pathlib import Path
 from typing import Any
 
 
 async def iter_log_records(
-    lines: AsyncIterable[str], count: int = -1
+    lines: AsyncIterable[str], count: int = -1, clock_ns=time.time_ns
 ) -> AsyncIterator[dict[str, Any]]:
     sequence = 0
     async for line in lines:
-        yield {"sequence": sequence, "raw": line}
+        yield {"sequence": sequence, "host_time_ns": clock_ns(), "raw": line}
         sequence += 1
         if sequence == count:
             break
