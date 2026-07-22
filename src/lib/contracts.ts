@@ -14,9 +14,9 @@ export interface ProviderEvent {
   providerVersion: string;
   sessionId: string;
   sequence: number;
-  sourceTimeNs: number;
-  hostTimeNs: number;
-  monotonicTimeNs: number | null;
+  sourceTimeNs: string;
+  hostTimeNs: string;
+  monotonicTimeNs: string | null;
   deviceId: string | null;
   processId: number | null;
   processName: string | null;
