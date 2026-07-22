@@ -1,9 +1,9 @@
 use std::os::unix::fs::PermissionsExt;
 
+use proxbot_lib::domain::{EvidenceClass, ParseStatus, ProviderEvent};
+use proxbot_lib::store::{EventIndex, SessionStore};
 use serde_json::json;
 use tempfile::tempdir;
-use trace_lab_lib::domain::{EvidenceClass, ParseStatus, ProviderEvent};
-use trace_lab_lib::store::{EventIndex, SessionStore};
 use uuid::Uuid;
 
 fn fixture_event(session_id: Uuid, sequence: u64) -> ProviderEvent {

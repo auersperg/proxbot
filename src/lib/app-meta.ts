@@ -1,4 +1,4 @@
 export const APP_META = {
-  name: "TraceLab",
-  bundleIdentifier: "io.tracelab.desktop",
+  name: "proxbot",
+  bundleIdentifier: "com.auersperg.proxbot",
 } as const;

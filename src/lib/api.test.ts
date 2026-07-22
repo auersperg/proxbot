@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createApi } from "./api";
 
-describe("TraceLab command client", () => {
+describe("proxbot command client", () => {
   it("invokes the demo capture command with an explicit count", async () => {
     const invoke = vi.fn().mockResolvedValue({
       sessionId: "fixture",

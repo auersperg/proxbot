@@ -1,8 +1,8 @@
-# TraceLab
+# proxbot
 
-TraceLab is a local-first macOS application for building loss-aware, inspectable iOS traffic-capture sessions. The current foundation release is a real Tauri application: it discovers a USB-connected iPhone through Frida, supervises a Python provider over a versioned MessagePack/Unix-socket boundary, persists append-only evidence, indexes the same events in SQLite, and exposes a dense paged timeline with a raw-event inspector.
+proxbot is a local-first macOS application for building loss-aware, inspectable iOS traffic-capture sessions. The current foundation release is a real Tauri application: it discovers a USB-connected iPhone through Frida, supervises a Python provider over a versioned MessagePack/Unix-socket boundary, persists append-only evidence, indexes the same events in SQLite, and exposes a dense paged timeline with a raw-event inspector.
 
-![TraceLab verified application](docs/testing/screenshots/tracelab-bundle-verified.png)
+![proxbot verified application](docs/testing/screenshots/proxbot-bundle-verified.png)
 
 ## What works in this release
 
@@ -63,7 +63,7 @@ In the application:
 ```bash
 pnpm tauri build --debug --bundles app
 
-APP="src-tauri/target/debug/bundle/macos/TraceLab.app"
+APP="src-tauri/target/debug/bundle/macos/proxbot.app"
 xattr -cr "$APP"
 codesign --force --deep --sign - --timestamp=none "$APP"
 codesign --verify --deep --strict --verbose=2 "$APP"
@@ -72,7 +72,7 @@ codesign --verify --deep --strict --verbose=2 "$APP"
 The bundle is produced at:
 
 ```text
-src-tauri/target/debug/bundle/macos/TraceLab.app
+src-tauri/target/debug/bundle/macos/proxbot.app
 ```
 
 ## Test and verify
@@ -94,7 +94,7 @@ The test matrix covers frontend command contracts and timeline rendering, Rust e
 Sessions are written beneath:
 
 ```text
-~/Library/Application Support/io.tracelab.desktop/sessions/SESSION_UUID/
+~/Library/Application Support/com.auersperg.proxbot/sessions/SESSION_UUID/
 ```
 
 Foundation session layout:
@@ -114,7 +114,7 @@ SESSION_UUID/
 Example integrity check:
 
 ```bash
-cd "$HOME/Library/Application Support/io.tracelab.desktop/sessions/SESSION_UUID"
+cd "$HOME/Library/Application Support/com.auersperg.proxbot/sessions/SESSION_UUID"
 shasum -a 256 -c checksums.sha256
 sqlite3 database/session.sqlite 'select count(*) from events;'
 wc -l events/provider-events.jsonl
@@ -122,13 +122,13 @@ wc -l events/provider-events.jsonl
 
 ## Architecture and implementation plan
 
-- [Approved design specification](docs/superpowers/specs/2026-07-22-trace-lab-design.md)
-- [Foundation TDD implementation plan](docs/superpowers/plans/2026-07-22-tracelab-foundation.md)
+- [Approved design specification](docs/superpowers/specs/2026-07-22-proxbot-design.md)
+- [Foundation TDD implementation plan](docs/superpowers/plans/2026-07-22-proxbot-foundation.md)
 - [Recorded foundation verification](docs/testing/foundation-verification.md)
 
 ## Security and data handling
 
-- TraceLab does not transmit telemetry.
+- proxbot does not transmit telemetry.
 - External chain enrichment is inactive unless a later explicit analysis action invokes it.
 - The UI redacts the connected device identifier.
 - Session directories are created with owner-only permissions.

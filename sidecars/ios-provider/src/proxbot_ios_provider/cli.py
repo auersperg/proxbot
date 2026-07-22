@@ -10,7 +10,7 @@ from .protocol import send_frame
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="tracelab-ios-provider")
+    parser = argparse.ArgumentParser(prog="proxbot-ios-provider")
     subcommands = parser.add_subparsers(dest="command", required=True)
 
     fake = subcommands.add_parser("fake")

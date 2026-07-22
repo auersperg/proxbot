@@ -1,8 +1,8 @@
-# TraceLab Foundation Implementation Plan
+# proxbot Foundation Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Deliver a signed, runnable macOS TraceLab application that discovers the USB iPhone through Frida, executes deterministic provider captures over the production IPC boundary, stores sessions losslessly, indexes them in SQLite, and exposes a usable capture timeline.
+**Goal:** Deliver a signed, runnable macOS proxbot application that discovers the USB iPhone through Frida, executes deterministic provider captures over the production IPC boundary, stores sessions losslessly, indexes them in SQLite, and exposes a usable capture timeline.
 
 **Architecture:** Tauri 2 hosts a Svelte 5 UI and a Rust core. Rust owns session state, append-only artifacts, SQLite, provider supervision, and paged queries. A Python sidecar owns Frida/iOS integration and streams versioned, length-prefixed MessagePack events over a Unix domain socket.
 
@@ -43,12 +43,12 @@ tests across each package          unit and integration coverage
 **Interfaces:** Produces `APP_META` and working `pnpm test`, `pnpm check`, `pnpm build`, and `cargo test` commands.
 
 - [ ] Download the official rustup installer, inspect its checksum metadata from the HTTPS response, install the stable minimal toolchain, and verify `rustc --version` and `cargo --version`.
-- [ ] Scaffold with `pnpm dlx create-tauri-app@4.6.2 . --manager pnpm --template svelte-ts --identifier io.tracelab.desktop --tauri-version 2 --yes --force`.
+- [ ] Scaffold with `pnpm dlx create-tauri-app@4.6.2 . --manager pnpm --template svelte-ts --identifier com.auersperg.proxbot --tauri-version 2 --yes --force`.
 - [ ] Add Vitest, jsdom, Testing Library, `test`, `test:watch`, and `check` scripts.
-- [ ] Write `app-meta.test.ts` expecting `{ name: "TraceLab", bundleIdentifier: "io.tracelab.desktop" }` and run it to observe the missing-module failure.
+- [ ] Write `app-meta.test.ts` expecting `{ name: "proxbot", bundleIdentifier: "com.auersperg.proxbot" }` and run it to observe the missing-module failure.
 - [ ] Implement the frozen `APP_META` value, set `minimumSystemVersion` to `14.0`, and use `rust-toolchain.toml` with stable, rustfmt, and clippy.
 - [ ] Run all frontend and Rust scaffold checks.
-- [ ] Commit `build: bootstrap TraceLab Tauri workspace`.
+- [ ] Commit `build: bootstrap proxbot Tauri workspace`.
 
 ### Task 2: Provider Event Contract and Session State Machine
 
@@ -78,7 +78,7 @@ tests across each package          unit and integration coverage
 
 ### Task 4: Python Provider and Cross-Language IPC
 
-**Files:** `sidecars/ios-provider/pyproject.toml`, `sidecars/ios-provider/src/tracelab_ios_provider/{protocol,fake,frida_provider,cli}.py`, Python tests, `src-tauri/src/provider/{mod,codec,supervisor}.rs`, `src-tauri/tests/provider_protocol.rs`
+**Files:** `sidecars/ios-provider/pyproject.toml`, `sidecars/ios-provider/src/proxbot_ios_provider/{protocol,fake,frida_provider,cli}.py`, Python tests, `src-tauri/src/provider/{mod,codec,supervisor}.rs`, `src-tauri/tests/provider_protocol.rs`
 
 **Interfaces:** Produces big-endian length-prefixed MessagePack framing, deterministic fake events, structured Frida USB preflight, Rust frame decoding, and provider supervision.
 
@@ -126,24 +126,24 @@ tests across each package          unit and integration coverage
 - [ ] Implement state for idle/capturing/ready/error, Frida preflight, demo capture, first 200 events, selection, and visible errors.
 - [ ] Style a 44 px toolbar, three-column workspace, dense 12–14 px data typography, high-contrast status colors, and a persistent health strip.
 - [ ] Run Vitest, Svelte check, Vite build, and a Tauri dev smoke test.
-- [ ] Commit `feat: add TraceLab capture timeline`.
+- [ ] Commit `feat: add proxbot capture timeline`.
 
 ### Task 8: Application Bundle and Evidence
 
 **Files:** `README.md`, `docs/testing/foundation-verification.md`, `.gitignore`
 
-**Interfaces:** Produces a locally signed `TraceLab.app` and repeatable verification record.
+**Interfaces:** Produces a locally signed `proxbot.app` and repeatable verification record.
 
 - [ ] Document macOS 14+, Apple Silicon, Xcode, Node/pnpm, Rust, Python/uv, demo capture, Frida preflight, session layout, and deferred milestones.
 - [ ] Run frozen dependency installation, all TypeScript/Python/Rust tests, rustfmt check, clippy, and frontend build.
 - [ ] Build with `pnpm tauri build --debug --bundles app`.
-- [ ] Verify `src-tauri/target/debug/bundle/macos/TraceLab.app` using `codesign --verify --deep --strict`.
+- [ ] Verify `src-tauri/target/debug/bundle/macos/proxbot.app` using `codesign --verify --deep --strict`.
 - [ ] Record tool versions, pass counts, app path, Frida preflight with redacted device ID, one session UUID, event count, SQLite count, and checksum verification.
-- [ ] Run `git diff --check`, verify generated artifacts are ignored, and commit `docs: record TraceLab foundation verification`.
+- [ ] Run `git diff --check`, verify generated artifacts are ignored, and commit `docs: record proxbot foundation verification`.
 
 ## Completion Gate
 
-- [ ] `TraceLab.app` launches on the target Mac.
+- [ ] `proxbot.app` launches on the target Mac.
 - [ ] The fake provider crosses the same Unix socket/MessagePack boundary reserved for real providers.
 - [ ] Every event exists in append-only JSONL and SQLite.
 - [ ] Sequence gaps are explicit and visible.

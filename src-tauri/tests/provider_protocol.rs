@@ -1,7 +1,7 @@
+use proxbot_lib::domain::{EvidenceClass, ParseStatus, ProviderEvent};
+use proxbot_lib::provider::read_frame;
 use serde_json::json;
 use tokio::io::{AsyncWriteExt, BufReader};
-use trace_lab_lib::domain::{EvidenceClass, ParseStatus, ProviderEvent};
-use trace_lab_lib::provider::read_frame;
 use uuid::Uuid;
 
 fn event() -> ProviderEvent {

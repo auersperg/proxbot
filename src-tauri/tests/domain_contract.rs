@@ -1,8 +1,8 @@
-use serde_json::json;
-use trace_lab_lib::domain::{
+use proxbot_lib::domain::{
     EvidenceClass, ParseStatus, ProviderEvent, ProviderState, SessionCoordinator, SessionError,
     SessionStatus,
 };
+use serde_json::json;
 use uuid::Uuid;
 
 fn event(session_id: Uuid, sequence: u64) -> ProviderEvent {

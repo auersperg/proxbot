@@ -3,7 +3,7 @@ import struct
 
 import msgpack
 
-from tracelab_ios_provider.protocol import send_frame
+from proxbot_ios_provider.protocol import send_frame
 
 
 def test_send_frame_uses_big_endian_length_prefix():

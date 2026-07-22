@@ -105,7 +105,7 @@
 </script>
 
 <svelte:head>
-  <title>TraceLab — iOS Evidence Capture</title>
+  <title>proxbot — iOS Evidence Capture</title>
   <meta
     name="description"
     content="Loss-aware iOS application capture, Frida instrumentation, and protocol analysis."

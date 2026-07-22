@@ -35,7 +35,7 @@ pub async fn run_fake_capture(
 
     let mut store = SessionStore::create(root, session_id)?;
     let index = EventIndex::open(&store.session_dir().join("database/session.sqlite"))?;
-    let socket_name = format!("tracelab-{}.sock", &session_id.simple().to_string()[..12]);
+    let socket_name = format!("proxbot-{}.sock", &session_id.simple().to_string()[..12]);
     let socket_path = std::env::temp_dir().join(socket_name);
     let events =
         ProviderSupervisor::run_fake(provider_project, &socket_path, session_id, count).await?;

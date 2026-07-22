@@ -1,5 +1,5 @@
 {
-  "name": "tracelab",
+  "name": "proxbot",
   "version": "0.1.0",
   "description": "High-fidelity iOS application traffic capture and analysis",
   "type": "module",

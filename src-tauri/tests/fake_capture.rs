@@ -1,5 +1,5 @@
+use proxbot_lib::{capture::run_fake_capture, store::EventIndex};
 use tempfile::tempdir;
-use trace_lab_lib::{capture::run_fake_capture, store::EventIndex};
 
 #[tokio::test]
 async fn fake_capture_persists_and_indexes_every_event() {

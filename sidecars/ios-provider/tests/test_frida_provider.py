@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tracelab_ios_provider.frida_provider import usb_preflight
+from proxbot_ios_provider.frida_provider import usb_preflight
 
 
 class FakeFrida:

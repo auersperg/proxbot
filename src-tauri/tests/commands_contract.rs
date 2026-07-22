@@ -1,12 +1,12 @@
 use std::path::Path;
 
-use serde_json::json;
-use trace_lab_lib::{
+use proxbot_lib::{
     commands::{
         ProviderEventDto, run_frida_preflight, validate_capture_count, validate_page_request,
     },
     domain::{EvidenceClass, ParseStatus, ProviderEvent},
 };
+use serde_json::json;
 use uuid::Uuid;
 
 #[test]

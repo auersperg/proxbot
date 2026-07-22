@@ -119,7 +119,7 @@ pub async fn run_frida_preflight(provider_project: &Path) -> anyhow::Result<Valu
     let output = Command::new(uv)
         .args(["run", "--project"])
         .arg(provider_project)
-        .args(["tracelab-ios-provider", "frida-preflight"])
+        .args(["proxbot-ios-provider", "frida-preflight"])
         .stdin(Stdio::null())
         .output()
         .await?;

@@ -1,4 +1,4 @@
-from tracelab_ios_provider.fake import fake_events
+from proxbot_ios_provider.fake import fake_events
 
 
 def test_fake_events_are_deterministic_and_contiguous():

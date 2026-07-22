@@ -13,10 +13,10 @@
 </script>
 
 <header class="toolbar">
-  <div class="brand" aria-label="TraceLab">
+  <div class="brand" aria-label="proxbot">
     <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
     <div>
-      <strong>TraceLab</strong>
+      <strong>proxbot</strong>
       <small>iOS Evidence Capture</small>
     </div>
   </div>

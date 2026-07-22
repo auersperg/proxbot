@@ -22,7 +22,7 @@ impl ProviderSupervisor {
         let child = Command::new("uv")
             .args(["run", "--project"])
             .arg(provider_project)
-            .args(["tracelab-ios-provider", "fake", "--socket"])
+            .args(["proxbot-ios-provider", "fake", "--socket"])
             .arg(socket_path)
             .args(["--session-id", &session_id.to_string()])
             .args(["--count", &count.to_string()])

@@ -1,7 +1,7 @@
 [project]
-name = "tracelab-ios-provider"
+name = "proxbot-ios-provider"
 version = "0.1.0"
-description = "TraceLab iOS and Frida provider"
+description = "proxbot iOS and Frida provider"
 requires-python = ">=3.12"
 dependencies = [
   "frida>=17.8,<18",
@@ -12,7 +12,7 @@ dependencies = [
 test = ["pytest>=8.4,<9"]
 
 [project.scripts]
-tracelab-ios-provider = "tracelab_ios_provider.cli:main"
+proxbot-ios-provider = "proxbot_ios_provider.cli:main"
 
 [build-system]
 requires = ["hatchling>=1.27,<2"]

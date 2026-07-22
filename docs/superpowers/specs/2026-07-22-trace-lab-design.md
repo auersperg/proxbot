@@ -1,4 +1,4 @@
-# TraceLab — Design Specification
+# proxbot — Design Specification
 
 **Date:** 2026-07-22  
 **Status:** Ready for user review  
@@ -7,7 +7,7 @@
 
 ## 1. Purpose
 
-TraceLab is a minimal desktop application for high-fidelity observation and analysis of traffic produced by an iOS application. It combines passive USB packet capture, iOS process and log metadata, an optional HTTP(S) proxy, and an instrumented laboratory build into one crash-recoverable session.
+proxbot is a minimal desktop application for high-fidelity observation and analysis of traffic produced by an iOS application. It combines passive USB packet capture, iOS process and log metadata, an optional HTTP(S) proxy, and an instrumented laboratory build into one crash-recoverable session.
 
 The primary workflow is:
 
@@ -35,7 +35,7 @@ Raw PCAP, append-only provider logs, and content-addressed bodies are the durabl
 Every displayed fact is labeled as one of:
 
 - `OBSERVED`: emitted by the iPhone, selected application, proxy, or capture provider;
-- `ENRICHED`: retrieved by an explicit TraceLab analysis request, such as a Solana RPC status lookup;
+- `ENRICHED`: retrieved by an explicit proxbot analysis request, such as a Solana RPC status lookup;
 - `INFERRED`: produced by correlation, always with confidence and supporting evidence.
 
 ### 2.4 Isolation
@@ -44,7 +44,7 @@ Capture, instrumentation, storage, analysis, and UI are independently replaceabl
 
 ### 2.5 Local and inspectable operation
 
-The application has no telemetry and no cloud dependency. External enrichment is disabled until the user invokes it. Any enrichment request is recorded as TraceLab-generated traffic and never presented as traffic from the observed application.
+The application has no telemetry and no cloud dependency. External enrichment is disabled until the user invokes it. Any enrichment request is recorded as proxbot-generated traffic and never presented as traffic from the observed application.
 
 ## 3. Supported Scope
 
@@ -80,7 +80,7 @@ The application has no telemetry and no cloud dependency. External enrichment is
 
 ## 4. System Architecture
 
-TraceLab uses a hybrid architecture.
+proxbot uses a hybrid architecture.
 
 ```text
 Svelte 5 + TypeScript UI
@@ -186,7 +186,7 @@ Performs optional, explicit Solana RPC enrichment after a transaction signature 
 
 ### 6.1 Preflight
 
-Before capture, TraceLab:
+Before capture, proxbot:
 
 1. verifies device connectivity and pairing;
 2. selects or establishes the required iOS tunnel;
@@ -231,11 +231,11 @@ The application launches only after packet, process, log, and instrumentation ch
 
 ### 7.1 Build preparation
 
-TraceLab accepts an `.ipa`, `.app`, or the user's debug/archive build. It never overwrites the original input. It computes the input SHA-256, inventories Mach-O architectures, bundle metadata, frameworks, extensions, entitlements, provisioning profile, and current signatures, then works in a new directory.
+proxbot accepts an `.ipa`, `.app`, or the user's debug/archive build. It never overwrites the original input. It computes the input SHA-256, inventories Mach-O architectures, bundle metadata, frameworks, extensions, entitlements, provisioning profile, and current signatures, then works in a new directory.
 
 The build pipeline embeds the instrumentation runtime, its configuration, and the selected observation modules. It signs nested code from the inside out, signs the main application last, verifies every signature, installs a separate build, and records input/output hashes and the exact transformation manifest.
 
-The preferred separate bundle identifier uses a `.capturelab` suffix. Preserving the original bundle identifier is supported only when the selected provisioning profile and entitlements are compatible. TraceLab warns when changes to keychain groups, associated domains, push notification entitlements, or Sign in with Apple can change application behavior.
+The preferred separate bundle identifier uses a `.capturelab` suffix. Preserving the original bundle identifier is supported only when the selected provisioning profile and entitlements are compatible. proxbot warns when changes to keychain groups, associated domains, push notification entitlements, or Sign in with Apple can change application behavior.
 
 ### 7.2 Instrumentation profiles
 
@@ -258,7 +258,7 @@ When session secrets are available, they are encrypted at rest and used to decry
 - `PCAP decrypted with session secrets`;
 - `Application plaintext correlated with encrypted flow`.
 
-TraceLab must never describe correlated application plaintext as cryptographic decryption of the packet capture.
+proxbot must never describe correlated application plaintext as cryptographic decryption of the packet capture.
 
 ### 7.3 Launch on a non-jailbroken device
 
@@ -335,13 +335,13 @@ Signing and broadcasting are separate states. Supported conclusions include:
 - `Signed locally or by embedded wallet runtime; broadcast observed on device`;
 - `Signed by wallet service; broadcast not observed on device`;
 - `Signed payload passed to backend; downstream broadcast origin absent from device traffic`;
-- `Transaction signature enriched through TraceLab RPC lookup`.
+- `Transaction signature enriched through proxbot RPC lookup`.
 
 The inspector displays the evidence supporting each conclusion. It does not infer a direct Solana RPC call merely because a transaction later appears on-chain.
 
 ## 11. User Experience
 
-TraceLab uses one primary window with four stable regions.
+proxbot uses one primary window with four stable regions.
 
 ### 11.1 Toolbar
 
@@ -396,7 +396,7 @@ The supervisor restarts a reconnectable provider with bounded exponential backof
 
 ### 13.2 Disk pressure
 
-The health strip warns at configurable thresholds. At the critical threshold, TraceLab stops capture in controlled order, flushes artifacts, and finalizes the session as `Incomplete` rather than risking filesystem corruption.
+The health strip warns at configurable thresholds. At the critical threshold, proxbot stops capture in controlled order, flushes artifacts, and finalizes the session as `Incomplete` rather than risking filesystem corruption.
 
 ### 13.3 Device disconnect
 
@@ -408,11 +408,11 @@ Capture continues for the grace period, the crash report is collected when avail
 
 ### 13.5 Host or application crash
 
-On restart, TraceLab scans `.partial` sessions, validates append-only frames to the last complete record, rebuilds the SQLite index, records the interrupted interval, and finalizes the session as recovered or corrupted.
+On restart, proxbot scans `.partial` sessions, validates append-only frames to the last complete record, rebuilds the SQLite index, records the interrupted interval, and finalizes the session as recovered or corrupted.
 
 ### 13.6 Laboratory-build failure
 
-Every transformation step is transactional. A failed signature or installation leaves the original artifact and installed original application untouched. TraceLab retains the transformation manifest and exact failing command output for diagnosis.
+Every transformation step is transactional. A failed signature or installation leaves the original artifact and installed original application untouched. proxbot retains the transformation manifest and exact failing command output for diagnosis.
 
 ## 14. Testing Strategy
 
@@ -489,11 +489,11 @@ Every export records the source session UUID, source checksum set, analyzer vers
 
 ## 16. Rollback and Cleanup
 
-TraceLab records every temporary host and device change. Cleanup can:
+proxbot records every temporary host and device change. Cleanup can:
 
 - stop tunnels and sidecars;
-- restore proxy configuration managed by TraceLab;
-- remove the TraceLab CA installed through its workflow;
+- restore proxy configuration managed by proxbot;
+- remove the proxbot CA installed through its workflow;
 - uninstall the separate laboratory build;
 - delete its temporary build directory;
 - retain or securely delete session secrets;
@@ -525,7 +525,7 @@ The MVP is accepted when a user can connect the paired iPhone, select the labora
 - correlates encrypted flows with proxy or application plaintext without mislabeling the evidence;
 - separates signing from broadcasting;
 - decodes the signed Solana transaction;
-- distinguishes device-observed traffic from TraceLab enrichment;
+- distinguishes device-observed traffic from proxbot enrichment;
 - survives provider and application failures without losing already persisted data;
 - exports verified raw and sanitized bundles that can be re-indexed and analyzed later.
 

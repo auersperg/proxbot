@@ -2662,6 +2662,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "proxbot"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "hex",
+ "rmp-serde",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2 0.11.0",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-opener",
+ "tempfile",
+ "thiserror 2.0.19",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "quick-xml"
 version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4005,26 +4025,6 @@ name = "tower-service"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8df9b6e13f2d32c91b9bd719c00d1958837bc7dec474d94952798cc8e69eeec3"
-
-[[package]]
-name = "trace-lab"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "hex",
- "rmp-serde",
- "rusqlite",
- "serde",
- "serde_json",
- "sha2 0.11.0",
- "tauri",
- "tauri-build",
- "tauri-plugin-opener",
- "tempfile",
- "thiserror 2.0.19",
- "tokio",
- "uuid",
-]
 
 [[package]]
 name = "tracing"
