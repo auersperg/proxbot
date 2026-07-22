@@ -9,6 +9,12 @@ This record describes what `v0.2.0-rc.1` actually executes. A UI label, fixture,
 - [x] Preflight calls are serialized and briefly cached to prevent concurrent usbmux contention.
 - [x] `passive` starts USB PCAPNG; `deep` starts USB PCAPNG plus syslog JSONL.
 - [x] Provider readiness is emitted only after requested capture outputs initialize.
+- [x] Real pcapd packets are indexed during capture as provenance-marked packet rows
+      with direction, protocol, endpoint, size, and available process attribution.
+- [x] Provider lifecycle remains sequence-safe when pcapd yields before readiness;
+      concurrent event producers serialize framed socket writes.
+- [x] Realtime UI refresh is single-flight/coalesced and cannot be starved by a
+      continuous revision stream; late responses refresh selected RAW detail.
 - [x] Early/missing artifacts produce an explicit provider failure instead of a ready claim.
 - [x] Tauri and MCP use the same `LiveCaptureService` source of truth.
 - [x] `capture://status` publishes small monotonic snapshots; raw evidence remains paged.
@@ -23,6 +29,8 @@ This record describes what `v0.2.0-rc.1` actually executes. A UI label, fixture,
 - USB PCAP is `encrypted_network_packets` and never presented as application plaintext.
 - USB syslog is `device_syslog` and never presented as network payload decryption.
 - Live events carry `fixture:false`, `application_plaintext:false`, and `tls_decryption:false`.
+- USB packet summaries are reconstructed `packet_metadata`; missing domains or RAW
+  HTTP are left absent instead of being inferred from encrypted payloads.
 - The optional mitmproxy provider reports plaintext only for clients explicitly routed through it whose trust policy accepts its CA.
 - CA installation and certificate-pinning bypass are not performed; provider capabilities report `certificate_pinning_bypass:false`.
 - Solana transaction decoding/signature/broadcast correlation is not inferred from packet capture alone. It becomes an analysis claim only when corresponding indexed proxy or instrumentation evidence exists.

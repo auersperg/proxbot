@@ -191,11 +191,11 @@ impl EventIndex {
     }
 }
 
-const EXCHANGE_MATERIALIZER_REVISION: &str = "4";
+const EXCHANGE_MATERIALIZER_REVISION: &str = "5";
 
 fn refresh_derived_metadata(transaction: &Transaction<'_>) -> anyhow::Result<()> {
     let network_events: i64 = transaction.query_row(
-        "SELECT COUNT(*) FROM events WHERE kind IN ('network.request', 'network.response')",
+        "SELECT COUNT(*) FROM events WHERE kind IN ('network.request', 'network.response', 'network.packet')",
         [],
         |row| row.get(0),
     )?;
@@ -228,7 +228,10 @@ fn advance_derived_metadata(
     event: &ProviderEvent,
     exchange_existed: bool,
 ) -> anyhow::Result<()> {
-    let is_network = event.kind == "network.request" || event.kind == "network.response";
+    let is_network = matches!(
+        event.kind.as_str(),
+        "network.request" | "network.response" | "network.packet"
+    );
     let creates_exchange = is_network
         && !exchange_existed
         && event
@@ -267,7 +270,10 @@ fn advance_derived_metadata(
 }
 
 fn exchange_exists(transaction: &Transaction<'_>, event: &ProviderEvent) -> anyhow::Result<bool> {
-    if event.kind != "network.request" && event.kind != "network.response" {
+    if event.kind != "network.request"
+        && event.kind != "network.response"
+        && event.kind != "network.packet"
+    {
         return Ok(false);
     }
     let Some(request_id) = event
@@ -507,7 +513,7 @@ fn repair_dirty_content(connection: &mut Connection, database: &Path) -> anyhow:
 
 fn derived_metadata_is_current(connection: &Connection) -> anyhow::Result<bool> {
     let network_events: i64 = connection.query_row(
-        "SELECT COUNT(*) FROM events WHERE kind IN ('network.request', 'network.response')",
+        "SELECT COUNT(*) FROM events WHERE kind IN ('network.request', 'network.response', 'network.packet')",
         [],
         |row| row.get(0),
     )?;

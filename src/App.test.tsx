@@ -92,6 +92,35 @@ describe("proxbot production workspace", () => {
     expect(screen.getByLabelText("RECEIVED: 31")).toBeVisible();
   });
 
+  it("coalesces continuous revisions and always performs a trailing realtime refresh", async () => {
+    let listener: ((value: CaptureSnapshot) => void) | null = null;
+    let resolveFirstPage!: (value: { exchanges: ReturnType<typeof withoutRaw>[]; total: number }) => void;
+    const firstPage = new Promise<{ exchanges: ReturnType<typeof withoutRaw>[]; total: number }>((resolve) => {
+      resolveFirstPage = resolve;
+    });
+    const commandClient = client({
+      subscribeCaptureStatus: vi.fn(async (next) => { listener = next; return vi.fn(); }),
+      pageExchanges: vi.fn()
+        .mockReturnValueOnce(firstPage)
+        .mockResolvedValue({ exchanges: [withoutRaw(fixtureExchange())], total: 1 }),
+    });
+    render(<App client={commandClient} />);
+    await waitFor(() => expect(listener).not.toBeNull());
+
+    await act(async () => listener?.(liveSnapshot));
+    await waitFor(() => expect(commandClient.pageExchanges).toHaveBeenCalledTimes(1), { timeout: 1_000 });
+    await act(async () => {
+      listener?.(snapshot({ ...liveSnapshot, revision: 2 }));
+      listener?.(snapshot({ ...liveSnapshot, revision: 3 }));
+      listener?.(snapshot({ ...liveSnapshot, revision: 4 }));
+    });
+    await new Promise((resolve) => window.setTimeout(resolve, 350));
+    expect(commandClient.pageExchanges).toHaveBeenCalledTimes(1);
+
+    resolveFirstPage({ exchanges: [withoutRaw(fixtureExchange())], total: 1 });
+    await waitFor(() => expect(commandClient.pageExchanges).toHaveBeenCalledTimes(2), { timeout: 1_000 });
+  });
+
   it("ignores a stale snapshot from a different capture session", async () => {
     let listener: ((value: CaptureSnapshot) => void) | null = null;
     const commandClient = client({

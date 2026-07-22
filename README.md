@@ -29,7 +29,9 @@ The desktop interface is deliberately compact and follows the proven traffic-ins
 - real `Start capture`, `Stop`, `Refresh`, and timestamped marker controls;
 - `Synchronized USB` (`deep`) and `Packets only` (`passive`) profiles;
 - device → domain/IP endpoint navigator;
-- virtualized, bounded request table;
+- virtualized, bounded packet/request table with newest evidence first;
+- realtime USB packet rows with direction, L2/L3/L4 protocol, IP/ports,
+  byte count, interface, and process attribution when pcapd supplies it;
 - stable request selection;
 - simultaneous **RAW Request** and **RAW Response** panes;
 - response-missing, truncation, reconstruction, masking, and provenance indicators;
@@ -63,6 +65,11 @@ Session directories are `0700`; evidence files, manifest, checksums, exports, SQ
 ### TLS and plaintext semantics
 
 The built-in USB capture does **not** label encrypted packets as HTTP plaintext and does not claim TLS decryption. The optional [`sidecars/proxy-provider`](sidecars/proxy-provider/README.md) uses mitmproxy for traffic that a client explicitly routes through it and whose trust policy accepts its local CA. It covers CONNECT, HTTP/1.1, HTTP/2, WebSocket, bounded bodies, and TLS metadata. It does not install a CA on the iPhone and reports `certificate_pinning_bypass: false`.
+
+USB-only capture therefore populates packet/IP rows immediately, while a domain,
+HTTP path, headers, body, or RAW Response appears only when that fact is present in
+proxy or instrumentation evidence. Packet summaries are explicitly marked
+`packet_metadata` and reconstructed; the PCAPNG remains the observed packet source.
 
 ## Agent automation through MCP
 
@@ -170,7 +177,7 @@ cargo clippy --locked --manifest-path src-tauri/Cargo.toml \
   --all-targets --all-features -- -D warnings
 ```
 
-The hardware smoke requires a running Tauri app and connected iPhone. It uses the official MCP client/server pair to run preflight → deep capture → marker → status → stop, then fails if the final state is not ready or any required live artifact remains empty.
+The hardware smoke requires a running Tauri app and connected iPhone. It uses the official MCP client/server pair to run preflight → deep capture → verify a realtime indexed packet → marker → status → stop, then fails if the final state is not ready or either finalized capture artifact is empty.
 
 ## Build and release
 

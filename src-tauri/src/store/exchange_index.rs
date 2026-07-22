@@ -99,7 +99,10 @@ pub(super) fn materialize_event(
     transaction: &Transaction<'_>,
     event: &ProviderEvent,
 ) -> anyhow::Result<()> {
-    if event.kind != "network.request" && event.kind != "network.response" {
+    if event.kind != "network.request"
+        && event.kind != "network.response"
+        && event.kind != "network.packet"
+    {
         return Ok(());
     }
     let Some(request_id) = text(event, "request_id") else {
@@ -119,7 +122,7 @@ pub(super) fn materialize_event(
         .transpose()?;
     let event_evidence = evidence_text(event.evidence);
 
-    if event.kind == "network.request" {
+    if event.kind == "network.request" || event.kind == "network.packet" {
         transaction.execute(
             "INSERT INTO exchanges (
                 session_id, request_id, request_sequence, started_ns, method, scheme, host, ip,
@@ -172,6 +175,12 @@ pub(super) fn materialize_event(
                 artifact,
             ],
         )?;
+        if event.kind == "network.packet" {
+            transaction.execute(
+                "UPDATE exchanges SET warning = 'packet_metadata' WHERE session_id = ?1 AND request_id = ?2",
+                params![event.session_id.to_string(), request_id],
+            )?;
+        }
     } else {
         let supplied_status = event.payload.get("status");
         let status = supplied_status
@@ -465,7 +474,7 @@ pub(super) fn page_exchanges(
                 host, ip, path, status, protocol, process_name, duration_ms, request_bytes,
                 response_bytes, tls, evidence, warning
          FROM exchanges WHERE {where_sql}
-         ORDER BY started_ns, request_id LIMIT ?{limit_parameter} OFFSET ?{offset_parameter}"
+         ORDER BY started_ns DESC, request_id DESC LIMIT ?{limit_parameter} OFFSET ?{offset_parameter}"
     ))?;
     let rows = statement.query_map(params_from_iter(page_values.iter()), |row| {
         Ok(ExchangeRow {

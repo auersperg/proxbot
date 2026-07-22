@@ -2,6 +2,7 @@ import asyncio
 import socket
 import struct
 import tempfile
+from types import SimpleNamespace
 
 import msgpack
 
@@ -22,8 +23,25 @@ async def read_frame(connection):
 
 
 def test_live_capture_emits_truthful_contiguous_lifecycle(tmp_path, monkeypatch):
-    async def capture_until_cancel(output, udid, count):
+    async def capture_until_cancel(output, udid, count, *args):
         output.write_bytes(b"artifact")
+        if output.suffix == ".pcapng" and args:
+            packet_callback = args[-1]
+            await packet_callback(
+                SimpleNamespace(seconds=1_784_730_000, microseconds=123_000),
+                {
+                    "direction": "outbound",
+                    "interface": "en0",
+                    "process_id": 42,
+                    "process_name": "FixtureApp",
+                    "packet_bytes": 64,
+                    "protocol": "TCP",
+                    "source_ip": "192.0.2.1",
+                    "destination_ip": "198.51.100.2",
+                    "source_port": 50_000,
+                    "destination_port": 443,
+                },
+            )
         await asyncio.Event().wait()
 
     monkeypatch.setattr(live_provider, "capture_pcap", capture_until_cancel)
@@ -49,7 +67,9 @@ def test_live_capture_emits_truthful_contiguous_lifecycle(tmp_path, monkeypatch)
         )
         connection, _ = await asyncio.get_running_loop().sock_accept(listener)
         connection.setblocking(False)
-        events = [await read_frame(connection)]
+        # The immediate packet callback deliberately races provider startup.
+        # provider.ready must remain sequence zero and the packet must follow.
+        events = [await read_frame(connection), await read_frame(connection)]
         stop.set()
         while True:
             event = await read_frame(connection)
@@ -65,6 +85,7 @@ def test_live_capture_emits_truthful_contiguous_lifecycle(tmp_path, monkeypatch)
     assert [event["sequence"] for event in events] == list(range(len(events)))
     assert [event["kind"] for event in events] == [
         "provider.ready",
+        "network.packet",
         "artifact.pcap",
         "artifact.syslog",
         "provider.stopped",
@@ -73,4 +94,7 @@ def test_live_capture_emits_truthful_contiguous_lifecycle(tmp_path, monkeypatch)
     assert ready["payload"]["fixture"] is False
     assert ready["payload"]["application_plaintext"] is False
     assert ready["payload"]["tls_decryption"] is False
+    assert events[1]["process_name"] == "FixtureApp"
+    assert events[1]["payload"]["destination_port"] == 443
+    assert events[1]["source_time_ns"] == 1_784_730_000_123_000_000
     assert events[-1]["payload"]["reason"] == "requested"

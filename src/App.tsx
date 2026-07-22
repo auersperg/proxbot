@@ -205,6 +205,10 @@ export default function App({ client = api }: { client?: ApiClient }) {
   const lastQueryKey = useRef<string | null>(null);
   const busy = state.operations.length > 0;
   const controlsBusy = state.operations.some((token) => !token.startsWith("query:"));
+  const selectedPageVersion = state.page.exchanges.find((exchange) => exchange.requestId === state.selectedId);
+  const selectedDetailVersion = selectedPageVersion
+    ? `${selectedPageVersion.requestSequence ?? ""}:${selectedPageVersion.responseSequence ?? ""}`
+    : "";
   queryRef.current = state.query;
   endpointRef.current = state.endpoint;
   deviceIdRef.current = state.device?.id ?? null;
@@ -274,6 +278,12 @@ export default function App({ client = api }: { client?: ApiClient }) {
     latestRevision.current = snapshot.revision;
     latestSession.current = snapshot.sessionId;
     dispatch({ type: "snapshot-received", snapshot });
+    if (!refreshData && snapshot.sessionId && snapshot.sessionId !== previousSession) {
+      // The status subscriber owns the first coalesced realtime load. Mark the
+      // empty query key as scheduled so the query effect does not launch a
+      // duplicate request for the same newly observed session.
+      lastQueryKey.current = `${snapshot.sessionId}\u0000`;
+    }
     if (!refreshData || !changed || !snapshot.sessionId || snapshot.status === "idle" || snapshot.status === "starting") return;
     const nextEndpoint = snapshot.sessionId === previousSession ? endpointRef.current : null;
     const nextQuery = snapshot.sessionId === previousSession ? queryRef.current : "";
@@ -433,22 +443,41 @@ export default function App({ client = api }: { client?: ApiClient }) {
       window.clearTimeout(timer);
       if (epoch === detailEpoch.current) detailEpoch.current += 1;
     };
-  }, [client, state.selectedId, state.sessionId]);
+  }, [client, selectedDetailVersion, state.selectedId, state.sessionId]);
 
   useEffect(() => {
     let disposed = false;
     let unlisten: (() => void) | null = null;
     let eventRefreshTimer: number | null = null;
+    let eventRefreshInFlight = false;
+    let eventRefreshDirty = false;
+    const scheduleEventRefresh = () => {
+      eventRefreshDirty = true;
+      if (eventRefreshTimer !== null || eventRefreshInFlight || disposed) return;
+      eventRefreshTimer = window.setTimeout(async () => {
+        eventRefreshTimer = null;
+        const sessionId = latestSession.current;
+        if (disposed || !sessionId) return;
+        eventRefreshInFlight = true;
+        eventRefreshDirty = false;
+        try {
+          await load(sessionId, queryRef.current, endpointRef.current, 0, true, true);
+        } catch (reason) {
+          if (!disposed) dispatch({ type: "error-set", lane: "query", value: errorText(reason) });
+        } finally {
+          eventRefreshInFlight = false;
+          if (eventRefreshDirty) scheduleEventRefresh();
+        }
+      }, 250);
+    };
     client.subscribeCaptureStatus((snapshot) => {
       if (disposed) return;
       void acceptSnapshot(snapshot, false);
       if (!snapshot.sessionId || snapshot.status === "idle" || snapshot.status === "starting") return;
-      if (eventRefreshTimer !== null) window.clearTimeout(eventRefreshTimer);
-      eventRefreshTimer = window.setTimeout(() => {
-        if (disposed || latestSession.current !== snapshot.sessionId) return;
-        load(snapshot.sessionId!, queryRef.current, endpointRef.current, 0, true, true)
-          .catch((reason) => dispatch({ type: "error-set", lane: "query", value: errorText(reason) }));
-      }, 120);
+      // Coalesce sustained status revisions without starving the table or
+      // invalidating every slow query. There is at most one refresh in flight
+      // and one trailing refresh records everything that arrived meanwhile.
+      scheduleEventRefresh();
     }).then((dispose) => {
       if (disposed) dispose(); else unlisten = dispose;
     }).catch(() => { /* polling remains the compatibility path */ });

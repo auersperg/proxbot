@@ -17,6 +17,7 @@ class EventEmitter:
         self._session_id = session_id
         self._device_id = device_id
         self._sequence = 0
+        self._write_lock = asyncio.Lock()
 
     async def emit(
         self,
@@ -24,30 +25,37 @@ class EventEmitter:
         payload: dict[str, Any],
         *,
         raw_ref: dict[str, Any] | None = None,
+        process_id: int | None = None,
+        process_name: str | None = None,
+        source_time_ns: int | None = None,
     ) -> None:
-        now = time.time_ns()
-        event = {
-            "schema_version": 1,
-            "provider_id": "ios-live",
-            "provider_version": __version__,
-            "session_id": self._session_id,
-            "sequence": self._sequence,
-            "source_time_ns": now,
-            "host_time_ns": now,
-            "monotonic_time_ns": time.monotonic_ns(),
-            "device_id": self._device_id,
-            "process_id": None,
-            "process_name": None,
-            "evidence": "observed",
-            "kind": kind,
-            "payload": payload,
-            "raw_ref": raw_ref,
-            "parse_status": "parsed",
-        }
-        self._sequence += 1
-        await asyncio.get_running_loop().sock_sendall(
-            self._connection, encode_frame(event)
-        )
+        # Packet, health, lifecycle, and marker events may be produced by
+        # independent tasks.  Serialize both sequence allocation and frame
+        # writes so length-prefixed socket frames can never interleave.
+        async with self._write_lock:
+            now = time.time_ns()
+            event = {
+                "schema_version": 1,
+                "provider_id": "ios-live",
+                "provider_version": __version__,
+                "session_id": self._session_id,
+                "sequence": self._sequence,
+                "source_time_ns": source_time_ns if source_time_ns is not None else now,
+                "host_time_ns": now,
+                "monotonic_time_ns": time.monotonic_ns(),
+                "device_id": self._device_id,
+                "process_id": process_id,
+                "process_name": process_name,
+                "evidence": "observed",
+                "kind": kind,
+                "payload": payload,
+                "raw_ref": raw_ref,
+                "parse_status": "parsed",
+            }
+            self._sequence += 1
+            await asyncio.get_running_loop().sock_sendall(
+                self._connection, encode_frame(event)
+            )
 
 
 def artifact_metadata(
@@ -153,10 +161,81 @@ async def run_live_capture(
     health: asyncio.Task[None] | None = None
     failure: BaseException | None = None
     initialized = False
+    packet_emission_ready = asyncio.Event()
     try:
         providers = []
         if "pcap" in enabled:
-            providers.append(asyncio.create_task(capture_pcap(pcap_output, udid, -1), name="pcap"))
+            packet_index = 0
+
+            async def emit_packet(packet: Any, metadata: dict[str, Any]) -> None:
+                nonlocal packet_index
+                # pcapd can yield immediately.  Rust requires provider.ready to
+                # be sequence zero, so hold packets until startup is committed.
+                await packet_emission_ready.wait()
+                packet_index += 1
+                direction = metadata["direction"]
+                source = metadata.get("source_ip")
+                destination = metadata.get("destination_ip")
+                source_port = metadata.get("source_port")
+                destination_port = metadata.get("destination_port")
+                remote_ip = (
+                    destination
+                    if direction == "outbound"
+                    else source if direction == "inbound" else None
+                )
+                def endpoint(address: Any, port: Any) -> str:
+                    if not address:
+                        return "unknown"
+                    rendered = str(address)
+                    if port is None:
+                        return rendered
+                    if ":" in rendered:
+                        rendered = f"[{rendered}]"
+                    return f"{rendered}:{port}"
+                summary = (
+                    f"{direction.upper()} {metadata['protocol']} "
+                    f"{endpoint(source, source_port)} → {endpoint(destination, destination_port)} "
+                    f"({metadata['packet_bytes']} bytes)"
+                )
+                payload = {
+                    "request_id": f"ios-live:packet:{packet_index:012d}",
+                    "method": (
+                        "OUT"
+                        if direction == "outbound"
+                        else "IN" if direction == "inbound" else "PACKET"
+                    ),
+                    "host": None,
+                    "ip": remote_ip,
+                    "path": f"{endpoint(source, source_port)} → {endpoint(destination, destination_port)}",
+                    "protocol": metadata["protocol"],
+                    "request_bytes": metadata["packet_bytes"],
+                    "raw": summary,
+                    "media_type": "text/plain; charset=utf-8",
+                    "reconstructed": True,
+                    "truncated": False,
+                    "masked": False,
+                    "direction": direction,
+                    "interface": metadata.get("interface"),
+                    "source_ip": source,
+                    "destination_ip": destination,
+                    "source_port": source_port,
+                    "destination_port": destination_port,
+                    "packet_bytes": metadata["packet_bytes"],
+                    "warning": "packet_metadata",
+                }
+                seconds = int(getattr(packet, "seconds", 0))
+                microseconds = int(getattr(packet, "microseconds", 0))
+                timestamp = seconds * 1_000_000_000 + microseconds * 1_000
+                timestamp = timestamp or None
+                await emitter.emit(
+                    "network.packet",
+                    payload,
+                    process_id=metadata.get("process_id"),
+                    process_name=metadata.get("process_name"),
+                    source_time_ns=timestamp,
+                )
+
+            providers.append(asyncio.create_task(capture_pcap(pcap_output, udid, -1, emit_packet), name="pcap"))
         if "syslog" in enabled:
             providers.append(asyncio.create_task(capture_logs(log_output, udid, -1), name="syslog"))
         expected_outputs = tuple(
@@ -185,6 +264,7 @@ async def run_live_capture(
                 "tls_decryption": False,
             },
         )
+        packet_emission_ready.set()
         health = asyncio.create_task(
             _health_loop(emitter, stop, pcap_output, log_output, health_interval, enabled),
             name="health",

@@ -99,6 +99,44 @@ fn materializes_paired_raw_exchange_and_endpoint_counts() {
 }
 
 #[test]
+fn materializes_live_packet_metadata_as_a_realtime_ip_row() {
+    let dir = tempdir().unwrap();
+    let index = EventIndex::open(&dir.path().join("session.sqlite")).unwrap();
+    let session = Uuid::new_v4();
+    index
+        .insert(&event(
+            session,
+            1,
+            "network.packet",
+            json!({
+                "request_id": "packet-000000000001", "method": "OUT",
+                "ip": "8.8.8.8", "path": "10.0.0.1:49152 → 8.8.8.8:443",
+                "protocol": "TCP", "request_bytes": 54,
+                "raw": "OUTBOUND TCP 10.0.0.1:49152 → 8.8.8.8:443 (54 bytes)",
+                "media_type": "text/plain; charset=utf-8", "reconstructed": true,
+                "truncated": false, "masked": false
+            }),
+        ))
+        .unwrap();
+
+    let page = index.page_exchanges(session, "", None, 0, 200).unwrap();
+    assert_eq!(page.total, 1);
+    let packet = &page.exchanges[0];
+    assert_eq!(packet.method.as_deref(), Some("OUT"));
+    assert_eq!(packet.ip.as_deref(), Some("8.8.8.8"));
+    assert_eq!(packet.protocol.as_deref(), Some("TCP"));
+    assert_eq!(packet.request_bytes, Some(54));
+    assert_eq!(packet.warning.as_deref(), Some("packet_metadata"));
+    assert!(
+        index
+            .list_endpoints(session, "", 20)
+            .unwrap()
+            .iter()
+            .any(|endpoint| { endpoint.kind == EndpointKind::Ip && endpoint.value == "8.8.8.8" })
+    );
+}
+
+#[test]
 fn preserves_side_specific_evidence_and_unknown_raw_metadata() {
     let dir = tempdir().unwrap();
     let index = EventIndex::open(&dir.path().join("session.sqlite")).unwrap();
@@ -338,8 +376,8 @@ fn exchange_pages_are_capped_and_deterministically_ordered() {
         .unwrap();
     assert_eq!(first.total, 502);
     assert_eq!(first.exchanges.len(), 500);
-    assert_eq!(first.exchanges.first().unwrap().request_id, "request-001");
-    assert_eq!(first.exchanges.last().unwrap().request_id, "request-500");
+    assert_eq!(first.exchanges.first().unwrap().request_id, "request-502");
+    assert_eq!(first.exchanges.last().unwrap().request_id, "request-003");
 
     let second = index.page_exchanges(session, "", None, 500, 500).unwrap();
     assert_eq!(
@@ -348,7 +386,7 @@ fn exchange_pages_are_capped_and_deterministically_ordered() {
             .iter()
             .map(|exchange| exchange.request_id.as_str())
             .collect::<Vec<_>>(),
-        ["request-501", "request-502"]
+        ["request-002", "request-001"]
     );
 }
 

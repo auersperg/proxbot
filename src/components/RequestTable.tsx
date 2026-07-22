@@ -104,7 +104,7 @@ export default function RequestTable({ exchanges, total, offset, limit, selected
               </button>
             );
           })}
-          {!exchanges.length && <div className="table-empty">No indexed HTTP exchanges yet.</div>}
+          {!exchanges.length && <div className="table-empty">No network packets or HTTP exchanges observed yet.</div>}
         </div>
       </div>
       <footer className="table-pagination">

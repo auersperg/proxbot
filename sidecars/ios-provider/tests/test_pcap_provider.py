@@ -5,7 +5,90 @@ from types import SimpleNamespace
 from proxbot_ios_provider.pcap_provider import (
     iter_packet_records,
     normalize_pcapng_snaplen,
+    packet_metadata,
 )
+
+
+def test_packet_metadata_extracts_ipv4_tcp_direction_process_and_remote_endpoint():
+    ethernet = bytes.fromhex("00112233445566778899aabb0800")
+    ipv4 = bytes.fromhex("4500002800000000400600000a00000108080808")
+    tcp = struct.pack("!HH", 49152, 443) + bytes(16)
+    packet = SimpleNamespace(
+        data=ethernet + ipv4 + tcp,
+        io=1,
+        interface_name="en0",
+        pid=42,
+        comm="WalletApp",
+        ecomm="",
+    )
+
+    metadata = packet_metadata(packet)
+
+    assert metadata == {
+        "direction": "outbound",
+        "interface": "en0",
+        "process_id": 42,
+        "process_name": "WalletApp",
+        "packet_bytes": 54,
+        "protocol": "TCP",
+        "source_ip": "10.0.0.1",
+        "destination_ip": "8.8.8.8",
+        "ip_version": 4,
+        "source_port": 49152,
+        "destination_port": 443,
+    }
+
+
+def test_packet_metadata_walks_ipv6_extensions_and_normalizes_unknown_pid():
+    ethernet = bytes.fromhex("00112233445566778899aabb86dd")
+    # IPv6 next-header 0 (hop-by-hop), then an eight-byte extension pointing
+    # at UDP, followed by the UDP endpoints.
+    ipv6 = (
+        bytes.fromhex("6000000000100040")
+        + bytes.fromhex("fe800000000000000000000000000001")
+        + bytes.fromhex("ff0200000000000000000000000000fb")
+    )
+    hop_by_hop = bytes([17, 0]) + bytes(6)
+    udp = struct.pack("!HHHH", 5353, 5353, 8, 0)
+    packet = SimpleNamespace(
+        data=ethernet + ipv6 + hop_by_hop + udp,
+        io=2,
+        interface_name="en0",
+        pid=0xFFFFFFFF,
+        comm="",
+        ecomm="",
+    )
+
+    metadata = packet_metadata(packet)
+
+    assert metadata["direction"] == "inbound"
+    assert metadata["process_id"] is None
+    assert metadata["protocol"] == "UDP"
+    assert metadata["source_port"] == 5353
+    assert metadata["destination_port"] == 5353
+    assert metadata["source_ip"] == "fe80::1"
+    assert metadata["destination_ip"] == "ff02::fb"
+
+
+def test_packet_metadata_does_not_invent_ports_for_non_initial_ipv4_fragment():
+    ethernet = bytes.fromhex("00112233445566778899aabb0800")
+    # Fragment offset one (eight bytes): the following bytes are payload, not a
+    # transport header, even though the IPv4 protocol field says UDP.
+    ipv4 = bytes.fromhex("4500001c00000001401100000a00000108080808")
+    packet = SimpleNamespace(
+        data=ethernet + ipv4 + struct.pack("!HH", 1234, 443),
+        io=1,
+        interface_name="en0",
+        pid=0,
+        comm="",
+        ecomm="",
+    )
+
+    metadata = packet_metadata(packet)
+
+    assert metadata["protocol"] == "UDP"
+    assert "source_port" not in metadata
+    assert "destination_port" not in metadata
 
 
 class FakeService:
@@ -33,6 +116,32 @@ def test_packet_iterator_skips_capability_handshake_and_honors_count():
 
     packets = asyncio.run(collect())
     assert [packet.data for packet in packets] == [b"packet-one"]
+
+
+def test_packet_iterator_synthesizes_ipv6_ether_type_for_raw_ip_payload():
+    class RawIpv6Service:
+        def __init__(self):
+            self.records = [bytes.fromhex("6000000000003a40") + bytes(32)]
+
+        async def recv_plist(self):
+            return self.records.pop(0)
+
+    async def collect():
+        return [
+            packet
+            async for packet in iter_packet_records(
+                RawIpv6Service(),
+                count=1,
+                parse_packet=lambda value: SimpleNamespace(
+                    data=value,
+                    frame_pre_length=0,
+                ),
+            )
+        ]
+
+    packet = asyncio.run(collect())[0]
+    assert packet.data[12:14] == b"\x86\xdd"
+    assert packet.data[14] >> 4 == 6
 
 
 def test_zero_snaplen_is_normalized_for_libpcap_compatibility(tmp_path):

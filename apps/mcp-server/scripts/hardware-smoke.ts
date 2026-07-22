@@ -45,16 +45,36 @@ try {
     join(capture.sessionDir, "capture/device.pcapng"),
     join(capture.sessionDir, "logs/device.jsonl"),
   ];
-  const artifactDeadline = Date.now() + 20_000;
-  while (
-    requiredArtifacts.some((path) => !existsSync(path) || statSync(path).size === 0)
-    && Date.now() < artifactDeadline
-  ) {
+  const realtimeDeadline = Date.now() + 20_000;
+  while (requiredArtifacts.some((path) => !existsSync(path)) && Date.now() < realtimeDeadline) {
     await Bun.sleep(250);
   }
-  if (requiredArtifacts.some((path) => !existsSync(path) || statSync(path).size === 0)) {
-    throw new Error("Live capture artifacts did not become non-empty before the smoke deadline");
+  if (requiredArtifacts.some((path) => !existsSync(path))) {
+    throw new Error("Live capture artifacts were not created before the smoke deadline");
   }
+
+  let realtimePage: { exchanges: Array<Record<string, any>>; total: number } = {
+    exchanges: [],
+    total: 0,
+  };
+  while (realtimePage.total === 0 && Date.now() < realtimeDeadline) {
+    realtimePage = (await call("proxbot_query_exchanges", {
+      sessionId: capture.sessionId,
+      query: "",
+      endpoint: null,
+      offset: 0,
+      limit: 10,
+    })) as typeof realtimePage;
+    if (realtimePage.total === 0) await Bun.sleep(250);
+  }
+  if (realtimePage.total === 0 || realtimePage.exchanges.length === 0) {
+    throw new Error("No realtime network exchange rows were indexed during active capture");
+  }
+  const firstRealtimeExchange = realtimePage.exchanges[0];
+  if (!firstRealtimeExchange?.requestId || !firstRealtimeExchange?.protocol) {
+    throw new Error("The realtime exchange row is missing requestId or protocol metadata");
+  }
+
   await Bun.sleep(1_000);
   const marker = await call("proxbot_add_marker", { label: "MCP hardware smoke" });
   await Bun.sleep(800);
@@ -66,6 +86,13 @@ try {
   }
   if (stopped.metrics.malformed !== 0 || stopped.metrics.dropped !== 0) {
     throw new Error("Hardware smoke observed malformed or dropped lifecycle events");
+  }
+  const finalizedArtifacts = requiredArtifacts.map((path) => ({
+    path,
+    bytes: existsSync(path) ? statSync(path).size : 0,
+  }));
+  if (finalizedArtifacts.some(({ bytes }) => bytes === 0)) {
+    throw new Error("Finalized PCAPNG or syslog artifact is missing or empty");
   }
 
   process.stdout.write(`${JSON.stringify({
@@ -84,6 +111,11 @@ try {
       sessionDir: stopped.sessionDir,
       metrics: stopped.metrics,
       sources: stopped.sources,
+      indexedRealtime: {
+        total: realtimePage.total,
+        firstExchange: firstRealtimeExchange,
+      },
+      finalizedArtifacts,
     },
     marker: { id: marker.id, label: marker.label },
   }, null, 2)}\n`);
