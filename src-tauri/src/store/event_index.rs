@@ -5,6 +5,11 @@ use uuid::Uuid;
 
 use crate::domain::ProviderEvent;
 
+use super::{
+    EndpointFilter, EndpointSummary, ExchangePage,
+    exchange_index::{list_endpoints, materialize_event, page_exchanges},
+};
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct EventPage {
     pub events: Vec<ProviderEvent>,
@@ -19,6 +24,7 @@ impl EventIndex {
     pub fn open(path: &Path) -> anyhow::Result<Self> {
         let connection = Connection::open(path)?;
         connection.execute_batch(include_str!("../../migrations/0001_events.sql"))?;
+        connection.execute_batch(include_str!("../../migrations/0002_exchanges.sql"))?;
         Ok(Self {
             connection: Mutex::new(connection),
         })
@@ -29,8 +35,9 @@ impl EventIndex {
         let evidence = serde_json::to_string(&event.evidence)?
             .trim_matches('"')
             .to_owned();
-        let connection = self.connection.lock().expect("event index lock poisoned");
-        connection.execute(
+        let mut connection = self.connection.lock().expect("event index lock poisoned");
+        let transaction = connection.transaction()?;
+        transaction.execute(
             "INSERT INTO events (
                 session_id, sequence, host_time_ns, provider_id,
                 evidence, kind, process_name, event_json
@@ -46,6 +53,8 @@ impl EventIndex {
                 event_json,
             ],
         )?;
+        materialize_event(&transaction, event)?;
+        transaction.commit()?;
         Ok(())
     }
 
@@ -74,5 +83,27 @@ impl EventIndex {
             events.push(serde_json::from_str::<ProviderEvent>(&row?)?);
         }
         Ok(EventPage { events, total })
+    }
+
+    pub fn page_exchanges(
+        &self,
+        session_id: Uuid,
+        query: &str,
+        endpoint: Option<&EndpointFilter>,
+        offset: u64,
+        limit: u64,
+    ) -> anyhow::Result<ExchangePage> {
+        let connection = self.connection.lock().expect("event index lock poisoned");
+        page_exchanges(&connection, session_id, query, endpoint, offset, limit)
+    }
+
+    pub fn list_endpoints(
+        &self,
+        session_id: Uuid,
+        query: &str,
+        limit: u64,
+    ) -> anyhow::Result<Vec<EndpointSummary>> {
+        let connection = self.connection.lock().expect("event index lock poisoned");
+        list_endpoints(&connection, session_id, query, limit)
     }
 }
