@@ -24,7 +24,7 @@
   <div class="device-pill" class:connected={fridaDevice?.available === true}>
     <span class="device-dot"></span>
     <div>
-      <small>FRIDA USB</small>
+      <small>IOS USB</small>
       <strong>
         {#if fridaDevice?.available}
           {fridaDevice.name ?? "iPhone"}

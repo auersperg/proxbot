@@ -57,7 +57,7 @@
     try {
       fridaDevice = await api.fridaPreflight();
       if (!fridaDevice.available) {
-        errorMessage = fridaDevice.error ?? "Frida USB device is unavailable.";
+        errorMessage = fridaDevice.error ?? "USB iPhone is unavailable.";
       }
     } catch (error) {
       fridaDevice = { available: false, error: describeError(error) };
@@ -137,7 +137,7 @@
           <div class="phone-glyph" aria-hidden="true"><span></span></div>
           <div>
             <strong>{fridaDevice?.name ?? "USB iPhone"}</strong>
-            <small>{fridaDevice?.type ?? "Frida preflight required"}</small>
+            <small>{fridaDevice?.type ?? "Device preflight required"}</small>
             <code>{redactIdentifier(fridaDevice?.id)}</code>
           </div>
         </div>
@@ -162,9 +162,9 @@
       <section class="sidebar-section sources">
         <header><h2>Evidence sources</h2></header>
         <div><span class="source-dot ready"></span><strong>Session core</strong><small>lossless</small></div>
-        <div><span class={`source-dot ${fridaDevice?.available ? "ready" : "idle"}`}></span><strong>Frida USB</strong><small>{fridaDevice?.available ? "ready" : "unchecked"}</small></div>
+        <div><span class={`source-dot ${fridaDevice?.available ? "ready" : "idle"}`}></span><strong>iPhone USB</strong><small>{fridaDevice?.available ? "paired" : "unchecked"}</small></div>
         <div><span class="source-dot ready"></span><strong>Fake provider</strong><small>verified IPC</small></div>
-        <div><span class="source-dot idle"></span><strong>USB PCAP</strong><small>next milestone</small></div>
+        <div><span class="source-dot ready"></span><strong>USB PCAP</strong><small>provider ready</small></div>
       </section>
 
       <section class="sidebar-section scope-note">

@@ -112,7 +112,7 @@ pub async fn run_frida_preflight(provider_project: &Path) -> anyhow::Result<Valu
 }
 
 pub async fn run_frida_preflight_with_runtime(runtime: &ProviderRuntime) -> anyhow::Result<Value> {
-    let invocation = runtime.invocation("frida-preflight", &[]);
+    let invocation = runtime.invocation("device-preflight", &[]);
     let output = Command::new(invocation.program)
         .args(invocation.arguments)
         .stdin(Stdio::null())
@@ -120,7 +120,7 @@ pub async fn run_frida_preflight_with_runtime(runtime: &ProviderRuntime) -> anyh
         .await?;
     anyhow::ensure!(
         output.status.success(),
-        "Frida preflight failed: {}",
+        "iPhone preflight failed: {}",
         String::from_utf8_lossy(&output.stderr).trim()
     );
     Ok(serde_json::from_slice(&output.stdout)?)

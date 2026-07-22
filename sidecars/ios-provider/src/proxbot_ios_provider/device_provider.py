@@ -33,6 +33,8 @@ async def device_preflight(udid: str | None = None) -> dict[str, Any]:
         return {
             "available": True,
             "id": selected["id"],
+            "name": values.get("DeviceName") or "iPhone",
+            "type": "usb",
             "connection_type": "usb",
             "paired": bool(lockdown.paired),
             "trusted": bool(values.get("TrustedHostAttached", False)),
