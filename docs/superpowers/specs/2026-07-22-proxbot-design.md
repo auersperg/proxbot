@@ -1,9 +1,9 @@
 # proxbot — Design Specification
 
-**Date:** 2026-07-22  
-**Status:** Ready for user review  
-**Target:** macOS 14+ on Apple Silicon  
-**Device scope:** A paired, USB-connected, non-jailbroken iPhone  
+**Date:** 2026-07-22
+**Status:** Approved
+**Target:** macOS 14+ on Apple Silicon
+**Device scope:** A paired, USB-connected, non-jailbroken iPhone
 
 ## 1. Purpose
 
@@ -83,7 +83,7 @@ The application has no telemetry and no cloud dependency. External enrichment is
 proxbot uses a hybrid architecture.
 
 ```text
-Svelte 5 + TypeScript UI
+React 19 + TypeScript 7 UI / Vite 8 / Bun 1.3
           |
           | typed Tauri commands and paged queries
           v
@@ -106,6 +106,16 @@ Tauri 2 / Rust Application Core
 Tauri owns application lifecycle, minimum capabilities, local file access, native dialogs, secret storage, process supervision, and packaging. Rust owns session state, durable storage, normalized schemas, analysis scheduling, and UI query APIs. The UI never receives an unbounded stream of raw packets.
 
 The iOS provider is a bundled sidecar based on `pymobiledevice3`, isolated behind a versioned provider contract. It supplies device discovery, tunnel management, PCAP, logs, application management, and process information. Packaging must include the required license notices and source-availability obligations for every redistributed component.
+
+### 4.1 Frontend and JavaScript toolchain
+
+The desktop interface uses React 19, React DOM 19, TypeScript 7, Vite 8, and Bun 1.3. Bun is the only JavaScript package manager and script runner used by the repository. The repository contains one `bun.lock` and no pnpm, npm, or Yarn lockfiles. Tauri invokes `bun run dev` and `bun run build`; Vite produces `dist`, which Tauri consumes as `../dist`.
+
+The frontend is a client-only application. It has no SSR, frontend router, Redux-style global store, UI component framework, or parallel legacy frontend. Local component state and focused reducers manage presentation state. Rust remains the source of truth for sessions, queries, filtering, sorting, paging, artifact access, and analysis.
+
+The Vite development server uses a fixed port, fails if that port is occupied, preserves Rust diagnostics, and respects `TAURI_DEV_HOST`. Production targets match the WebView versions supported by Tauri. Debug builds retain source maps and readable output; release builds are minified.
+
+The only permitted general-purpose frontend dependency beyond React and the Tauri APIs is a focused virtualization primitive for lists and rows. New dependencies require a demonstrated reduction in code or a measured performance benefit.
 
 ## 5. Component Contracts
 
@@ -135,16 +145,26 @@ Every event includes:
 - schema version;
 - provider ID and provider version;
 - session UUID;
+- event UUID and parent event UUID when present;
 - source sequence number;
 - source timestamp;
 - host receive timestamp;
 - monotonic timestamp when available;
 - device ID;
+- application ID;
 - process identity when available;
+- thread identity when available;
 - evidence class;
 - payload type;
 - raw artifact reference;
+- raw artifact byte offset, captured length, original length, and SHA-256;
+- network direction, connection ID, stream ID, and request ID when present;
+- receive and persistence sequence numbers;
+- provider queue depth and cumulative drop count;
+- correlation confidence and analyzer version for inferred relationships;
 - parse status.
+
+Network records additionally retain interface, transport, source and destination addresses and ports, DNS query and answer data, TCP sequence/reassembly information, TLS version/cipher/SNI/ALPN/certificate fingerprints, HTTP version and original header order, body encoding and exact body location, HTTP/2 stream identity, WebSocket frame boundaries, request timing, process correlation, and the explicit reason for every incomplete field. A field that was not observed is distinct from a field that was observed empty.
 
 Provider control messages use a versioned request/response protocol. High-rate metadata uses length-prefixed MessagePack frames over a Unix domain socket. Raw packet bytes and large bodies are written directly into provider-owned temporary files in the session directory, then atomically handed to the core. A sidecar must spool locally when the IPC consumer is backpressured and report any spool overflow.
 
@@ -341,39 +361,65 @@ The inspector displays the evidence supporting each conclusion. It does not infe
 
 ## 11. User Experience
 
-proxbot uses one primary window with four stable regions.
+proxbot uses one dense, dark, primary window inspired by the efficient analysis layout of Proxyman without copying its branding or decorative chrome. Information density, immediate selection feedback, keyboard navigation, and exact evidence inspection take priority over animations and ornamental UI. The window has a toolbar, endpoint sidebar, request table, split request/response inspector, and health strip. Every splitter is resizable and its position persists locally.
+
+```text
++------------------------------------------------------------------------------+
+| Device | App | Profile | Start/Pause/Marker/Stop | Filter | Health | Time   |
++----------------------+-------------------------------------------------------+
+| Device               | Request table                                         |
+| +-- Domains          | # Method Host/IP Path Status Protocol Time Size Warn  |
+| |   +-- example.com  |                                                       |
+| +-- IP addresses     |                                                       |
+|     +-- 192.0.2.1    |                                                       |
++----------------------+--------------------------+----------------------------+
+| Sessions/providers   | RAW Request              | RAW Response               |
++----------------------+--------------------------+----------------------------+
+| received | persisted | malformed | dropped | queue | throughput | last event |
++------------------------------------------------------------------------------+
+```
 
 ### 11.1 Toolbar
 
-- device selector;
-- application/laboratory-build selector;
-- capture profile;
-- Start, Marker, and Stop controls;
-- global health indicator;
-- session elapsed time and written size.
+The toolbar contains only the selected device, selected application or laboratory build, capture profile, Start/Pause/Marker/Stop controls, global filter, session health, elapsed time, and written size. A destructive or state-changing action has one unambiguous control and a visible disabled reason. Capture state remains visible while any inspector has focus.
 
-### 11.2 Left sidebar
+### 11.2 Device and endpoint sidebar
 
-- saved sessions;
-- provider status;
-- application/process tree;
-- quick filters for network, logs, trust, wallet, and Solana events.
+The primary hierarchy is the selected device followed by `Domains` and `IP addresses`. Each endpoint shows a matching request count. Selecting the device shows all matching requests; selecting a domain or IP applies an indexed query to the center table. Domain identity and IP identity remain separate even when correlation links them.
 
-### 11.3 Center timeline
+For a domain, proxbot retains the original and normalized names, DNS answers, CNAME chain, SNI, certificate names, and related IP addresses. For an IP, it retains address family, port, transport, correlated domain names, and explicitly labeled enrichment when ASN or organization information is requested. Saved sessions, provider state, application/process filters, and saved filters occupy a compact secondary section below the endpoint tree.
 
-A virtualized, paged timeline supports millions of events. Rows display normalized time, source badges, process, category, endpoint/operation, size or duration, evidence class, and warning state. Users can filter by text, process, hostname, protocol, evidence class, transaction signature, account, program ID, source, and time range.
+The endpoint tree is virtualized, keyboard navigable, incrementally updated, and backed by Rust/SQLite aggregation. React never scans the entire session to calculate endpoint counts.
 
-### 11.4 Right inspector
+### 11.3 Request table
 
-The inspector provides Overview, Request, Response, TLS, Packets, Process, Stack, Wallet, Solana, Correlation, Raw, and Notes tabs as applicable. Raw views always identify their source artifact and offset.
+The center table is the dominant region. Its columns are sequence, observed time, method or operation, scheme, domain or IP, path, client/device/process, status, protocol, duration, request bytes, response bytes, TLS state, evidence class, and warning state. Columns are reorderable and resizable; a minimal default set remains legible at the minimum supported window size.
+
+The table combines Rust-side filtering, sorting, stable cursor paging, and row virtualization. Selection is keyed by immutable request or flow identity rather than visible row index. Live updates arrive in bounded batches and do not reorder an actively inspected selection without an explicit user action. Scrolling does not trigger decoding or analysis.
+
+Filters cover free text, device, application, process, hostname, IP, protocol, method, status, evidence class, transaction signature, account, program ID, source, warning type, and time range. The table visibly distinguishes an absent response, an incomplete body, a capture gap, a parse failure, and a request still in flight.
+
+### 11.4 Split RAW request and RAW response inspector
+
+Selecting a request opens two persistent panes beneath the table: `RAW Request` on the left and `RAW Response` on the right. Each pane has contextual `Raw`, `Headers`, `Body`, `TLS`, `Timing`, `Packets`, `Process`, `Stack`, `Wallet/Solana`, and `Correlation` views when corresponding evidence exists. `Raw` is the default.
+
+The request pane preserves the request line or HTTP/2 pseudo-headers, original header order and casing, repeated headers, exact empty-line boundary, body bytes, trailers, content encoding, and known chunk or frame boundaries. The response pane preserves the status line, original headers, body bytes, trailers, timing, TLS/connection metadata, and known chunk or frame boundaries. Binary data has an exact hex view beside decoded text. Invalid text decoding is reported and never replaces the original bytes.
+
+Every raw view identifies evidence class, provider, artifact path, byte offset, captured length, original length, hash, truncation state, parse state, and whether the display is original bytes or a clearly labeled reconstruction. Normalized fields are never presented as byte-exact raw traffic.
+
+Bodies are content-addressed artifacts. Initial selection loads metadata and a bounded preview. Additional byte ranges are fetched on demand through typed Tauri commands; full bodies and unbounded packet arrays never cross the Tauri event channel. Body search runs in Rust and returns match ranges. Copy operations preserve exact bytes when representable and otherwise provide an explicit binary export.
 
 ### 11.5 Bottom health strip
 
-Shows provider status, received/persisted/dropped counts, queue depth, write throughput, free space, clock drift, reconnect count, and last-event age. Clicking a warning jumps to the affected time interval.
+The persistent health strip shows provider state, received, persisted, malformed and dropped counts, queue depth, write throughput, free space, clock drift, reconnect count, and last-event age. Healthy, warning, degraded, and failed states differ by text and icon as well as color. Clicking a counter opens the affected source and time interval. No provider loss is summarized away.
 
-### 11.6 Analysis ergonomics
+### 11.6 Sensitive-data presentation
 
-Users can add named markers during reproduction, pin events, compare two flows, copy a reproducible event reference, and generate a compact analysis bundle suitable for later Codex inspection. The bundle includes schemas and a machine-readable session summary so analysis does not depend on screenshots.
+The raw artifact is immutable evidence. The default interface applies a reversible visual mask to configured secret classes without changing stored bytes or hashes. The user can reveal one value locally, copy an exact or sanitized variant, or use protected and sanitized exports as separate operations. The interface always indicates masking, reconstruction, truncation, and sanitization; these states are never implicit.
+
+### 11.7 Analysis ergonomics
+
+Users can navigate all major regions by keyboard, add named markers, pin events, compare two flows, copy a reproducible event reference, and generate a compact analysis bundle for later Codex inspection. The bundle includes schemas, filters, analyzer versions, evidence references, provider health, gaps, and a machine-readable session summary so analysis does not depend on screenshots.
 
 ## 12. Security and Privacy
 
@@ -427,6 +473,10 @@ Every transformation step is transactional. A failed signature or installation l
 - Solana transaction decoding;
 - evidence classification;
 - correlation scoring;
+- React endpoint-tree selection and count rendering;
+- request-table stable selection across paging and live batches;
+- raw request/response provenance, truncation, masking, and reconstruction labels;
+- bounded body-preview and range-loading behavior;
 - export manifests and checksums.
 
 ### 14.2 Property and fuzz tests
@@ -446,7 +496,7 @@ Each golden session has expected normalized events, correlations, health status,
 
 ### 14.4 Integration tests
 
-A deterministic fake provider suite simulates normal capture, backpressure, sequence gaps, reconnects, clock drift, malformed frames, disk pressure, and abrupt process death. Integration tests run without an iPhone.
+A deterministic fake provider suite simulates normal capture, backpressure, sequence gaps, reconnects, clock drift, malformed frames, disk pressure, and abrupt process death. Integration tests run without an iPhone. Frontend integration fixtures exercise device/domain/IP filtering, cursor paging, high-rate bounded batches, keyboard selection, independent raw request and response panes, large bodies, binary bodies, absent responses, capture gaps, and secret overlays against typed Tauri command fakes.
 
 ### 14.5 Hardware validation
 
@@ -460,6 +510,9 @@ On a representative Apple Silicon Mac, the MVP must demonstrate:
 - sustained ingestion of 50,000 normalized metadata events per second for ten minutes;
 - recovery of a deliberately interrupted session to its last complete frame;
 - interactive paged navigation in a session containing at least ten million events;
+- no unbounded growth of React state while the ten-million-event fixture is browsed or live batches arrive;
+- a selected row remains stable through paging, filtering, and bounded live updates;
+- initial raw-inspector selection transfers only metadata and a bounded preview, with additional ranges fetched on demand;
 - no raw body transfer through the Tauri UI event channel;
 - bounded queues and visible drop accounting during forced overload;
 - deterministic re-indexing that reproduces normalized record counts and transaction traces.
@@ -508,7 +561,7 @@ The first implementation plan will be split into sequential milestones:
 1. repository, Tauri shell, schemas, and fake providers;
 2. crash-safe session store and provider supervision;
 3. iOS discovery, tunnel, PCAP, logs, and process capture;
-4. timeline, health strip, filtering, and inspector;
+4. Bun/React/Vite migration and the device/domain/IP sidebar, request table, split raw inspector, and health strip;
 5. proxy provider and standard protocol analyzers;
 6. laboratory-build pipeline and instrumentation profiles;
 7. Solana and embedded-wallet analysis;
@@ -520,6 +573,9 @@ Each milestone must be independently testable and leave a usable artifact. Hardw
 
 The MVP is accepted when a user can connect the paired iPhone, select the laboratory application, start a synchronized session, reproduce a pinned-TLS embedded-wallet transaction, stop capture, and inspect a timeline that:
 
+- runs through the single Bun/React/Vite frontend with no retained Svelte or pnpm runtime path;
+- presents the selected device, indexed domain/IP tree, paged request table, and simultaneous RAW Request and RAW Response panes in one window;
+- shows original request and response bytes with provider, artifact, offset, length, hash, parse, truncation, reconstruction, evidence, and masking state;
 - retains raw PCAP and all provider artifacts;
 - displays provider coverage and any gaps;
 - correlates encrypted flows with proxy or application plaintext without mislabeling the evidence;
@@ -532,6 +588,8 @@ The MVP is accepted when a user can connect the paired iPhone, select the labora
 ## 19. Primary Technical References
 
 - [Tauri 2 documentation](https://v2.tauri.app/)
+- [Tauri Vite frontend configuration](https://v2.tauri.app/start/frontend/vite/)
+- [Tauri project templates and Bun/React support](https://v2.tauri.app/start/create-project/)
 - [Tauri external binaries and sidecars](https://v2.tauri.app/develop/sidecar/)
 - [Tauri capabilities](https://v2.tauri.app/security/capabilities/)
 - [pymobiledevice3](https://github.com/doronz88/pymobiledevice3)
