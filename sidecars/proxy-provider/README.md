@@ -13,7 +13,11 @@ proxbot-proxy-provider start \
   --listen-host 127.0.0.1 --listen-port 9090
 ```
 
-`start` replaces itself with `mitmdump`, so normal SIGINT/SIGTERM handling reaches mitmproxy directly and the addon flushes a final health event, `provider.stopped`, its bounded event queue, and body artifacts.
+`start` invokes mitmproxy's bundled `mitmdump` frontend in-process, so the
+packaged sidecar needs neither a Python installation nor an external mitmdump
+console script. Normal SIGINT/SIGTERM handling reaches mitmproxy and the addon
+flushes a final health event, `provider.stopped`, its bounded event queue, and
+body artifacts.
 
 ## Evidence contract
 

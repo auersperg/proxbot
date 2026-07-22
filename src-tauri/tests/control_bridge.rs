@@ -48,6 +48,7 @@ async fn owner_only_bridge_serves_bounded_versioned_status() {
     let runtime = ProviderRuntime::from_executable(PathBuf::from("/usr/bin/true")).unwrap();
     let service = Arc::new(LiveCaptureService::new(
         root.path().join("sessions"),
+        runtime.clone(),
         runtime,
     ));
     let path = socket_path();
@@ -102,6 +103,7 @@ async fn bridge_refuses_a_symlink_control_path() {
     let runtime = ProviderRuntime::from_executable(PathBuf::from("/usr/bin/true")).unwrap();
     let service = Arc::new(LiveCaptureService::new(
         root.path().join("sessions"),
+        runtime.clone(),
         runtime,
     ));
 

@@ -24,14 +24,40 @@ impl ProviderRuntime {
         search_directories: &[PathBuf],
         source_project: PathBuf,
     ) -> anyhow::Result<Self> {
-        if let Some(path) = std::env::var_os("PROXBOT_PROVIDER") {
+        Self::discover_named(
+            search_directories,
+            source_project,
+            "PROXBOT_PROVIDER",
+            "proxbot-ios-provider",
+        )
+    }
+
+    pub fn discover_proxy(
+        search_directories: &[PathBuf],
+        source_project: PathBuf,
+    ) -> anyhow::Result<Self> {
+        Self::discover_named(
+            search_directories,
+            source_project,
+            "PROXBOT_PROXY_PROVIDER",
+            "proxbot-proxy-provider",
+        )
+    }
+
+    fn discover_named(
+        search_directories: &[PathBuf],
+        source_project: PathBuf,
+        environment_variable: &str,
+        executable_name: &str,
+    ) -> anyhow::Result<Self> {
+        if let Some(path) = std::env::var_os(environment_variable) {
             let path = PathBuf::from(path);
-            anyhow::ensure!(path.is_file(), "PROXBOT_PROVIDER is not a file");
+            anyhow::ensure!(path.is_file(), "{environment_variable} is not a file");
             return Self::from_executable(path);
         }
 
         for directory in search_directories {
-            let path = directory.join("proxbot-ios-provider");
+            let path = directory.join(executable_name);
             if path.is_file() {
                 return Self::from_executable(path);
             }
@@ -55,7 +81,7 @@ impl ProviderRuntime {
                 "run".into(),
                 "--project".into(),
                 source_project.display().to_string(),
-                "proxbot-ios-provider".into(),
+                executable_name.into(),
             ],
         })
     }

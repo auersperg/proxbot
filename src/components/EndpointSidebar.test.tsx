@@ -8,7 +8,7 @@ const endpoints = [
   { kind: "ip" as const, value: "192.0.2.10", count: 7 },
 ];
 const sources = [
-  { id: "proxy", label: "HTTP proxy", status: "active" as const, detail: "listening" },
+  { id: "proxy-mitm", label: "HTTP proxy", status: "active" as const, detail: "192.168.1.31:9090" },
   { id: "tls", label: "TLS plaintext", status: "idle" as const, detail: "not configured" },
 ];
 
@@ -21,11 +21,23 @@ describe("EndpointSidebar", () => {
     expect(screen.getAllByText("12")).toHaveLength(2);
     expect(screen.getByRole("button", { name: /Lab iPhone.*12/ })).toBeVisible();
     expect(screen.queryByRole("button", { name: /Lab iPhone.*19/ })).not.toBeInTheDocument();
-    expect(screen.getByText("listening")).toBeVisible();
+    expect(screen.getByText("192.168.1.31:9090")).toBeVisible();
     expect(screen.getByText("not configured")).toBeVisible();
+    expect(screen.getByText("http://mitm.it")).toBeVisible();
     expect(screen.queryByText("ready")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /auth\.privy\.io/ }));
     expect(onSelect).toHaveBeenCalledWith({ kind: "domain", value: "auth.privy.io" });
+  });
+
+  it("explains manual HTTPS setup without claiming CA trust or pinning bypass", async () => {
+    render(<EndpointSidebar device={{ name: "Lab iPhone", id: "fixture-device", available: true }} endpoints={endpoints} total={19} selected={null} sources={sources} onSelect={vi.fn()} />);
+
+    expect(screen.getByLabelText("HTTP proxy: active")).toBeVisible();
+    expect(screen.queryByText(/Listening does not prove CA trust/)).not.toBeVisible();
+    await userEvent.click(screen.getByText("CA setup"));
+    expect(screen.getByText(/Set the iPhone Wi-Fi proxy/)).toBeVisible();
+    expect(screen.getByText(/Listening does not prove CA trust/)).toBeVisible();
+    expect(screen.getByText(/Certificate-pinned apps may remain encrypted/)).toBeVisible();
   });
 
   it("keeps a large endpoint inventory bounded in the DOM", () => {

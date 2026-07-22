@@ -131,6 +131,78 @@ impl ProviderSupervisor {
         })
     }
 
+    pub async fn start_proxy(
+        runtime: &ProviderRuntime,
+        socket_path: &Path,
+        session_id: Uuid,
+        artifact_root: &Path,
+        confdir: &Path,
+        listen_host: &str,
+        listen_port: u16,
+    ) -> anyhow::Result<LiveProvider> {
+        if socket_path.exists() {
+            std::fs::remove_file(socket_path)?;
+        }
+        let cleanup = SocketCleanup(socket_path.to_owned());
+        let listener = UnixListener::bind(socket_path)?;
+        set_socket_owner_only(socket_path)?;
+        let socket = socket_path.display().to_string();
+        let session = session_id.to_string();
+        let artifacts = artifact_root.display().to_string();
+        let confdir = confdir.display().to_string();
+        let port = listen_port.to_string();
+        let invocation = runtime.invocation(
+            "start",
+            &[
+                "--socket",
+                &socket,
+                "--session-id",
+                &session,
+                "--artifact-root",
+                &artifacts,
+                "--confdir",
+                &confdir,
+                "--listen-host",
+                listen_host,
+                "--listen-port",
+                &port,
+                "--allow-remote",
+            ],
+        );
+        let mut child = Command::new(invocation.program)
+            .args(invocation.arguments)
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::piped())
+            .kill_on_drop(true)
+            .spawn()?;
+        let stderr = tokio::spawn(drain_bounded(
+            child.stderr.take().expect("provider stderr pipe missing"),
+            64 * 1024,
+        ));
+
+        let stream = match timeout(Duration::from_secs(45), listener.accept()).await {
+            Ok(Ok((stream, _))) => stream,
+            Ok(Err(error)) => return Err(error.into()),
+            Err(_) => {
+                child.start_kill()?;
+                let _ = child.wait().await?;
+                let tail = stderr.await.unwrap_or_default();
+                anyhow::bail!(
+                    "HTTPS proxy provider did not connect within 45 seconds: {}",
+                    String::from_utf8_lossy(&tail).trim()
+                );
+            }
+        };
+        drop(listener);
+        Ok(LiveProvider {
+            child,
+            reader: BufReader::new(stream),
+            stderr,
+            _socket: cleanup,
+        })
+    }
+
     pub async fn run_fake(
         runtime: &ProviderRuntime,
         socket_path: &Path,

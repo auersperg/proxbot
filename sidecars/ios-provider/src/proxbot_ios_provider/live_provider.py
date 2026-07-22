@@ -1,4 +1,5 @@
 import asyncio
+import heapq
 import signal
 import socket
 import time
@@ -8,7 +9,94 @@ from typing import Any
 from .log_provider import capture_logs
 from .pcap_provider import capture_pcap
 from .protocol import encode_frame
+from .protocol_enrichment import extract_protocol_enrichment
 from . import __version__
+
+
+class _DnsTtlCache:
+    """Bounded-in-time address/name correlation from observed DNS answers."""
+
+    _MAX_NAMES = 16_384
+
+    def __init__(self) -> None:
+        self._entries: dict[str, dict[str, float]] = {}
+        self._expiry_heap: list[tuple[float, str, str]] = []
+        self._name_count = 0
+
+    def _prune(self, now: float) -> None:
+        while self._expiry_heap and (
+            self._expiry_heap[0][0] <= now or self._name_count > self._MAX_NAMES
+        ):
+            expiry, address, name = heapq.heappop(self._expiry_heap)
+            names = self._entries.get(address)
+            if names is None or names.get(name) != expiry:
+                # A later DNS answer refreshed this tuple; this heap entry is
+                # stale and must not remove the current observation.
+                continue
+            names.pop(name)
+            self._name_count -= 1
+            if not names:
+                self._entries.pop(address, None)
+        if len(self._expiry_heap) > self._MAX_NAMES * 4:
+            self._expiry_heap = [
+                (expiry, address, name)
+                for address, names in self._entries.items()
+                for name, expiry in names.items()
+            ]
+            heapq.heapify(self._expiry_heap)
+
+    def observe(self, enrichment: dict[str, Any], now: float) -> None:
+        self._prune(now)
+        dns = enrichment.get("dns")
+        if not isinstance(dns, dict) or dns.get("kind") != "response":
+            return
+        records = dns.get("address_records")
+        if not isinstance(records, list):
+            return
+        for record in records:
+            if not isinstance(record, dict):
+                continue
+            address = record.get("address")
+            name = record.get("name")
+            ttl = record.get("ttl")
+            if (
+                not isinstance(address, str)
+                or not isinstance(name, str)
+                or not name
+                or not isinstance(ttl, int)
+                or isinstance(ttl, bool)
+                or ttl < 0
+            ):
+                continue
+            names = self._entries.setdefault(address, {})
+            if ttl == 0:
+                if names.pop(name, None) is not None:
+                    self._name_count -= 1
+            else:
+                expiry = now + ttl
+                if name not in names:
+                    self._name_count += 1
+                names[name] = expiry
+                heapq.heappush(self._expiry_heap, (expiry, address, name))
+            if not names:
+                self._entries.pop(address, None)
+        self._prune(now)
+
+    def names_for(self, address: Any, now: float) -> list[str]:
+        self._prune(now)
+        if not isinstance(address, str):
+            return []
+        names = self._entries.get(address)
+        if not names:
+            return []
+        # Prefer the most recently refreshed record while keeping the complete
+        # candidate set in the payload for transparent research use.
+        return [
+            name
+            for name, _ in sorted(
+                names.items(), key=lambda item: (-item[1], item[0])
+            )
+        ]
 
 
 class EventEmitter:
@@ -162,12 +250,21 @@ async def run_live_capture(
     failure: BaseException | None = None
     initialized = False
     packet_emission_ready = asyncio.Event()
+    # IP addresses can legitimately have multiple DNS names (CDNs and shared
+    # hosting). Keep all unexpired observations instead of pretending there is
+    # a permanent one-to-one mapping. Expiry uses monotonic time, so host clock
+    # corrections cannot extend an observation beyond its wire TTL.
+    dns_cache = _DnsTtlCache()
     try:
         providers = []
         if "pcap" in enabled:
             packet_index = 0
 
-            async def emit_packet(packet: Any, metadata: dict[str, Any]) -> None:
+            async def emit_packet(
+                packet: Any,
+                metadata: dict[str, Any],
+                raw_ref: dict[str, Any],
+            ) -> None:
                 nonlocal packet_index
                 # pcapd can yield immediately.  Rust requires provider.ready to
                 # be sequence zero, so hold packets until startup is committed.
@@ -182,6 +279,20 @@ async def run_live_capture(
                     destination
                     if direction == "outbound"
                     else source if direction == "inbound" else None
+                )
+                enrichment = extract_protocol_enrichment(bytes(packet.data))
+                observed_at = time.monotonic()
+                dns_cache.observe(enrichment, observed_at)
+                tls = enrichment.get("tls_client_hello")
+                server_name = (
+                    tls.get("server_name")
+                    if isinstance(tls, dict) and isinstance(tls.get("server_name"), str)
+                    else None
+                )
+                cached_names = dns_cache.names_for(remote_ip, observed_at)
+                host = server_name or (cached_names[0] if cached_names else None)
+                host_source = (
+                    "tls.sni" if server_name else "dns.ttl_cache" if host else None
                 )
                 def endpoint(address: Any, port: Any) -> str:
                     if not address:
@@ -204,7 +315,13 @@ async def run_live_capture(
                         if direction == "outbound"
                         else "IN" if direction == "inbound" else "PACKET"
                     ),
-                    "host": None,
+                    "host": host,
+                    "host_source": host_source,
+                    "domain_candidates": (
+                        [server_name]
+                        if server_name is not None
+                        else cached_names
+                    ),
                     "ip": remote_ip,
                     "path": f"{endpoint(source, source_port)} → {endpoint(destination, destination_port)}",
                     "protocol": metadata["protocol"],
@@ -223,6 +340,8 @@ async def run_live_capture(
                     "packet_bytes": metadata["packet_bytes"],
                     "warning": "packet_metadata",
                 }
+                if enrichment:
+                    payload["protocol_enrichment"] = enrichment
                 seconds = int(getattr(packet, "seconds", 0))
                 microseconds = int(getattr(packet, "microseconds", 0))
                 timestamp = seconds * 1_000_000_000 + microseconds * 1_000
@@ -230,6 +349,7 @@ async def run_live_capture(
                 await emitter.emit(
                     "network.packet",
                     payload,
+                    raw_ref=raw_ref,
                     process_id=metadata.get("process_id"),
                     process_name=metadata.get("process_name"),
                     source_time_ns=timestamp,

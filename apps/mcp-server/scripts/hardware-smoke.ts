@@ -44,7 +44,14 @@ try {
   const requiredArtifacts = [
     join(capture.sessionDir, "capture/device.pcapng"),
     join(capture.sessionDir, "logs/device.jsonl"),
+    join(capture.sessionDir, "proxy/request-bodies.bin"),
+    join(capture.sessionDir, "proxy/response-bodies.bin"),
+    join(capture.sessionDir, "proxy/websocket-messages.bin"),
   ];
+  const proxySource = capture.sources?.find((source: { id?: string }) => source.id === "proxy-mitm");
+  if (!proxySource?.detail || !proxySource.detail.includes("http://mitm.it")) {
+    throw new Error("Deep capture did not expose its HTTP(S) proxy endpoint and CA setup URL");
+  }
   const realtimeDeadline = Date.now() + 20_000;
   while (requiredArtifacts.some((path) => !existsSync(path)) && Date.now() < realtimeDeadline) {
     await Bun.sleep(250);
@@ -91,8 +98,11 @@ try {
     path,
     bytes: existsSync(path) ? statSync(path).size : 0,
   }));
-  if (finalizedArtifacts.some(({ bytes }) => bytes === 0)) {
+  if (finalizedArtifacts.slice(0, 2).some(({ bytes }) => bytes === 0)) {
     throw new Error("Finalized PCAPNG or syslog artifact is missing or empty");
+  }
+  if (finalizedArtifacts.slice(2).some(({ path }) => !existsSync(path))) {
+    throw new Error("Finalized proxy artifact set is incomplete");
   }
 
   process.stdout.write(`${JSON.stringify({

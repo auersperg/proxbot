@@ -49,11 +49,11 @@ def probe() -> dict[str, Any]:
 
     executable = shutil.which("mitmdump")
     return {
-        "available": executable is not None,
+        "available": True,
         "provider": "proxy-mitm",
         "provider_version": __version__,
         "mitmproxy_version": mitmproxy.version.VERSION,
-        "mitmdump": executable,
+        "mitmdump": executable or "embedded",
         "schema_version": 1,
         "capabilities": ["http_connect", "http_1_1", "http_2", "websocket", "tls_metadata", "bounded_body_artifacts"],
         "certificate_pinning_bypass": False,
@@ -114,9 +114,6 @@ def start(arguments: argparse.Namespace) -> None:
     validate_start(arguments)
     ensure_owner_directory(arguments.artifact_root)
     ensure_owner_directory(arguments.confdir)
-    executable = shutil.which("mitmdump")
-    if executable is None:
-        raise SystemExit("mitmdump executable was not found")
     addon = Path(__file__).with_name("mitm_addon.py")
     environment = os.environ.copy()
     environment.update(
@@ -133,8 +130,6 @@ def start(arguments: argparse.Namespace) -> None:
         }
     )
     command = [
-        executable,
-        "--quiet",
         "--listen-host", arguments.listen_host,
         "--listen-port", str(arguments.listen_port),
         "--mode", arguments.mode,
@@ -142,7 +137,13 @@ def start(arguments: argparse.Namespace) -> None:
         "--set", "termlog_verbosity=error",
         "-s", str(addon),
     ]
-    os.execvpe(executable, command, environment)
+    # Keep the proxy runnable both from a uv checkout and from the bundled
+    # PyInstaller sidecar.  The console-script executable is not present inside
+    # a one-file bundle, while mitmproxy's supported Python entry point is.
+    os.environ.update(environment)
+    from mitmproxy.tools.main import mitmdump
+
+    mitmdump(command)
 
 
 def main() -> None:

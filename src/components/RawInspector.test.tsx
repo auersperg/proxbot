@@ -97,4 +97,62 @@ describe("RawInspector", () => {
     expect(screen.getByText("No raw request evidence was supplied for this exchange.")).toBeVisible();
     expect(screen.queryByText("Select a request to inspect its exact raw evidence.")).not.toBeInTheDocument();
   });
+
+  it("presents packet evidence as exact hex plus ASCII with packet analysis", () => {
+    const exchange = fixtureExchange({
+      method: "OUT",
+      scheme: null,
+      host: "api.example.test",
+      ip: "192.0.2.44",
+      path: "192.168.1.30:55102 → 192.0.2.44:443",
+      status: null,
+      protocol: "TCP",
+      tls: "observed",
+      requestBytes: 66,
+      responseSequence: null,
+      responseRaw: null,
+      warning: "packet_metadata",
+      requestRaw: {
+        content: "00000000  45 00 00 42                                      |E..B|\n00000004\n",
+        mediaType: "application/vnd.proxbot.packet+hexdump; charset=utf-8",
+        evidence: "observed",
+        reconstructed: false,
+        truncated: false,
+        masked: false,
+        artifact: {
+          relativePath: "capture/device.pcapng",
+          offset: 256,
+          length: 66,
+          sha256: "a".repeat(64),
+        },
+      },
+    });
+
+    render(<RawInspector exchange={exchange} />);
+
+    expect(screen.getByRole("heading", { name: "RAW Packet" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Packet Analysis" })).toBeVisible();
+    expect(screen.getByText("Hex + ASCII")).toBeVisible();
+    expect(screen.getByText(/00000000\s+45 00 00 42/)).toBeVisible();
+    expect(screen.getByText("api.example.test")).toBeVisible();
+    expect(screen.getByText("192.168.1.30:55102 → 192.0.2.44:443")).toBeVisible();
+    expect(screen.getByText("capture/device.pcapng @ 256 + 66 B")).toBeVisible();
+    expect(screen.getByText(/TLS application data remains encrypted/)).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "RAW Response" })).not.toBeInTheDocument();
+  });
+
+  it("does not mislabel a packet without an artifact as an HTTP request or response", () => {
+    render(<RawInspector exchange={fixtureExchange({
+      method: "PACKET",
+      warning: "packet_metadata",
+      requestRaw: null,
+      responseRaw: null,
+      responseSequence: null,
+    })} />);
+
+    expect(screen.getByText("No exact captured packet bytes were supplied for this record.")).toBeVisible();
+    expect(screen.getByText("No exact artifact range supplied")).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "RAW Request" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "RAW Response" })).not.toBeInTheDocument();
+  });
 });

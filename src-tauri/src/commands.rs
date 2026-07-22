@@ -11,7 +11,10 @@ use crate::{
     capture::{CaptureMarker, CaptureSnapshot, DevicePreflight},
     domain::{EvidenceClass, RawArtifactRef},
     provider::ProviderRuntime,
-    store::{EndpointFilter, EndpointKind, EndpointSummary, EventIndex, ExchangeRow, RawView},
+    store::{
+        EndpointFilter, EndpointKind, EndpointSummary, EventIndex, ExchangeRow, RawView,
+        hydrate_packet_raw,
+    },
 };
 
 #[derive(Debug, Serialize)]
@@ -207,6 +210,17 @@ fn session_database(state: &AppState, session_id: Uuid) -> std::path::PathBuf {
         .join("database/session.sqlite")
 }
 
+fn hydrate_packet_exchange(session_dir: &Path, exchange: &mut ExchangeRow) -> anyhow::Result<()> {
+    let is_packet = exchange
+        .warning
+        .as_deref()
+        .is_some_and(|warning| warning.split(';').any(|value| value == "packet_metadata"));
+    if is_packet && let Some(view) = exchange.request_raw.as_mut() {
+        hydrate_packet_raw(session_dir, view)?;
+    }
+    Ok(())
+}
+
 async fn cached_session_index(
     state: &AppState,
     session_id: Uuid,
@@ -304,11 +318,18 @@ pub async fn get_exchange(
     let index = cached_session_index(&state, session_id)
         .await
         .map_err(|error| error.to_string())?;
-    tokio::task::spawn_blocking(move || index.get_exchange(session_id, &request_id))
-        .await
-        .map_err(|error| error.to_string())?
-        .map(|exchange| exchange.map(Into::into))
-        .map_err(|error| error.to_string())
+    let session_dir = state.sessions_root.join(session_id.to_string());
+    tokio::task::spawn_blocking(move || {
+        let mut exchange = index.get_exchange(session_id, &request_id)?;
+        if let Some(exchange) = exchange.as_mut() {
+            hydrate_packet_exchange(&session_dir, exchange)?;
+        }
+        Ok::<_, anyhow::Error>(exchange)
+    })
+    .await
+    .map_err(|error| error.to_string())?
+    .map(|exchange| exchange.map(Into::into))
+    .map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -386,4 +407,84 @@ pub async fn add_capture_marker(
         .add_marker(label)
         .await
         .map_err(|error| error.to_string())
+}
+
+#[cfg(test)]
+mod packet_hydration_tests {
+    use std::fs;
+
+    use sha2::{Digest, Sha256};
+    use tempfile::TempDir;
+
+    use super::*;
+
+    fn exchange(warning: Option<&str>, artifact: RawArtifactRef) -> ExchangeRow {
+        ExchangeRow {
+            request_id: "packet-1".into(),
+            request_sequence: Some(1),
+            response_sequence: None,
+            started_ns: 1,
+            method: Some("OUT".into()),
+            scheme: None,
+            host: None,
+            ip: Some("192.0.2.1".into()),
+            path: Some("192.168.1.2:50000 -> 192.0.2.1:443".into()),
+            status: None,
+            protocol: Some("TCP".into()),
+            process_name: None,
+            duration_ms: None,
+            request_bytes: Some(4),
+            response_bytes: None,
+            tls: Some("observed".into()),
+            evidence: EvidenceClass::Observed,
+            warning: warning.map(str::to_owned),
+            request_raw: Some(RawView {
+                content: "metadata".into(),
+                media_type: "text/plain".into(),
+                evidence: EvidenceClass::Observed,
+                reconstructed: None,
+                truncated: None,
+                masked: None,
+                artifact: Some(artifact),
+            }),
+            response_raw: None,
+        }
+    }
+
+    #[test]
+    fn detail_hydrates_packet_metadata_rows() {
+        let root = TempDir::new().unwrap();
+        fs::create_dir(root.path().join("capture")).unwrap();
+        fs::write(root.path().join("capture/device.pcapng"), b"headPACKtail").unwrap();
+        let artifact = RawArtifactRef {
+            relative_path: "capture/device.pcapng".into(),
+            offset: 4,
+            length: 4,
+            sha256: Some(hex::encode(Sha256::digest(b"PACK"))),
+        };
+        let mut row = exchange(Some("packet_metadata;response_missing"), artifact);
+
+        hydrate_packet_exchange(root.path(), &mut row).unwrap();
+
+        let raw = row.request_raw.unwrap();
+        assert!(raw.content.contains("50 41 43 4b"));
+        assert!(raw.content.contains("|PACK|"));
+        assert_eq!(raw.reconstructed, Some(false));
+    }
+
+    #[test]
+    fn detail_does_not_read_artifacts_for_http_rows() {
+        let root = TempDir::new().unwrap();
+        let artifact = RawArtifactRef {
+            relative_path: "missing/body.bin".into(),
+            offset: 0,
+            length: 1,
+            sha256: None,
+        };
+        let mut row = exchange(None, artifact);
+
+        hydrate_packet_exchange(root.path(), &mut row).unwrap();
+
+        assert_eq!(row.request_raw.unwrap().content, "metadata");
+    }
 }

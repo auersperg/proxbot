@@ -39,6 +39,7 @@
     },
     "externalBin": [
       "binaries/proxbot-ios-provider",
+      "binaries/proxbot-proxy-provider",
       "binaries/proxbot-mcp"
     ],
     "macOS": {

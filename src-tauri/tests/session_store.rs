@@ -118,6 +118,9 @@ fn finalization_includes_live_capture_artifacts_in_manifest_and_checksums() {
     for (relative, content) in [
         ("capture/device.pcapng", b"pcap evidence".as_slice()),
         ("logs/device.jsonl", b"syslog evidence\n".as_slice()),
+        ("proxy/request-bodies.bin", b"request body".as_slice()),
+        ("proxy/response-bodies.bin", b"response body".as_slice()),
+        ("proxy/websocket-messages.bin", b"websocket".as_slice()),
     ] {
         let path = store.session_dir().join(relative);
         fs::write(&path, content).unwrap();
@@ -129,7 +132,7 @@ fn finalization_includes_live_capture_artifacts_in_manifest_and_checksums() {
         serde_json::from_slice(&fs::read(summary.session_dir.join("manifest.json")).unwrap())
             .unwrap();
     let artifacts = manifest["artifacts"].as_array().unwrap();
-    assert_eq!(artifacts.len(), 3);
+    assert_eq!(artifacts.len(), 6);
     assert_eq!(
         artifacts
             .iter()
@@ -138,13 +141,19 @@ fn finalization_includes_live_capture_artifacts_in_manifest_and_checksums() {
         vec![
             "events/provider-events.jsonl",
             "capture/device.pcapng",
-            "logs/device.jsonl"
+            "logs/device.jsonl",
+            "proxy/request-bodies.bin",
+            "proxy/response-bodies.bin",
+            "proxy/websocket-messages.bin"
         ]
     );
     let checksums = fs::read_to_string(summary.session_dir.join("checksums.sha256")).unwrap();
-    assert_eq!(checksums.lines().count(), 3);
+    assert_eq!(checksums.lines().count(), 6);
     assert!(checksums.contains("  capture/device.pcapng"));
     assert!(checksums.contains("  logs/device.jsonl"));
+    assert!(checksums.contains("  proxy/request-bodies.bin"));
+    assert!(checksums.contains("  proxy/response-bodies.bin"));
+    assert!(checksums.contains("  proxy/websocket-messages.bin"));
 }
 
 #[test]

@@ -7,10 +7,17 @@ This record describes what `v0.2.0-rc.1` actually executes. A UI label, fixture,
 - [x] React 19/Vite frontend contains no production demo client or demo action.
 - [x] Device preflight returns a typed available/paired/trusted USB result.
 - [x] Preflight calls are serialized and briefly cached to prevent concurrent usbmux contention.
-- [x] `passive` starts USB PCAPNG; `deep` starts USB PCAPNG plus syslog JSONL.
+- [x] `passive` starts USB PCAPNG; `deep` starts USB PCAPNG, syslog JSONL, and the bundled HTTP(S) proxy provider.
+- [x] The desktop Evidence Sources area exposes the runtime-supplied proxy endpoint
+      and manual `http://mitm.it` CA setup without equating listener readiness with
+      CA trust or claiming certificate-pinning bypass.
 - [x] Provider readiness is emitted only after requested capture outputs initialize.
 - [x] Real pcapd packets are indexed during capture as provenance-marked packet rows
       with direction, protocol, endpoint, size, and available process attribution.
+- [x] Bounded DNS answers and TLS ClientHello metadata enrich packet endpoints with
+      TTL-aware domains without treating shared-IP guesses as observed hostnames.
+- [x] Selected packet rows resolve a confined, SHA-256-verified PCAPNG range and
+      render the original captured octets as canonical hex plus ASCII.
 - [x] Provider lifecycle remains sequence-safe when pcapd yields before readiness;
       concurrent event producers serialize framed socket writes.
 - [x] Realtime UI refresh is single-flight/coalesced and cannot be starved by a
@@ -31,7 +38,7 @@ This record describes what `v0.2.0-rc.1` actually executes. A UI label, fixture,
 - Live events carry `fixture:false`, `application_plaintext:false`, and `tls_decryption:false`.
 - USB packet summaries are reconstructed `packet_metadata`; missing domains or RAW
   HTTP are left absent instead of being inferred from encrypted payloads.
-- The optional mitmproxy provider reports plaintext only for clients explicitly routed through it whose trust policy accepts its CA.
+- The deep-profile mitmproxy provider reports plaintext only for clients explicitly routed through it whose trust policy accepts its CA.
 - CA installation and certificate-pinning bypass are not performed; provider capabilities report `certificate_pinning_bypass:false`.
 - Solana transaction decoding/signature/broadcast correlation is not inferred from packet capture alone. It becomes an analysis claim only when corresponding indexed proxy or instrumentation evidence exists.
 

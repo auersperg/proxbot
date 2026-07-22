@@ -11,6 +11,8 @@ MCP client
   ↕ MCP JSON-RPC over stdio
 @proxbot/mcp-server (compiled Bun executable or Bun workspace process)
   ├─ owner-only proxbot control.sock → running Tauri app → live capture coordinator
+  │                                      ├─ USB PCAP/syslog provider
+  │                                      └─ HTTP(S) proxy provider (`deep`)
   ├─ owner-only iOS provider executable → USB device preflight fallback
   └─ read-only SQLite indexes + owner-only session exports
 ```
@@ -55,7 +57,7 @@ rejected.
 |---|---|
 | `proxbot_health` | Read MCP, control bridge, provider, and latest-session readiness |
 | `proxbot_device_preflight` | Read USB device, pairing, trust, and developer-mode readiness |
-| `proxbot_start_capture` | Start a `passive` or `deep` production capture |
+| `proxbot_start_capture` | Start `passive` USB packets or `deep` HTTP(S)+USB capture |
 | `proxbot_capture_status` | Read the current real-time capture snapshot |
 | `proxbot_add_marker` | Append an analyst marker to the active session |
 | `proxbot_stop_capture` | Stop, flush, and finalize active capture |
@@ -70,6 +72,14 @@ rejected.
 All tools publish Zod input/output schemas, structured MCP output, and MCP tool
 annotations. Read tools are explicitly read-only. Mutating tools are marked as
 local, non-open-world operations.
+
+`deep` starts USB packet capture, device logs, and the local HTTP(S) proxy. The
+returned snapshot's Evidence Sources identify the proxy endpoint. An operator must
+route the iPhone's Wi-Fi proxy to that endpoint and install/enable trust for the CA
+from `http://mitm.it` on the iPhone before accepted HTTPS request/response data can
+appear. Proxy `active` means listening, not "CA trusted". Certificate-pinned traffic
+may remain encrypted because proxbot does not perform pinning bypass. `passive`
+never claims HTTP plaintext; it records USB packet evidence only.
 
 ## Evidence and secret handling
 

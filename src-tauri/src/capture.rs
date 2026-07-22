@@ -1,4 +1,6 @@
 use std::{
+    collections::BTreeMap,
+    net::{IpAddr, Ipv4Addr, TcpListener, UdpSocket},
     path::{Path, PathBuf},
     process::Stdio,
     sync::{Arc, RwLock},
@@ -142,15 +144,21 @@ struct LiveCaptureState {
 pub struct LiveCaptureService {
     sessions_root: PathBuf,
     runtime: ProviderRuntime,
+    proxy_runtime: ProviderRuntime,
     preflight: Mutex<Option<(Instant, Option<String>, DevicePreflight)>>,
     state: Mutex<LiveCaptureState>,
 }
 
 impl LiveCaptureService {
-    pub fn new(sessions_root: PathBuf, runtime: ProviderRuntime) -> Self {
+    pub fn new(
+        sessions_root: PathBuf,
+        runtime: ProviderRuntime,
+        proxy_runtime: ProviderRuntime,
+    ) -> Self {
         Self {
             sessions_root,
             runtime,
+            proxy_runtime,
             preflight: Mutex::new(None),
             state: Mutex::new(LiveCaptureState {
                 active: None,
@@ -248,6 +256,9 @@ impl LiveCaptureService {
         let session_id = Uuid::new_v4();
         let mut coordinator = SessionCoordinator::new(session_id);
         coordinator.register_provider("ios-live")?;
+        if profile == "deep" {
+            coordinator.register_provider("proxy-mitm")?;
+        }
         coordinator.prepare()?;
         coordinator.start()?;
         let mut store = SessionStore::create(&self.sessions_root, session_id)?;
@@ -255,7 +266,7 @@ impl LiveCaptureService {
         let mut startup_guard = StartupSessionGuard::new(session_dir.clone());
         let index = EventIndex::open(&session_dir.join("database/session.sqlite"))?;
         let socket_path = std::env::temp_dir().join(format!(
-            "proxbot-live-{}.sock",
+            "proxbot-ios-{}.sock",
             &session_id.simple().to_string()[..12]
         ));
         let pcap = session_dir.join("capture/device.pcapng");
@@ -265,7 +276,7 @@ impl LiveCaptureService {
         } else {
             "pcap"
         };
-        let mut provider = ProviderSupervisor::start_live(
+        let mut ios_provider = ProviderSupervisor::start_live(
             &self.runtime,
             &socket_path,
             session_id,
@@ -275,11 +286,11 @@ impl LiveCaptureService {
             &logs,
         )
         .await?;
-        let ready = timeout(Duration::from_secs(45), provider.next_event())
+        let ready = timeout(Duration::from_secs(45), ios_provider.next_event())
             .await
             .map_err(|_| anyhow::anyhow!("provider ready event timed out"))??
             .ok_or_else(|| anyhow::anyhow!("provider disconnected before ready"))?;
-        validate_live_event(&ready, session_id, 0)?;
+        validate_live_event(&ready, session_id, "ios-live", 0)?;
         anyhow::ensure!(
             ready.kind == "provider.ready",
             "first provider event is not ready"
@@ -287,6 +298,74 @@ impl LiveCaptureService {
         store.append(&ready)?;
         store.checkpoint()?;
         index.insert(&ready)?;
+
+        let mut proxy_provider = None;
+        let mut proxy_endpoint = None;
+        if profile == "deep" {
+            let proxy_socket = std::env::temp_dir().join(format!(
+                "proxbot-proxy-{}.sock",
+                &session_id.simple().to_string()[..12]
+            ));
+            let proxy_artifacts = session_dir.join("proxy");
+            let proxy_confdir = self
+                .sessions_root
+                .parent()
+                .unwrap_or(&self.sessions_root)
+                .join("proxy-ca");
+            create_owner_only_directory(&proxy_confdir)?;
+            let listen_port = available_proxy_port()?;
+            let listen_host = advertised_lan_address();
+            let started = ProviderSupervisor::start_proxy(
+                &self.proxy_runtime,
+                &proxy_socket,
+                session_id,
+                &proxy_artifacts,
+                &proxy_confdir,
+                "0.0.0.0",
+                listen_port,
+            )
+            .await;
+            let mut started = match started {
+                Ok(provider) => provider,
+                Err(error) => {
+                    let _ = ios_provider.request_stop();
+                    let _ = ios_provider.wait().await;
+                    return Err(error.context("HTTPS proxy provider failed to start"));
+                }
+            };
+            let proxy_ready = match timeout(Duration::from_secs(45), started.next_event()).await {
+                Ok(Ok(Some(event))) => event,
+                Ok(Ok(None)) => {
+                    let _ = ios_provider.request_stop();
+                    let _ = started.request_stop();
+                    let _ = ios_provider.wait().await;
+                    let _ = started.wait().await;
+                    anyhow::bail!("HTTPS proxy disconnected before ready");
+                }
+                Ok(Err(error)) => {
+                    let _ = ios_provider.request_stop();
+                    let _ = started.request_stop();
+                    let _ = ios_provider.wait().await;
+                    let _ = started.wait().await;
+                    return Err(error.context("HTTPS proxy ready event failed"));
+                }
+                Err(_) => {
+                    let _ = ios_provider.request_stop();
+                    let _ = started.request_stop();
+                    let _ = ios_provider.wait().await;
+                    let _ = started.wait().await;
+                    anyhow::bail!("HTTPS proxy ready event timed out");
+                }
+            };
+            validate_live_event(&proxy_ready, session_id, "proxy-mitm", 0)?;
+            anyhow::ensure!(
+                proxy_ready.kind == "provider.ready",
+                "first HTTPS proxy event is not ready"
+            );
+            persist_event(&mut store, &index, &proxy_ready)?;
+            proxy_endpoint = Some(format!("{listen_host}:{listen_port}"));
+            proxy_provider = Some(started);
+        }
 
         let snapshot = CaptureSnapshot {
             revision: self.state.lock().await.last.revision + 1,
@@ -296,28 +375,29 @@ impl LiveCaptureService {
             profile: Some(profile.to_owned()),
             device: Some(device),
             metrics: CaptureMetrics {
-                received: 1,
-                persisted: 1,
+                received: if proxy_provider.is_some() { 2 } else { 1 },
+                persisted: if proxy_provider.is_some() { 2 } else { 1 },
                 last_event_age_ms: Some(0),
                 last_event_at_ms: Some(now_ms()),
                 ..CaptureMetrics::default()
             },
-            sources: capture_sources(profile),
+            sources: capture_sources(profile, proxy_endpoint.as_deref()),
             error: None,
         };
         let shared_snapshot = Arc::new(RwLock::new(snapshot.clone()));
         let (actions, receiver) = mpsc::channel(32);
         let worker_snapshot = Arc::clone(&shared_snapshot);
         let task = tokio::spawn(async move {
-            run_live_worker(
-                provider,
+            run_live_worker(LiveWorker {
+                ios_provider,
+                proxy_provider,
                 store,
                 index,
                 coordinator,
-                receiver,
-                worker_snapshot,
+                actions: receiver,
+                snapshot: worker_snapshot,
                 session_id,
-            )
+            })
             .await
         });
         let mut state = self.state.lock().await;
@@ -508,7 +588,7 @@ impl Drop for StartupSessionGuard {
     }
 }
 
-fn capture_sources(profile: &str) -> Vec<CaptureSource> {
+fn capture_sources(profile: &str, proxy_endpoint: Option<&str>) -> Vec<CaptureSource> {
     let mut sources = vec![CaptureSource {
         id: "pcap".into(),
         label: "Encrypted network packets".into(),
@@ -522,34 +602,104 @@ fn capture_sources(profile: &str) -> Vec<CaptureSource> {
             status: "active".into(),
             detail: Some("USB syslog relay / JSONL".into()),
         });
+        sources.push(CaptureSource {
+            id: "proxy-mitm".into(),
+            label: "HTTP(S) proxy".into(),
+            status: "active".into(),
+            detail: Some(format!(
+                "{} · iPhone Wi-Fi proxy · CA http://mitm.it",
+                proxy_endpoint.unwrap_or("listener active")
+            )),
+        });
     }
     sources
 }
 
-async fn run_live_worker(
-    mut provider: LiveProvider,
-    mut store: SessionStore,
+fn available_proxy_port() -> anyhow::Result<u16> {
+    for port in 9090..=9190 {
+        match TcpListener::bind((Ipv4Addr::UNSPECIFIED, port)) {
+            Ok(listener) => {
+                drop(listener);
+                return Ok(port);
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::AddrInUse => continue,
+            Err(error) => return Err(error.into()),
+        }
+    }
+    anyhow::bail!("no free HTTPS proxy port in range 9090-9190")
+}
+
+fn advertised_lan_address() -> IpAddr {
+    UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0))
+        .and_then(|socket| {
+            socket.connect((Ipv4Addr::new(1, 1, 1, 1), 80))?;
+            socket.local_addr()
+        })
+        .ok()
+        .map(|address| address.ip())
+        .filter(|address| !address.is_loopback() && !address.is_unspecified())
+        .unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST))
+}
+
+fn create_owner_only_directory(path: &Path) -> anyhow::Result<()> {
+    std::fs::create_dir_all(path)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o700))?;
+    }
+    Ok(())
+}
+
+struct LiveWorker {
+    ios_provider: LiveProvider,
+    proxy_provider: Option<LiveProvider>,
+    store: SessionStore,
     index: EventIndex,
-    mut coordinator: SessionCoordinator,
-    mut actions: mpsc::Receiver<CaptureAction>,
+    coordinator: SessionCoordinator,
+    actions: mpsc::Receiver<CaptureAction>,
     snapshot: Arc<RwLock<CaptureSnapshot>>,
     session_id: Uuid,
-) -> anyhow::Result<CaptureSnapshot> {
+}
+
+async fn run_live_worker(worker: LiveWorker) -> anyhow::Result<CaptureSnapshot> {
+    let LiveWorker {
+        mut ios_provider,
+        mut proxy_provider,
+        mut store,
+        index,
+        mut coordinator,
+        mut actions,
+        snapshot,
+        session_id,
+    } = worker;
     let started = Instant::now();
-    let mut next_sequence = 1;
+    let mut next_sequences = BTreeMap::from([("ios-live", 1_u64)]);
+    if proxy_provider.is_some() {
+        next_sequences.insert("proxy-mitm", 1);
+    }
     let mut marker_sequence = 0;
     let mut stopping = false;
     let mut stop_deadline = None;
     let mut terminal_error = None;
+    let mut ios_done = false;
+    let mut proxy_done = proxy_provider.is_none();
     loop {
+        if ios_done && proxy_done {
+            break;
+        }
         tokio::select! {
             action = actions.recv() => match action {
                 Some(CaptureAction::Stop) if !stopping => {
                     stopping = true;
                     stop_deadline = Some(tokio::time::Instant::now() + Duration::from_secs(12));
-                    if let Err(error) = provider.request_stop() {
-                        terminal_error = Some(error.to_string());
-                        break;
+                    if let Err(error) = ios_provider.request_stop() {
+                        terminal_error.get_or_insert_with(|| error.to_string());
+                    }
+                    if let Some(provider) = proxy_provider.as_mut()
+                        && let Err(error) = provider.request_stop()
+                    {
+                        terminal_error.get_or_insert_with(|| error.to_string());
                     }
                 }
                 Some(CaptureAction::Marker { label, reply }) => {
@@ -564,34 +714,120 @@ async fn run_live_worker(
                 }
                 _ => {}
             },
-            event = provider.next_event() => match event {
-                Ok(Some(event)) => {
-                    if let Err(error) = validate_live_event(&event, session_id, next_sequence)
-                        .and_then(|_| persist_event(&mut store, &index, &event)) {
-                        terminal_error = Some(error.to_string());
-                        let _ = provider.request_stop();
-                        break;
-                    }
-                    next_sequence += 1;
-                    update_snapshot(&snapshot, &event, started);
+            event = async {
+                if ios_done {
+                    std::future::pending::<anyhow::Result<Option<ProviderEvent>>>().await
+                } else {
+                    ios_provider.next_event().await
                 }
-                Ok(None) => break,
+            } => match event {
+                Ok(Some(event)) => {
+                    if let Err(error) = process_live_event(
+                        &event,
+                        "ios-live",
+                        session_id,
+                        &mut next_sequences,
+                        &mut store,
+                        &index,
+                        &snapshot,
+                        started,
+                    ) {
+                        terminal_error = Some(error.to_string());
+                        stopping = true;
+                        stop_deadline = Some(tokio::time::Instant::now() + Duration::from_secs(12));
+                        let _ = ios_provider.request_stop();
+                        if let Some(provider) = proxy_provider.as_mut() {
+                            let _ = provider.request_stop();
+                        }
+                    }
+                }
+                Ok(None) => {
+                    ios_done = true;
+                    if !stopping {
+                        terminal_error.get_or_insert_with(|| "iOS provider disconnected unexpectedly".into());
+                        stopping = true;
+                        stop_deadline = Some(tokio::time::Instant::now() + Duration::from_secs(12));
+                        if let Some(provider) = proxy_provider.as_mut() {
+                            let _ = provider.request_stop();
+                        }
+                    }
+                },
                 Err(error) => {
-                    terminal_error = Some(error.to_string());
-                    let _ = provider.request_stop();
-                    break;
+                    ios_done = true;
+                    terminal_error.get_or_insert_with(|| error.to_string());
+                    stopping = true;
+                    stop_deadline = Some(tokio::time::Instant::now() + Duration::from_secs(12));
+                    let _ = ios_provider.request_stop();
+                    if let Some(provider) = proxy_provider.as_mut() {
+                        let _ = provider.request_stop();
+                    }
+                }
+            },
+            event = async {
+                match proxy_provider.as_mut() {
+                    Some(provider) if !proxy_done => provider.next_event().await,
+                    _ => std::future::pending::<anyhow::Result<Option<ProviderEvent>>>().await,
+                }
+            } => match event {
+                Ok(Some(event)) => {
+                    if let Err(error) = process_live_event(
+                        &event,
+                        "proxy-mitm",
+                        session_id,
+                        &mut next_sequences,
+                        &mut store,
+                        &index,
+                        &snapshot,
+                        started,
+                    ) {
+                        terminal_error = Some(error.to_string());
+                        stopping = true;
+                        stop_deadline = Some(tokio::time::Instant::now() + Duration::from_secs(12));
+                        let _ = ios_provider.request_stop();
+                        if let Some(provider) = proxy_provider.as_mut() {
+                            let _ = provider.request_stop();
+                        }
+                    }
+                }
+                Ok(None) => {
+                    proxy_done = true;
+                    if !stopping {
+                        terminal_error.get_or_insert_with(|| "HTTPS proxy provider disconnected unexpectedly".into());
+                        stopping = true;
+                        stop_deadline = Some(tokio::time::Instant::now() + Duration::from_secs(12));
+                        let _ = ios_provider.request_stop();
+                    }
+                },
+                Err(error) => {
+                    proxy_done = true;
+                    terminal_error.get_or_insert_with(|| error.to_string());
+                    stopping = true;
+                    stop_deadline = Some(tokio::time::Instant::now() + Duration::from_secs(12));
+                    let _ = ios_provider.request_stop();
+                    if let Some(provider) = proxy_provider.as_mut() {
+                        let _ = provider.request_stop();
+                    }
                 }
             },
             _ = async {
                 if let Some(deadline) = stop_deadline { tokio::time::sleep_until(deadline).await }
                 else { std::future::pending::<()>().await }
             } => {
-                terminal_error = Some("provider stop timed out".into());
+                terminal_error.get_or_insert_with(|| "provider stop timed out".into());
+                let _ = ios_provider.request_stop();
+                if let Some(provider) = proxy_provider.as_mut() {
+                    let _ = provider.request_stop();
+                }
                 break;
             }
         }
     }
-    if let Err(error) = provider.wait().await {
+    if let Err(error) = ios_provider.wait().await {
+        terminal_error.get_or_insert_with(|| error.to_string());
+    }
+    if let Some(provider) = proxy_provider
+        && let Err(error) = provider.wait().await
+    {
         terminal_error.get_or_insert_with(|| error.to_string());
     }
     coordinator.stop()?;
@@ -617,6 +853,27 @@ async fn run_live_worker(
     Ok(final_snapshot)
 }
 
+#[allow(clippy::too_many_arguments)]
+fn process_live_event(
+    event: &ProviderEvent,
+    provider_id: &'static str,
+    session_id: Uuid,
+    next_sequences: &mut BTreeMap<&'static str, u64>,
+    store: &mut SessionStore,
+    index: &EventIndex,
+    snapshot: &RwLock<CaptureSnapshot>,
+    started: Instant,
+) -> anyhow::Result<()> {
+    let expected = next_sequences
+        .get_mut(provider_id)
+        .ok_or_else(|| anyhow::anyhow!("unregistered live provider: {provider_id}"))?;
+    validate_live_event(event, session_id, provider_id, *expected)?;
+    persist_event(store, index, event)?;
+    *expected += 1;
+    update_snapshot(snapshot, event, started);
+    Ok(())
+}
+
 fn persist_event(
     store: &mut SessionStore,
     index: &EventIndex,
@@ -631,6 +888,7 @@ fn persist_event(
 fn validate_live_event(
     event: &ProviderEvent,
     session_id: Uuid,
+    provider_id: &str,
     sequence: u64,
 ) -> anyhow::Result<()> {
     anyhow::ensure!(
@@ -638,8 +896,9 @@ fn validate_live_event(
         "provider event belongs to another session"
     );
     anyhow::ensure!(
-        event.provider_id == "ios-live",
-        "unexpected live provider ID"
+        event.provider_id == provider_id,
+        "unexpected live provider ID: expected {provider_id}, received {}",
+        event.provider_id
     );
     anyhow::ensure!(
         event.sequence == sequence,
@@ -668,6 +927,33 @@ fn update_snapshot(snapshot: &RwLock<CaptureSnapshot>, event: &ProviderEvent, st
     snapshot.metrics.drift_ms = (event.host_time_ns - event.source_time_ns) as f64 / 1_000_000.0;
     snapshot.metrics.last_event_at_ms = Some(now_ms());
     snapshot.metrics.last_event_age_ms = Some(0);
+    if event.provider_id == "proxy-mitm" && event.kind == "network.request" {
+        let https_plaintext =
+            event.payload.get("scheme").and_then(|value| value.as_str()) == Some("https");
+        if let Some(source) = snapshot
+            .sources
+            .iter_mut()
+            .find(|source| source.id == "proxy-mitm")
+        {
+            source.status = "active".into();
+            let existing = source.detail.as_deref().unwrap_or("HTTPS proxy");
+            let base = existing
+                .split(" · client traffic observed")
+                .next()
+                .unwrap_or(existing)
+                .split(" · HTTPS plaintext observed")
+                .next()
+                .unwrap_or(existing);
+            source.detail = Some(format!(
+                "{base} · {}",
+                if https_plaintext || existing.contains("HTTPS plaintext observed") {
+                    "HTTPS plaintext observed"
+                } else {
+                    "client traffic observed"
+                }
+            ));
+        }
+    }
     if event.kind == "provider.error" {
         snapshot.status = CaptureStatus::Degraded;
         snapshot.error = event
@@ -819,7 +1105,11 @@ mod tests {
 
     fn test_service(root: &Path) -> Arc<LiveCaptureService> {
         let runtime = ProviderRuntime::from_executable(PathBuf::from("/usr/bin/true")).unwrap();
-        Arc::new(LiveCaptureService::new(root.to_path_buf(), runtime))
+        Arc::new(LiveCaptureService::new(
+            root.to_path_buf(),
+            runtime.clone(),
+            runtime,
+        ))
     }
 
     fn live_snapshot(revision: u64, status: CaptureStatus) -> CaptureSnapshot {
@@ -830,6 +1120,81 @@ mod tests {
             profile: Some("deep".into()),
             ..CaptureSnapshot::default()
         }
+    }
+
+    fn provider_event(session_id: Uuid, provider_id: &str, sequence: u64) -> ProviderEvent {
+        ProviderEvent {
+            schema_version: 1,
+            provider_id: provider_id.into(),
+            provider_version: "test".into(),
+            session_id,
+            sequence,
+            source_time_ns: 1,
+            host_time_ns: 2,
+            monotonic_time_ns: Some(1),
+            device_id: None,
+            process_id: None,
+            process_name: None,
+            evidence: EvidenceClass::Observed,
+            kind: "provider.health".into(),
+            payload: json!({"fixture": false}),
+            raw_ref: None,
+            parse_status: ParseStatus::Parsed,
+        }
+    }
+
+    #[test]
+    fn live_validation_keeps_sequences_local_to_each_provider() {
+        let session_id = Uuid::new_v4();
+        let ios = provider_event(session_id, "ios-live", 1);
+        let proxy = provider_event(session_id, "proxy-mitm", 1);
+
+        validate_live_event(&ios, session_id, "ios-live", 1).unwrap();
+        validate_live_event(&proxy, session_id, "proxy-mitm", 1).unwrap();
+        assert!(validate_live_event(&proxy, session_id, "ios-live", 1).is_err());
+        assert!(validate_live_event(&ios, session_id, "ios-live", 2).is_err());
+    }
+
+    #[test]
+    fn proxy_source_reports_observed_plaintext_without_claiming_ca_trust_early() {
+        let session_id = Uuid::new_v4();
+        let mut snapshot = CaptureSnapshot {
+            sources: capture_sources("deep", Some("192.168.1.31:9091")),
+            ..CaptureSnapshot::default()
+        };
+        let mut event = provider_event(session_id, "proxy-mitm", 1);
+        event.kind = "network.request".into();
+        event.payload = json!({"fixture": false, "scheme": "http"});
+
+        let lock = RwLock::new(snapshot.clone());
+        update_snapshot(&lock, &event, Instant::now());
+        snapshot = lock.into_inner().unwrap();
+        assert!(
+            snapshot.sources[2]
+                .detail
+                .as_deref()
+                .unwrap()
+                .contains("client traffic observed")
+        );
+        assert!(
+            !snapshot.sources[2]
+                .detail
+                .as_deref()
+                .unwrap()
+                .contains("HTTPS plaintext observed")
+        );
+
+        event.payload = json!({"fixture": false, "scheme": "https"});
+        let lock = RwLock::new(snapshot);
+        update_snapshot(&lock, &event, Instant::now());
+        let snapshot = lock.into_inner().unwrap();
+        assert!(
+            snapshot.sources[2]
+                .detail
+                .as_deref()
+                .unwrap()
+                .contains("HTTPS plaintext observed")
+        );
     }
 
     #[test]
@@ -956,7 +1321,7 @@ raise SystemExit(2)
         fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
         let sessions = root.path().join("sessions");
         let runtime = ProviderRuntime::from_executable(executable).unwrap();
-        let service = LiveCaptureService::new(sessions.clone(), runtime);
+        let service = LiveCaptureService::new(sessions.clone(), runtime.clone(), runtime);
 
         let error = service.start_capture("deep", None).await.unwrap_err();
 

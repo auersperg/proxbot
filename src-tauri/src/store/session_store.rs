@@ -110,7 +110,13 @@ impl SessionStore {
             &self.session_dir,
             "events/provider-events.jsonl",
         )?];
-        for relative_path in ["capture/device.pcapng", "logs/device.jsonl"] {
+        for relative_path in [
+            "capture/device.pcapng",
+            "logs/device.jsonl",
+            "proxy/request-bodies.bin",
+            "proxy/response-bodies.bin",
+            "proxy/websocket-messages.bin",
+        ] {
             let path = self.session_dir.join(relative_path);
             match fs::symlink_metadata(&path) {
                 Ok(metadata) => {

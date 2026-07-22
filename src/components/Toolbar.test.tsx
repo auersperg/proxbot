@@ -21,6 +21,9 @@ describe("Toolbar", () => {
     expect(actions.onRefresh).toHaveBeenCalledOnce();
     expect(actions.onQuery).toHaveBeenLastCalledWith("privy");
     expect(actions.onProfile).toHaveBeenCalledWith("passive");
+    expect(screen.getByRole("option", { name: "HTTPS + USB" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "USB packets only" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Capture profile" })).toHaveAttribute("aria-description", expect.stringContaining("Certificate pinning is not bypassed"));
     expect(screen.getByRole("button", { name: "Stop" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Add capture marker" })).toBeDisabled();
     expect(screen.queryByText(/demo/i)).not.toBeInTheDocument();

@@ -62,13 +62,14 @@ jobs:
           uv lock --check --project sidecars/ios-provider
           uv lock --check --project sidecars/proxy-provider
           uv sync --project sidecars/ios-provider --extra test --extra build --locked
-          uv sync --project sidecars/proxy-provider --extra test --locked
+          uv sync --project sidecars/proxy-provider --extra test --extra build --locked
       - name: Run complete quality gate
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p src-tauri/binaries
           touch src-tauri/binaries/proxbot-ios-provider-aarch64-apple-darwin
+          touch src-tauri/binaries/proxbot-proxy-provider-aarch64-apple-darwin
           touch src-tauri/binaries/proxbot-mcp-aarch64-apple-darwin
           chmod 0755 src-tauri/binaries/proxbot-*-aarch64-apple-darwin
           bun run test

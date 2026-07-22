@@ -3,9 +3,10 @@
 `proxbot` is a local macOS observability application for capturing and inspecting evidence from a paired USB iPhone. The production path is a Tauri 2/Rust runtime, a React 19 interface, a bundled iOS provider, an independently operated optional proxy provider, and a local MCP server that lets an agent operate the same capture coordinator as the UI.
 
 ```text
-iPhone over USB
-  ├─ pcapd → encrypted packet evidence (PCAPNG)
-  └─ syslog relay → structured device logs (JSONL)
+iPhone
+  ├─ USB pcapd → encrypted packet evidence (PCAPNG)
+  ├─ USB syslog relay → structured device logs (JSONL)
+  └─ Wi-Fi proxy (`deep`, explicit setup) → HTTP(S)/WebSocket evidence
                          │
                          ▼
 Tauri 2 / Rust LiveCaptureService
@@ -27,7 +28,7 @@ The desktop interface is deliberately compact and follows the proven traffic-ins
 
 - connected device and trust state;
 - real `Start capture`, `Stop`, `Refresh`, and timestamped marker controls;
-- `Synchronized USB` (`deep`) and `Packets only` (`passive`) profiles;
+- `HTTPS + USB` (`deep`) and `USB packets only` (`passive`) profiles;
 - device → domain/IP endpoint navigator;
 - virtualized, bounded packet/request table with newest evidence first;
 - realtime USB packet rows with direction, L2/L3/L4 protocol, IP/ports,
@@ -43,10 +44,10 @@ Metadata pages are capped at 500 rows, endpoint inventory at 2,000 entries, and 
 
 ## Capture profiles and evidence boundary
 
-| Profile | USB packet capture | Device syslog | Claim |
-|---|---:|---:|---|
-| `passive` | yes | no | encrypted packet evidence |
-| `deep` | yes | yes | encrypted packets synchronized with device logs |
+| Profile | USB packet capture | Device syslog | HTTP(S) proxy | Claim |
+|---|---:|---:|---:|---|
+| `passive` | yes | no | no | encrypted packet evidence; observed DNS/TLS metadata may enrich endpoints |
+| `deep` | yes | yes | listening | synchronized USB evidence plus proxy HTTP(S) only for explicitly routed traffic that accepts the CA |
 
 A finalized live session contains:
 
@@ -54,6 +55,9 @@ A finalized live session contains:
 SESSION_UUID/
 ├── capture/device.pcapng
 ├── logs/device.jsonl                 # deep profile
+├── proxy/request-bodies.bin          # deep profile, bounded; may be empty
+├── proxy/response-bodies.bin         # deep profile, bounded; may be empty
+├── proxy/websocket-messages.bin      # deep profile, bounded; may be empty
 ├── events/provider-events.jsonl      # authoritative lifecycle timeline
 ├── database/session.sqlite           # derived, rebuildable query index
 ├── checksums.sha256
@@ -64,12 +68,32 @@ Session directories are `0700`; evidence files, manifest, checksums, exports, SQ
 
 ### TLS and plaintext semantics
 
-The built-in USB capture does **not** label encrypted packets as HTTP plaintext and does not claim TLS decryption. The optional [`sidecars/proxy-provider`](sidecars/proxy-provider/README.md) uses mitmproxy for traffic that a client explicitly routes through it and whose trust policy accepts its local CA. It covers CONNECT, HTTP/1.1, HTTP/2, WebSocket, bounded bodies, and TLS metadata. It does not install a CA on the iPhone and reports `certificate_pinning_bypass: false`.
+The built-in USB capture does **not** label encrypted packets as HTTP plaintext and does not claim TLS decryption. The `deep` profile starts the bundled [`sidecars/proxy-provider`](sidecars/proxy-provider/README.md), powered by mitmproxy, alongside USB PCAP and device logs. It covers CONNECT, HTTP/1.1, HTTP/2, WebSocket, bounded bodies, and TLS metadata, but only for traffic that the iPhone explicitly routes through it and whose trust policy accepts the local CA. It does not install or trust a CA on the iPhone and reports `certificate_pinning_bypass: false`.
 
 USB-only capture therefore populates packet/IP rows immediately, while a domain,
 HTTP path, headers, body, or RAW Response appears only when that fact is present in
-proxy or instrumentation evidence. Packet summaries are explicitly marked
-`packet_metadata` and reconstructed; the PCAPNG remains the observed packet source.
+proxy or instrumentation evidence. Packet rows are explicitly marked
+`packet_metadata`: the table keeps a compact reconstructed summary, while selecting
+the row lazily verifies its SHA-256 range in PCAPNG and shows the original captured
+octets as canonical hex + ASCII.
+
+### Deep HTTPS capture setup
+
+1. Select **HTTPS + USB** and start capture. The HTTP(S) proxy source in the
+   sidebar shows the Mac LAN endpoint chosen by the runtime.
+2. On the iPhone's active Wi-Fi network, set **Configure Proxy → Manual** to that
+   host and port. A different proxy process cannot occupy the same port.
+3. While the iPhone is routed through proxbot, open `http://mitm.it` on the iPhone,
+   install the generated profile, then explicitly enable full trust for that CA in
+   iOS certificate trust settings.
+4. Reproduce the request. Domains and full RAW Request/Response appear after the
+   proxy actually observes an accepted request; the listener's `active` status by
+   itself is not proof that the CA is installed or trusted.
+
+Certificate-pinned applications can reject interception and remain visible only as
+encrypted USB packet and bounded DNS/TLS metadata evidence. proxbot does not claim
+or perform certificate-pinning bypass. Remove the manual proxy and test CA after the
+research session if they are no longer needed.
 
 ## Agent automation through MCP
 
@@ -194,9 +218,10 @@ src-tauri/target/debug/bundle/macos/proxbot.app
 
 The tag-driven release workflow repeats all gates, enforces version parity, requires Apple Developer ID credentials, signs and notarizes the macOS app, validates it with `codesign`, Gatekeeper, and `stapler`, verifies ZIP integrity, emits SHA-256, and publishes the exact verified artifact. A local ad-hoc debug build is useful for development but is not represented as a notarized public release.
 
-## Optional proxy provider
+## Bundled proxy provider
 
-The proxy provider is independently testable without changing the default USB evidence semantics:
+The `deep` coordinator runs this provider alongside the USB provider. It remains
+independently testable without changing the `passive` USB evidence semantics:
 
 ```bash
 uv run --project sidecars/proxy-provider proxbot-proxy-provider probe

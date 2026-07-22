@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import ipaddress
 import os
 import struct
@@ -212,7 +213,9 @@ async def capture_pcap(
     output: Path,
     udid: str | None = None,
     count: int = -1,
-    on_packet: Callable[[Any, dict[str, Any]], Any] | None = None,
+    on_packet: Callable[[Any, dict[str, Any], dict[str, Any]], Any] | None = None,
+    *,
+    artifact_relative_path: str = "capture/device.pcapng",
 ) -> dict[str, Any]:
     from pymobiledevice3.lockdown import create_using_usbmux
     from pymobiledevice3.services.pcapd import PcapdService
@@ -229,12 +232,28 @@ async def capture_pcap(
         async for packet in iter_packet_records(service.service, count=count):
             packet_count += 1
             metadata = packet_metadata(packet) if on_packet is not None else None
+            block_start = stream.tell()
             # Hand the packet to the PCAPNG writer first. When the generator is
             # resumed, the complete block has already been written, so slower
             # metadata indexing never precedes the primary packet evidence.
             yield packet
             if on_packet is not None:
-                callback_result = on_packet(packet, metadata or {})
+                # PCAPNG Enhanced Packet Blocks have a fixed 28-byte prefix
+                # before packet_data (type/length/interface/timestamp/captured
+                # and original lengths). Flush the userspace buffer before
+                # publishing the reference so a concurrent reader can resolve
+                # the exact evidence range immediately. Per-packet fsync would
+                # unnecessarily stall capture; finalization performs the
+                # durable sync below.
+                stream.flush()
+                packet_data = bytes(packet.data)
+                raw_ref = {
+                    "relative_path": artifact_relative_path,
+                    "offset": block_start + 28,
+                    "length": len(packet_data),
+                    "sha256": hashlib.sha256(packet_data).hexdigest(),
+                }
+                callback_result = on_packet(packet, metadata or {}, raw_ref)
                 if asyncio.iscoroutine(callback_result):
                     await callback_result
 

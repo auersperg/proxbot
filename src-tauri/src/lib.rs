@@ -34,13 +34,21 @@ pub fn run() {
             std::fs::set_permissions(&sessions_root, std::fs::Permissions::from_mode(0o700))?;
             let source_project =
                 PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../sidecars/ios-provider");
+            let proxy_project =
+                PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../sidecars/proxy-provider");
             let search_directories = std::env::current_exe()?
                 .parent()
                 .map(std::path::Path::to_path_buf)
                 .into_iter()
                 .collect::<Vec<_>>();
             let provider_runtime = ProviderRuntime::discover(&search_directories, source_project)?;
-            app.manage(AppState::new(sessions_root, provider_runtime));
+            let proxy_runtime =
+                ProviderRuntime::discover_proxy(&search_directories, proxy_project)?;
+            app.manage(AppState::new(
+                sessions_root,
+                provider_runtime,
+                proxy_runtime,
+            ));
             let handle = app.handle().clone();
             let control_path = app_data_dir.join("control.sock");
             let control_service = app.state::<AppState>().live_capture.clone();

@@ -28,7 +28,11 @@ def test_live_capture_emits_truthful_contiguous_lifecycle(tmp_path, monkeypatch)
         if output.suffix == ".pcapng" and args:
             packet_callback = args[-1]
             await packet_callback(
-                SimpleNamespace(seconds=1_784_730_000, microseconds=123_000),
+                SimpleNamespace(
+                    seconds=1_784_730_000,
+                    microseconds=123_000,
+                    data=b"not-an-ethernet-frame",
+                ),
                 {
                     "direction": "outbound",
                     "interface": "en0",
@@ -41,11 +45,30 @@ def test_live_capture_emits_truthful_contiguous_lifecycle(tmp_path, monkeypatch)
                     "source_port": 50_000,
                     "destination_port": 443,
                 },
+                {
+                    "relative_path": "capture/device.pcapng",
+                    "offset": 128,
+                    "length": 64,
+                    "sha256": "0" * 64,
+                },
             )
         await asyncio.Event().wait()
 
     monkeypatch.setattr(live_provider, "capture_pcap", capture_until_cancel)
     monkeypatch.setattr(live_provider, "capture_logs", capture_until_cancel)
+    monkeypatch.setattr(
+        live_provider,
+        "extract_protocol_enrichment",
+        lambda _frame: {
+            "tls_client_hello": {
+                "server_name": "auth.privy.io",
+                "alpn_protocols": ["h2"],
+            },
+            "domain_observations": [
+                {"name": "auth.privy.io", "source": "tls.sni"}
+            ],
+        },
+    )
 
     async def run():
         socket_path = tempfile.mktemp(prefix="proxbot-test-", suffix=".sock")
@@ -96,5 +119,69 @@ def test_live_capture_emits_truthful_contiguous_lifecycle(tmp_path, monkeypatch)
     assert ready["payload"]["tls_decryption"] is False
     assert events[1]["process_name"] == "FixtureApp"
     assert events[1]["payload"]["destination_port"] == 443
+    assert events[1]["payload"]["host"] == "auth.privy.io"
+    assert events[1]["payload"]["host_source"] == "tls.sni"
+    assert events[1]["payload"]["domain_candidates"] == ["auth.privy.io"]
+    assert events[1]["payload"]["protocol_enrichment"]["tls_client_hello"][
+        "alpn_protocols"
+    ] == ["h2"]
+    assert events[1]["raw_ref"] == {
+        "relative_path": "capture/device.pcapng",
+        "offset": 128,
+        "length": 64,
+        "sha256": "0" * 64,
+    }
     assert events[1]["source_time_ns"] == 1_784_730_000_123_000_000
     assert events[-1]["payload"]["reason"] == "requested"
+
+
+def test_dns_ttl_cache_preserves_candidates_and_expires_them() -> None:
+    cache = live_provider._DnsTtlCache()
+    cache.observe(
+        {
+            "dns": {
+                "kind": "response",
+                "address_records": [
+                    {"name": "api.example", "address": "203.0.113.8", "ttl": 30},
+                    {"name": "edge.example", "address": "203.0.113.8", "ttl": 10},
+                ],
+            }
+        },
+        100.0,
+    )
+
+    assert cache.names_for("203.0.113.8", 101.0) == [
+        "api.example",
+        "edge.example",
+    ]
+    assert cache.names_for("203.0.113.8", 111.0) == ["api.example"]
+    assert cache.names_for("203.0.113.8", 131.0) == []
+
+
+def test_dns_ttl_zero_removes_only_the_matching_name() -> None:
+    cache = live_provider._DnsTtlCache()
+    cache.observe(
+        {
+            "dns": {
+                "kind": "response",
+                "address_records": [
+                    {"name": "one.example", "address": "2001:db8::8", "ttl": 60},
+                    {"name": "two.example", "address": "2001:db8::8", "ttl": 60},
+                ],
+            }
+        },
+        10.0,
+    )
+    cache.observe(
+        {
+            "dns": {
+                "kind": "response",
+                "address_records": [
+                    {"name": "one.example", "address": "2001:db8::8", "ttl": 0}
+                ],
+            }
+        },
+        11.0,
+    )
+
+    assert cache.names_for("2001:db8::8", 12.0) == ["two.example"]

@@ -31,7 +31,7 @@ fn typed_device_preflight_deserializes_provider_contract() {
 #[tokio::test]
 async fn idle_snapshot_matches_reactive_frontend_contract() {
     let runtime = ProviderRuntime::from_executable(PathBuf::from("/usr/bin/true")).unwrap();
-    let service = LiveCaptureService::new(std::env::temp_dir(), runtime);
+    let service = LiveCaptureService::new(std::env::temp_dir(), runtime.clone(), runtime);
     let snapshot = service.status().await;
     assert_eq!(snapshot, CaptureSnapshot::default());
     assert_eq!(snapshot.status, CaptureStatus::Idle);

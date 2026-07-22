@@ -18,16 +18,59 @@ function Provenance({ view }: { view: RawView }) {
   );
 }
 
-function Pane({ title, view, absent }: { title: string; view: RawView | null; absent: string }) {
+function Pane({ title, view, absent, label = "Raw" }: { title: string; view: RawView | null; absent: string; label?: string }) {
   return (
     <section className="raw-pane" aria-label={title}>
-      <header className="raw-pane-header"><h2>{title}</h2><span className="raw-view-label">Raw</span></header>
+      <header className="raw-pane-header"><h2>{title}</h2><span className="raw-view-label">{label}</span></header>
       {view ? <><Provenance view={view} /><pre>{view.content}</pre></> : <div className="raw-empty">{absent}</div>}
     </section>
   );
 }
 
+function display(value: string | number | null) {
+  return value === null || value === "" ? "—" : String(value);
+}
+
+function PacketAnalysis({ exchange }: { exchange: ExchangeRow }) {
+  const artifact = exchange.requestRaw?.artifact;
+  return (
+    <section className="raw-pane packet-analysis-pane" aria-label="Packet Analysis">
+      <header className="raw-pane-header"><h2>Packet Analysis</h2><span className="raw-view-label">Observed</span></header>
+      <div className="packet-analysis">
+        <p>Frame metadata and the exact captured octets are kept separate. The byte-for-byte packet evidence is shown in canonical hex + ASCII at left.</p>
+        <dl>
+          <div><dt>Direction / kind</dt><dd>{display(exchange.method)}</dd></div>
+          <div><dt>Host / IP</dt><dd>{display(exchange.host ?? exchange.ip)}</dd></div>
+          <div><dt>Flow</dt><dd>{display(exchange.path)}</dd></div>
+          <div><dt>Protocol</dt><dd>{display(exchange.protocol)}</dd></div>
+          <div><dt>TLS state</dt><dd>{display(exchange.tls)}</dd></div>
+          <div><dt>Process</dt><dd>{display(exchange.processName)}</dd></div>
+          <div><dt>Captured length</dt><dd>{exchange.requestBytes === null ? "—" : `${exchange.requestBytes} B`}</dd></div>
+          <div><dt>Evidence</dt><dd>{exchange.evidence.toUpperCase()}</dd></div>
+          <div><dt>Artifact range</dt><dd>{artifact ? `${artifact.relativePath} @ ${artifact.offset} + ${artifact.length} B` : "No exact artifact range supplied"}</dd></div>
+          <div><dt>Integrity</dt><dd>{artifact?.sha256 ? `SHA-256 ${artifact.sha256}` : "Hash unavailable"}</dd></div>
+        </dl>
+        {exchange.tls && exchange.tls !== "decrypted" ? <p className="packet-analysis-note">TLS application data remains encrypted at this capture layer; DNS or ClientHello metadata may still identify its destination.</p> : null}
+      </div>
+    </section>
+  );
+}
+
 export default function RawInspector({ exchange }: { exchange: ExchangeRow | null }) {
+  const isPacket = exchange?.warning?.split(";").includes("packet_metadata") === true;
+  if (exchange && isPacket) {
+    return (
+      <section className="raw-inspector packet-inspector" aria-label="Raw packet and packet analysis inspector">
+        <Pane
+          title="RAW Packet"
+          label="Hex + ASCII"
+          view={exchange.requestRaw}
+          absent="No exact captured packet bytes were supplied for this record."
+        />
+        <PacketAnalysis exchange={exchange} />
+      </section>
+    );
+  }
   const requestMissing = exchange?.warning?.split(";").includes("request_missing") === true;
   const responseMissing = exchange?.responseSequence === null || exchange?.warning?.split(";").includes("response_missing") === true;
   const requestEvidenceAbsent = exchange !== null && exchange.requestRaw === null;

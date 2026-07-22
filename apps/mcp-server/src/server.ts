@@ -181,7 +181,7 @@ export function createProxbotServer(
     {
       title: "Start capture",
       description:
-        "Start a production passive or deep capture on the selected or active USB device. Returns the authoritative capture snapshot.",
+        "Start capture on the selected or active USB iPhone. passive records USB packet evidence only. deep adds synchronized device logs and a local HTTP(S) proxy listener; the iPhone must be explicitly routed to the returned proxy endpoint and accept the CA from http://mitm.it before HTTPS raw data can appear. An active listener does not prove CA trust, and certificate pinning is not bypassed. Returns the authoritative capture snapshot.",
       inputSchema: z.object({
         profile: z.enum(["deep", "passive"]).default("deep"),
         deviceId: z.string().min(1).max(256).optional(),
@@ -228,7 +228,7 @@ export function createProxbotServer(
     "proxbot_list_endpoints",
     {
       title: "List domains and IPs",
-      description: "Return a bounded endpoint inventory for one session, ordered by evidence count.",
+      description: "Return a bounded endpoint inventory for one session, ordered by evidence count. Domains appear only when DNS, TLS SNI, proxy, or another provider supplied domain evidence; an encrypted IP packet alone does not imply a hostname.",
       inputSchema: z.object({
         sessionId: SessionId,
         query: Query,
@@ -272,7 +272,7 @@ export function createProxbotServer(
     {
       title: "Read selected raw exchange",
       description:
-        "Return metadata and capped RAW request/response for one request ID. Credential-shaped values are always redacted in MCP output.",
+        "Return metadata and available capped RAW evidence for one request ID. Full HTTP request/response is present only when an accepted proxy or other plaintext provider observed it; USB-only TLS packets are not represented as decrypted HTTP. Credential-shaped values are always redacted in MCP output.",
       inputSchema: z.object({
         sessionId: SessionId,
         requestId: z.string().min(1).max(512),

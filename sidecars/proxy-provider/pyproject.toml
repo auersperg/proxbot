@@ -10,6 +10,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest>=8.4,<9"]
+build = ["pyinstaller==6.21.0"]
 
 [project.scripts]
 proxbot-proxy-provider = "proxbot_proxy_provider.cli:main"

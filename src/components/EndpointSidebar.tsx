@@ -21,6 +21,11 @@ function redacted(identifier: string) {
   return identifier.length <= 12 ? identifier : `${identifier.slice(0, 4)}…${identifier.slice(-4)}`;
 }
 
+function isHttpProxy(source: EvidenceSource) {
+  const identity = `${source.id} ${source.label}`.toLowerCase();
+  return identity.includes("proxy") && (identity.includes("http") || identity.includes("mitm"));
+}
+
 function EndpointSidebar({ device, endpoints, total, selected, onSelect, sources }: Props) {
   const entries = useMemo<TreeEntry[]>(() => {
     const domains = endpoints.filter((item) => item.kind === "domain");
@@ -112,7 +117,20 @@ function EndpointSidebar({ device, endpoints, total, selected, onSelect, sources
       </div>
       {sources.length > 0 && <section className="sidebar-sources" aria-label="Evidence sources">
         <h2>Evidence sources</h2>
-        {sources.map((source) => <div key={source.id}><i className={`state-dot ${source.status}`} /><span className="source-label">{source.label}</span><span title={source.detail ?? source.status}>{source.detail ?? source.status}</span></div>)}
+        {sources.map((source) => {
+          const proxy = isHttpProxy(source);
+          const detail = source.detail ?? source.status;
+          return <section className={`source-entry${proxy ? " proxy-source-entry" : ""}`} key={source.id} aria-label={`${source.label}: ${source.status}`}>
+            <div className="source-row"><i className={`state-dot ${source.status}`} /><span className="source-label">{proxy ? "HTTP(S) proxy" : source.label}</span><span className="source-detail" title={detail}>{detail}</span></div>
+            {proxy && <details className="proxy-setup-help">
+              <summary><span>CA setup</span><code>http://mitm.it</code></summary>
+              <div role="note">
+                <p>Set the iPhone Wi-Fi proxy to the endpoint above, then open this address on the iPhone to install the CA.</p>
+                <p><strong>Listening does not prove CA trust.</strong> HTTPS raw data appears only after an accepted intercepted request. Certificate-pinned apps may remain encrypted.</p>
+              </div>
+            </details>}
+          </section>;
+        })}
       </section>}
     </aside>
   );
