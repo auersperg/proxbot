@@ -82,6 +82,12 @@ jobs:
         uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           workspaces: src-tauri -> target
+      - name: Prepare test-only external binary placeholders
+        run: |
+          mkdir -p src-tauri/binaries
+          touch src-tauri/binaries/proxbot-ios-provider-aarch64-apple-darwin
+          touch src-tauri/binaries/proxbot-mcp-aarch64-apple-darwin
+          chmod 0755 src-tauri/binaries/proxbot-*-aarch64-apple-darwin
       - name: Check formatting
         run: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
       - name: Run Rust tests
