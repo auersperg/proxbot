@@ -1431,10 +1431,17 @@
       "https://api.kamino.finance/kvaults/users/CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE/positions",
       "https://api.kamino.finance/klend/users/CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE/rewards"
     ],
-    "jupiter": [
-      "https://api.jup.ag/tokens/v2/search",
-      "https://api.jup.ag/price/v3"
-    ],
+    "jupiter": {
+      "actualEvidenceEndpoints": [
+        "https://lite-api.jup.ag/tokens/v2/search",
+        "https://lite-api.jup.ag/price/v3"
+      ],
+      "officialDocumentedEndpoints": [
+        "https://api.jup.ag/tokens/v2/search",
+        "https://api.jup.ag/price/v3"
+      ],
+      "note": "The no-key lite endpoint returned HTTP 200 for this captured snapshot; current official documentation uses api.jup.ag with an API key."
+    },
     "driftSdkMethod": "getUserAccountsAndAddressesForAuthority"
   },
   "limitations": [

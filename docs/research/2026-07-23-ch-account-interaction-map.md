@@ -324,8 +324,8 @@ Solana `getSignaturesForAddress` возвращает signatures, которые
 2. XPlace account inventory/config search — `getProgramAccounts` with data-size and memcmp/byte scans; RPC возвращает accounts owned by program и поддерживает filters: <https://solana.com/docs/rpc/http/getprogramaccounts>.
 3. Transaction methods/signers/flows — finalized `getTransaction`, message headers, static/loaded keys, pre/post balances, token balances и logs.
 4. XPlace full method surface/guardrails — strings and source-path symbols from current on-chain ProgramData binaries, with SHA-256 recorded above.
-5. Token metadata/quality — Jupiter Tokens V2. It returns name/symbol/holder/organic-score/verified fields: <https://developers.jup.ag/docs/tokens/token-information>.
-6. USD marks — Jupiter Price API V3; `usdPrice` + `blockId`, максимум 50 IDs per request: <https://developers.jup.ag/docs/price>.
+5. Token metadata/quality — Jupiter Tokens V2. The captured no-key evidence came from `lite-api.jup.ag`; the current documented base is `api.jup.ag` with an API key. The schema returns name/symbol/holder/organic-score/verified fields: <https://developers.jup.ag/docs/tokens/token-information>.
+6. USD marks — Jupiter Price API V3 (`lite-api.jup.ag` for this captured snapshot; `api.jup.ag` in current docs); `usdPrice` + `blockId`, максимум 50 IDs per request: <https://developers.jup.ag/docs/price>.
 
 ### Что здесь намеренно не приписано CH
 
