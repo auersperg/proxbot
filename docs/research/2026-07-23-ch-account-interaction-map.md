@@ -2,11 +2,11 @@
 
 **Network:** Solana mainnet-beta
 
-**Direct-account snapshot:** slot `434755930`
+**Direct-account snapshot:** slot `434759084`
 
-**Token snapshot:** slot `434755932`
+**Token snapshot:** slots `434759086` / `434759087`
 
-**Price snapshot:** `2026-07-23T17:13:51.578Z`, Jupiter Tokens V2 / Price V3
+**Price snapshot:** `2026-07-23T17:36:05.599Z`, Jupiter Tokens V2 / Price V3
 
 **Полная сигнатурная история на момент среза:** `202,066` transactions/address references
 
@@ -314,44 +314,46 @@ Relay binary SHA-256: `93a89aef6dd30e66f4cda6d3dafecddbfe58ecc98e5596dbc832feaf5
 
 | Класс | Balance | USD mark | Attribution/access |
 |---|---:|---:|---|
-| CH System balance | `4.010657855 SOL` | `$304.391809` | direct CH signature |
-| CH SPL/Token-2022 | 21 ATA, 20 non-zero | `$9.885228` | direct token owner; delegates 0 |
-| Recoverable ATA rent | `0.0431868 SOL` | `$3.277694` | only after token cleanup/close |
-| XPlace 2 Config ATA | `1,431.4 USDC` | `$1,431.287393` | program-controlled; CH operational authority, not token owner |
+| CH System balance | `3.914160213 SOL` | `$297.226905` | direct CH signature |
+| CH SPL/Token-2022 | 21 ATA, 20 non-zero | `$9.885230` | direct token owner; delegates 0 |
+| Recoverable ATA rent | `0.0431868 SOL` | `$3.279446` | only after token cleanup/close |
+| XPlace 2 Config ATA | `1,431.4 USDC` | `$1,431.263981` | program-controlled; CH operational authority, not token owner |
 | XPlace 1 Config ATA | `0 USDC` | `$0` | program-controlled empty ATA |
 | All XPlace 2 account-state lamports | `3.748996345 SOL` | not CH net worth | rent/state across all card users |
 | All XPlace 1 account-state lamports | `13.136958242 SOL` | not CH net worth | rent/state across all XPlace users |
 | Direct Kamino positions for CH | 0 obligations, 0 KVault, 0 rewards | `$0` | XPlace user obligations are separate |
 | Direct Drift User accounts for CH | 0 | `$0` | XPlace-managed Drift accounts are separate |
 
-**Direct liquid mark excluding recoverable rent:** `$314.277037`.
+**Direct liquid mark excluding recoverable rent:** `$307.112135`.
 
-**Including potentially recoverable ATA rent:** `$317.554731`.
+**Including potentially recoverable ATA rent:** `$310.391581`.
+
+**Observed aggregate including the XPlace 2 Config vault:** `$1,741.655562`, but this is not CH net worth: only `$310.391581` is directly attributable to CH, while `$1,431.263981` is held by a program-owned Config PDA.
 
 ### 8.2 Все 21 direct token accounts
 
 | Symbol | Mint | Amount | USD mark | Quality / extensions |
 |---|---|---:|---:|---|
 | SOL ATA | `So11111111111111111111111111111111111111112` | 0 | $0.000000 | verified/high |
-| cbBTC | `cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij` | 0.000005 | $0.323499 | verified/high |
-| RENDER | `rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof` | 0.108828 | $0.161358 | verified/medium |
-| JLP | `27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4` | 0.097682 | $0.355304 | verified/high |
-| WBTC | `3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh` | 0.000004 | $0.258486 | verified/high |
-| ETH | `7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs` | 0.000339 | $0.639438 | verified/high |
+| cbBTC | `cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij` | 0.000005 | $0.324301 | verified/high |
+| RENDER | `rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof` | 0.108828 | $0.161208 | verified/medium |
+| JLP | `27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4` | 0.097682 | $0.355548 | verified/high |
+| WBTC | `3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh` | 0.000004 | $0.258828 | verified/high |
+| ETH | `7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs` | 0.000339 | $0.640162 | verified/high |
 | NVDA | `9dwPiStDBwJJqC3QzMnjpJP7xohZbMVmHELFx3uy3KRq` | 2442.045041 | $0.193226 | verified/low |
-| syrupUSDC | `AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj` | 0.146014 | $0.171496 | verified/medium |
+| syrupUSDC | `AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj` | 0.146014 | $0.171508 | verified/medium |
 | USDTet | `Dn4noZ5jgGfkntzcQSUZ8czkreiZ1ForXYoV2H8Dm7S1` | 0.18054 | $0.180291 | verified/low |
-| USDC | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | 2.360206 | $2.360020 | verified/high |
-| USDT | `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB` | 3.675214 | $3.672110 | verified/high |
-| MELANIA | `FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P` | 1.664863 | $0.133954 | verified/low |
+| USDC | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | 2.360206 | $2.359982 | verified/high |
+| USDT | `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB` | 3.675214 | $3.671941 | verified/high |
+| MELANIA | `FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P` | 1.664863 | $0.133320 | verified/low |
 | BIG | `Foot4fxy8CHxM37W8BeHwK6aLd8VH2yHTFu43KCxbCqc` | 2111.52805 | $0.223159 | unverified/low |
-| TRX | `GbbesPbaYh5uiAZSYNXTc7w9jty1rpg3P9L4JeN4LkKc` | 0.567393 | $0.185488 | verified/low |
-| JitoSOL | `J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn` | 0.005016 | $0.491540 | verified/high |
-| Punch | `NV2RYH954cTJ3ckFUpvfqaQXU4ARqqDH3562nFSpump` | 16.957433 | $0.020697 | Token-2022 immutableOwner |
+| TRX | `GbbesPbaYh5uiAZSYNXTc7w9jty1rpg3P9L4JeN4LkKc` | 0.567393 | $0.185554 | verified/low |
+| JitoSOL | `J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn` | 0.005016 | $0.491795 | verified/high |
+| Punch | `NV2RYH954cTJ3ckFUpvfqaQXU4ARqqDH3562nFSpump` | 16.957433 | $0.020497 | Token-2022 immutableOwner |
 | 雪山救狐 | `ijq5Vaxog5xZvqbt9NfGpm7mndrwBGQaydXNNsmpump` | 138.380711 | $0.000445 | unverified; immutableOwner |
-| PUMP | `pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn` | 100.149013 | $0.192466 | immutableOwner + transferHookAccount |
-| PYUSD | `2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo` | 0.173242 | $0.173231 | transfer fee/hook; withheld 0 |
-| ANSEM | `9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump` | 0.867303 | $0.145532 | immutableOwner |
+| PUMP | `pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn` | 100.149013 | $0.192448 | immutableOwner + transferHookAccount |
+| PYUSD | `2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo` | 0.173242 | $0.173226 | transfer fee/hook; withheld 0 |
+| ANSEM | `9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump` | 0.867303 | $0.144304 | immutableOwner |
 | DURCOIN | `BKMp8wXfbsRjAQ65rpDgUPjL8s1xFDAtVWzw3eeQpump` | 777 | $0.003487 | unverified/low |
 
 Полный account-level ledger с ATA addresses, raw amounts, decimals, authorities и valuation — `artifacts/solana/ch-account-funds.csv`.
@@ -408,6 +410,34 @@ Relay binary SHA-256: `93a89aef6dd30e66f4cda6d3dafecddbfe58ecc98e5596dbc832feaf5
 `WithdrawByWorker`, `WithdrawByWorkerKamino`, `CompleteDeleverageKamino`, `BorrowSyncByWorkerKamino`, `RepaySyncByWorkerKamino`, `RepayByWorkerDrift`, `RebalanceDrift`, `ClaimDfxDrift`, `ResetLoanSnapshotKamino`, `RevertRepayWithBufferKamino`, а также XPlace 2 subscription/refund worker methods.
 
 Это важная граница: названия показывают архитектурно предусмотренный worker path, но successful captured invocation необходим для вывода о фактической доступности CH.
+
+## 9A. Поддерживаемые пути расширения полномочий
+
+Live Config snapshot at slot `434759457`:
+
+| Program | Config PDA | Admin/controller, offset 8 | Worker, offset 40 |
+|---|---|---|---|
+| XPlace 2 | `9CX9RyosaZusW7KZsNGSw4znN3kXZ9neFLgUHAQc6DWb` | `6yANiqv13yE9TFzj4y3M1zceSdMw77xHegGCnXdJzrAn` | `CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE` |
+| XPlace 1 | `HHdYSwJ4KNtw45nYTFwEyxJ5qamGTEdD2e4vKxuVbRcx` | `6yANiqv13yE9TFzj4y3M1zceSdMw77xHegGCnXdJzrAn` | `CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE` |
+
+Обе XPlace-программы имеют общую BPF upgrade authority
+`61XyY6sTZfCSzKom9HjZcHbXrvSnWkqhS4aAGvs2ro5u`; CH ею не является.
+
+| Путь | Кто должен разрешить/подписать | Что реально расширяется | Уровень |
+|---|---|---|---|
+| Config/whitelist enablement | текущий XPlace admin `6yAN…zrAn` | whitelist, limits, enabled branches и область применения уже существующей worker-роли CH; может сделать practically reachable предусмотренные binary worker methods | operational |
+| Admin rotation | текущий admin инициирует предусмотренное rotation state, CH завершает `ConfirmAdminRotation` по правилам программы | `UpdateConfig`, `ExtendWhitelist` в XPlace 1, `UpdateSubscriptionConfig` в XPlace 2, `WithdrawRevenue`, `Migrate` и другие admin/config branches | administrative |
+| XPlace upgrade-authority transfer или включение CH в управляющий multisig | текущая upgrade authority `61Xy…ro5u` | upgrade/deploy authority для обеих XPlace-программ; это выше program admin | code-level / maximum |
+| User delegation или вторая user signature | конкретный владелец user position | только его scoped withdraw/borrow/repay/limit/deposit branches; не глобальный admin | per-user |
+| Config-vault revenue custody | XPlace admin/config path и проверки `WithdrawRevenue` | разрешённый вывод program revenue, включая Config-owned vault при выполнении destination/seed checks; не произвольные user balances | treasury-scoped |
+| Kamino/Drift/Jupiter protocol role | независимая authority/governance каждой внешней программы | отдельные protocol-level права; XPlace admin и XPlace upgrade authority автоматически их не дают | external |
+| Token mint/freeze authority | текущая authority конкретного mint | управление только соответствующим токеном; не связано с XPlace worker/admin | asset-specific |
+
+В текущем Config CH уже имеет максимальный **наблюдённый operational worker scope**, но не administrative/code-level scope. В 5,226 глубоко декодированных транзакциях и current binary surface не обнаружена отдельная CH-only self-escalation branch, которая сама переписывает admin либо BPF upgrade authority. Поэтому три практических ступени таковы:
+
+1. admin включает дополнительные worker branches через config/whitelist;
+2. admin rotation переводит CH в program admin;
+3. текущая BPF upgrade authority передаёт loader-level authority либо добавляет CH в управляющий multisig.
 
 ## 10. Историческое покрытие
 
