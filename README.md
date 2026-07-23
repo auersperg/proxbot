@@ -258,5 +258,6 @@ The access, refresh, and identity tokens pasted during earlier traffic investiga
 - [Production readiness and verified boundary](docs/engineering/production-readiness.md)
 - [MCP implementation](apps/mcp-server/README.md)
 - [Verified Kamino withdrawal signing and broadcast flow](docs/research/2026-07-23-kamino-withdraw-signing-flow.md)
+- [Verified live two-signer Kamino SOL deposit](docs/research/2026-07-23-live-two-signer-kamino-deposit.md)
 - [0.2.0-rc.1 end-to-end verification](docs/testing/0.2.0-rc.1-verification.md)
 - [Previous React observability verification](docs/testing/react-observability-verification.md)
