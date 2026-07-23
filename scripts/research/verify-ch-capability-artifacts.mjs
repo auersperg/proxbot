@@ -66,6 +66,9 @@ const methodRows = parseCsv(
 const bundleRows = parseCsv(
   fs.readFileSync(path.join(artifacts, "ch-atomic-flow-correlations.csv"), "utf8"),
 );
+const fundRows = parseCsv(
+  fs.readFileSync(path.join(artifacts, "ch-account-funds.csv"), "utf8"),
+);
 
 invariant(mainMap.schemaVersion === 3, "Main interaction map must use schemaVersion 3");
 invariant(
@@ -78,10 +81,19 @@ invariant(
     mainMap.historyCoverage.finalizedSignaturesEnumerated,
   "History success/failed totals do not reconcile",
 );
-invariant(mainMap.decodedSample.transactions === 2000, "Deep decoded window must contain 2,000 txs");
+invariant(mainMap.decodedSample.transactions === 5226, "Deep decoded window must contain 5,226 txs");
 invariant(
-  mainMap.decodedSample.successfulTransactions + mainMap.decodedSample.failedTransactions === 2000,
+  mainMap.decodedSample.successfulTransactions + mainMap.decodedSample.failedTransactions === 5226,
   "Deep decoded success/failed totals do not reconcile",
+);
+invariant(
+  mainMap.decodedSample.successfulTransactions === 5014 &&
+    mainMap.decodedSample.failedTransactions === 212,
+  "Deep decoded success/failed counts mismatch",
+);
+invariant(
+  mainMap.decodedSample.xplaceMethodsObserved === 19,
+  "Expanded window must contain 19 observed XPlace methods",
 );
 
 const methods = capabilityMap.methodCapabilityMatrix;
@@ -136,13 +148,55 @@ const cctp = capabilityMap.recentProtocolPrograms.find(
 const relay = capabilityMap.recentProtocolPrograms.find(
   (program) => program.programId === "99vQwtBwYtrqqD9YSXbdum3KBdxPAVxYTaQ3cfnJSrN2",
 );
-invariant(cctp?.transactions === 591, "CCTP-related settlement count mismatch");
+invariant(cctp?.transactions === 1697, "CCTP-related settlement count mismatch");
 invariant(
-  Math.abs(cctp.recentUsdcToProgramOwnedRecipient - 39766.58) < 1e-9,
+  Math.abs(cctp.recentUsdcToProgramOwnedRecipient - 130647.95) < 1e-6,
   "CCTP-related USDC amount mismatch",
 );
-invariant(relay?.transactions === 11, "Relay bridge bundle count mismatch");
-invariant(Math.abs(relay.recentUsdcDeposited - 953.12) < 1e-9, "Relay USDC amount mismatch");
+invariant(relay?.transactions === 33, "Relay DepositToken transaction count mismatch");
+invariant(
+  capabilityMap.recentHighSignalFundFlows.xplace2RelayDeposit.transactions === 29,
+  "XPlace-to-Relay atomic bundle count mismatch",
+);
+invariant(
+  Math.abs(relay.recentUsdcDeposited - 2528.469888) < 1e-6,
+  "Relay USDC amount mismatch",
+);
+
+const repaySync = methods.find(
+  (record) =>
+    record.program === "XPlace Program 1" && record.method === "RepaySyncKamino",
+);
+invariant(
+  repaySync?.observed?.transactions === 2 && repaySync.observed.success === 2,
+  "Expanded window must contain two successful RepaySyncKamino transactions",
+);
+const depositKamino = methods.find(
+  (record) =>
+    record.program === "XPlace Program 1" && record.method === "DepositKamino",
+);
+invariant(
+  depositKamino?.observed?.signerOutcomes?.["1:success"] === 128 &&
+    depositKamino.observed.signerOutcomes["1:failed"] === 4 &&
+    depositKamino.observed.signerOutcomes["2:success"] === 174,
+  "DepositKamino signer outcomes mismatch",
+);
+
+invariant(mainMap.funds.tokens.length === 21, "Direct token-account count mismatch");
+invariant(
+  Math.abs(
+    Number(
+      fundRows.find(
+        (row) => row.scope === "direct" && row.program === "System Program",
+      )?.amount,
+    ) - mainMap.funds.direct.liquidSystemSol,
+  ) < 1e-12,
+  "Current direct SOL balance does not reconcile with the fund ledger",
+);
+invariant(
+  fundRows.filter((row) => row.scope === "direct").length === 22,
+  "Fund CSV must contain one System row and 21 direct token rows",
+);
 
 invariant(
   capabilityMap.stateInventory.xplace1.userAccounts === 5066,

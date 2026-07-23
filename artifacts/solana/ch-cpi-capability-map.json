@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-23T16:45:59.297Z",
+  "generatedAt": "2026-07-23T17:28:29.626Z",
   "chain": "solana",
   "network": "mainnet-beta",
   "account": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
   "evidenceTiers": {
-    "observed_recent_window": "Decoded finalized transaction with signer layout, logs, CPI stack and token deltas in the 2,000-transaction window.",
-    "observed_legacy_stratified_sample": "Decoded finalized transaction in the earlier temporal-stratified sample but outside the latest 2,000 window.",
+    "observed_recent_window": "Decoded finalized transaction with signer layout, logs, CPI stack and token deltas in the 5,226-transaction window.",
+    "observed_legacy_stratified_sample": "Decoded finalized transaction in the earlier temporal-stratified sample but outside the latest 5,226 window.",
     "binary_surface_only": "Method label/source symbols and validation strings in the current on-chain ProgramData binary; no recent execution proof.",
     "inferred": "Structural interpretation from account layout, owner relationships or atomic correlation; explicitly marked and not treated as authority proof."
   },
@@ -23,14 +23,14 @@
     "snapshotSemantics": "Complete for this address as of newestSignature/toUtc; later transactions can naturally appear after the snapshot."
   },
   "decodedRecentWindow": {
-    "strategy": "latest 2,000 address-referencing transactions fully decoded with log-stack CPI frames",
-    "transactions": 2000,
-    "successfulTransactions": 1902,
-    "failedTransactions": 98,
-    "fromUtc": "2026-07-22T17:13:07.000Z",
-    "toUtc": "2026-07-23T16:01:45.000Z",
-    "programIdsObserved": 42,
-    "xplaceMethodsObserved": 18,
+    "strategy": "latest 5,226 address-referencing transactions fully decoded with log-stack CPI frames",
+    "transactions": 5226,
+    "successfulTransactions": 5014,
+    "failedTransactions": 212,
+    "fromUtc": "2026-07-20T21:00:23.000Z",
+    "toUtc": "2026-07-23T16:10:51.000Z",
+    "programIdsObserved": 46,
+    "xplaceMethodsObserved": 19,
     "caveat": "Counts and volumes describe this decoded window, not all 202,066 historical signatures. Failed transactions contribute method attempts but no finalized state transition."
   },
   "stateInventory": {
@@ -156,13 +156,13 @@
   },
   "currentFundsAndAttribution": {
     "directWallet": {
-      "liquidSystemSol": 4.336825655,
-      "liquidSystemSolUsd": 330.75316678289124,
-      "directTokenUsdIndicative": 9.892555839000435,
+      "liquidSystemSol": 4.010657855,
+      "liquidSystemSolUsd": 304.39180885853,
+      "directTokenUsdIndicative": 9.885228368783,
       "tokenAccountRentSol": 0.0431868,
-      "tokenAccountRentUsdIndicative": 3.293692668219416,
-      "directLiquidUsdExcludingRent": 340.64572262189165,
-      "directControlledUsdIncludingRecoverableTokenAccountRent": 343.93941529011107
+      "tokenAccountRentUsdIndicative": 3.277693746532,
+      "directLiquidUsdExcludingRent": 314.277037227313,
+      "directControlledUsdIncludingRecoverableTokenAccountRent": 317.554730973845
     },
     "directTokenAccounts": {
       "count": 21,
@@ -183,13 +183,13 @@
         }
       ],
       "configUsdc": 1431.4,
-      "configUsdcUsdIndicative": 1431.2852052316439,
+      "configUsdcUsdIndicative": 1431.28739297008,
       "allProgramOwnedAccountLamports": {
         "slot": 434740741,
         "accountCount": 3186,
         "lamports": "3748996345",
         "sol": 3.748996345,
-        "indicativeUsdAtSolPrice": 285.9216652937446,
+        "indicativeUsdAtSolPrice": 284.532817337162,
         "byDataSize": [
           {
             "space": 41,
@@ -234,7 +234,7 @@
         "accountCount": 10138,
         "lamports": "13136958242",
         "sol": 13.136958242,
-        "indicativeUsdAtSolPrice": 1001.9057453754394,
+        "indicativeUsdAtSolPrice": 997.039046149539,
         "byDataSize": [
           {
             "space": 96,
@@ -268,7 +268,8 @@
           }
         ]
       },
-      "access": "program-controlled; CH is embedded operational authority, not token-account owner and not upgrade authority"
+      "access": "program-controlled; CH is embedded operational authority, not token-account owner and not upgrade authority",
+      "configUsdcUsdIndicative": 0
     },
     "directKamino": {
       "market": "7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF",
@@ -454,27 +455,30 @@
       "chPlusUserEvidence": false,
       "effect": "Move card-account USDC through the configured settlement path; recent evidence splits value between the CCTP bridge-owned recipient and the XPlace 2 Config fee vault.",
       "observed": {
-        "transactions": 591,
-        "success": 591,
+        "transactions": 1697,
+        "success": 1697,
         "failed": 0,
         "signerLayouts": {
-          "1": 591
+          "1": 1697
+        },
+        "signerOutcomes": {
+          "1:success": 1697
         },
         "directDescendants": {
-          "SPL Token": 893
+          "SPL Token": 2552
         },
         "assets": {
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 39835.81999999998,
-            "transferCount": 893
+            "grossTransferAmount": 130828.15000000011,
+            "transferCount": 2552
           }
         },
         "netRoleDeltas": {
-          "XPLACE2_PDA|USDC": -39835.81999999999,
-          "PDA:CCTP Bridge Program|USDC": 39766.57999999998,
-          "XPLACE2_CONFIG|USDC": 69.24
+          "XPLACE2_PDA|USDC": -130828.14999999995,
+          "PDA:CCTP Bridge Program|USDC": 130647.95000000019,
+          "XPLACE2_CONFIG|USDC": 180.2
         },
         "examples": [
           "5SB5s2VPVNmi2nBUYcVkWu8gJB2WfB5AXgXCfBpTZdkwu87P1j4UuMxxUdxsu5TDXFwsCMmNaNsUKUmwb4WXRgqq",
@@ -494,28 +498,31 @@
       "chPlusUserEvidence": false,
       "effect": "Reclaim card funds and atomically feed XPlace 1 RepayByWorkerKamino, which CPIs into Kamino repayment.",
       "observed": {
-        "transactions": 3,
-        "success": 3,
+        "transactions": 11,
+        "success": 11,
         "failed": 0,
         "signerLayouts": {
-          "1": 3
+          "1": 11
+        },
+        "signerOutcomes": {
+          "1:success": 11
         },
         "directDescendants": {
-          "SPL Token": 3
+          "SPL Token": 11
         },
         "assets": {
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 42.620000000000005,
-            "transferCount": 9
+            "grossTransferAmount": 352.6199999999999,
+            "transferCount": 33
           }
         },
         "netRoleDeltas": {
-          "XPLACE2_PDA|USDC": -21.31,
+          "XPLACE2_PDA|USDC": -176.31,
           "XPLACE1_PDA|USDC": 0,
           "XPLACE1_CONFIG|USDC": 0,
-          "KAMINO_MARKET_AUTHORITY|USDC": 21.31,
+          "KAMINO_MARKET_AUTHORITY|USDC": 176.31,
           "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": 0
         },
         "examples": [
@@ -536,29 +543,34 @@
       "chPlusUserEvidence": false,
       "effect": "Create the program-specific user/card account state and associated PDA links.",
       "observed": {
-        "transactions": 13,
-        "success": 13,
-        "failed": 0,
+        "transactions": 36,
+        "success": 34,
+        "failed": 2,
         "signerLayouts": {
-          "1": 13
+          "1": 36
+        },
+        "signerOutcomes": {
+          "1:success": 34,
+          "1:failed": 2
         },
         "directDescendants": {
-          "System": 13
+          "System": 36
         },
         "assets": {
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 693.3112729999999,
-            "transferCount": 14
+            "grossTransferAmount": 3990.7727890000006,
+            "transferCount": 35
           }
         },
         "netRoleDeltas": {
-          "UNKNOWN|USDC": -392.005175,
-          "XPLACE2_PDA|USDC": 689.751273,
-          "SYSTEM_ACCOUNT|USDC": -299.526098,
+          "UNKNOWN|USDC": -3477.075746,
+          "XPLACE2_PDA|USDC": 3987.212789,
+          "SYSTEM_ACCOUNT|USDC": -510.917043,
           "PDA:CCTP Bridge Program|USDC": 1.77,
-          "XPLACE2_CONFIG|USDC": 0.01
+          "XPLACE2_CONFIG|USDC": 0.01,
+          "CH_DIRECT|USDC": -1
         },
         "examples": [
           "2VBiSy7Sw3Pcws5UQVpCJGSwGnDPggobjgyeJ1QCfZJdvffehLHGK3HicZyN6CBcoZ2t8kc8UttaqSDxahTd2dNM",
@@ -578,48 +590,52 @@
       "chPlusUserEvidence": true,
       "effect": "Update per-transaction/daily card repayment limits with user-linked authorization.",
       "observed": {
-        "transactions": 9,
-        "success": 8,
+        "transactions": 31,
+        "success": 30,
         "failed": 1,
         "signerLayouts": {
-          "2": 9
+          "2": 31
+        },
+        "signerOutcomes": {
+          "2:success": 30,
+          "2:failed": 1
         },
         "directDescendants": {},
         "assets": {
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 683.789414,
-            "transferCount": 28
+            "grossTransferAmount": 3975.43087,
+            "transferCount": 95
           },
           "B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": {
             "mint": "B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D",
             "decimals": 6,
-            "grossTransferAmount": 9.211291,
-            "transferCount": 2
+            "grossTransferAmount": 68.015664,
+            "transferCount": 5
           },
           "SOL": {
             "mint": "So11111111111111111111111111111111111111112",
             "decimals": 9,
-            "grossTransferAmount": 0.994280093,
-            "transferCount": 7
+            "grossTransferAmount": 2.0821802089999997,
+            "transferCount": 26
           },
           "USDT": {
             "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
             "decimals": 6,
-            "grossTransferAmount": 0.428808,
-            "transferCount": 2
+            "grossTransferAmount": 26.647190000000002,
+            "transferCount": 15
           }
         },
         "netRoleDeltas": {
-          "UNKNOWN|USDC": 1.347992,
-          "XPLACE2_PDA|USDC": -332.857007,
-          "CH_DIRECT|USDC": 0.164015,
-          "KAMINO_MARKET_AUTHORITY|USDC": 10.985,
-          "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": 9.211291,
+          "UNKNOWN|USDC": 3.147992,
+          "XPLACE2_PDA|USDC": -1933.145185,
+          "CH_DIRECT|USDC": 0.332193,
+          "KAMINO_MARKET_AUTHORITY|USDC": 87.705,
+          "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": 68.015664,
           "XPLACE1_PDA|USDC": 0,
           "USER_SIGNER|USDC": 0,
-          "SYSTEM_ACCOUNT|USDC": 250.327667,
+          "SYSTEM_ACCOUNT|USDC": 1687.916267,
           "PDA:SPL Token|USDC": 38.755737,
           "PDA:SPL Token|SOL": -0.500103733,
           "SYSTEM_ACCOUNT|USDT": 0,
@@ -628,10 +644,25 @@
           "PDA:Quantum|USDC": 0.214291,
           "PDA:Flux|SOL": -0.033016383,
           "PDA:Flux|USDC": 2.560472,
-          "PDA:Meteora DLMM|SOL": -0.002767512,
+          "PDA:Meteora DLMM|SOL": -0.029273428,
           "PDA:Meteora DLMM|USDT": 0.214404,
-          "PDA:BisonFi|SOL": -0.365103376,
-          "PDA:BisonFi|USDC": 28.501833
+          "PDA:BisonFi|SOL": -0.390848377,
+          "PDA:BisonFi|USDC": 30.492817,
+          "PDA:Meteora DLMM|USDC": 2.060304,
+          "PDA:Riptide|USDT": -3.149022,
+          "PDA:Riptide|USDC": 3.148091,
+          "PDA:GoonFi V2|SOL": -0.023849301,
+          "PDA:GoonFi V2|USDT": -5.761735,
+          "UNKNOWN|USDT": 8.972672,
+          "PDA:Raydium CLMM|SOL": 0.017258762,
+          "PDA:Raydium CLMM|USDT": -1.858777,
+          "PDA:Whirlpool|SOL": -0.010344079,
+          "PDA:Whirlpool|USDT": 0.809365,
+          "PDA:HumidiFi|SOL": -0.878795799,
+          "PDA:HumidiFi|USDC": 68.6763,
+          "PDA:GoonFi V2|USDC": 7.6131,
+          "USER_SIGNER|USDT": 0.987497,
+          "PDA:Raydium CLMM|USDC": 0.522621
         },
         "examples": [
           "qJLZgKLRYE8nZssiEcujKJhd9XJESAa7CovqLb1aeQ4LaiTp9jostga5XBjHXALhraRXy5BJmnmbpRrPeKFqPv7",
@@ -651,29 +682,34 @@
       "chPlusUserEvidence": false,
       "effect": "Fund an XPlace 2 card PDA in USDC, subject to account and token constraints.",
       "observed": {
-        "transactions": 402,
-        "success": 353,
-        "failed": 49,
+        "transactions": 939,
+        "success": 837,
+        "failed": 102,
         "signerLayouts": {
-          "1": 402
+          "1": 939
+        },
+        "signerOutcomes": {
+          "1:success": 837,
+          "1:failed": 102
         },
         "directDescendants": {
-          "SPL Token": 438,
-          "Associated Token": 12,
-          "System": 12
+          "SPL Token": 1032,
+          "Associated Token": 31,
+          "System": 31
         },
         "assets": {
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 84673.0998,
-            "transferCount": 402
+            "grossTransferAmount": 296809.728689,
+            "transferCount": 939
           }
         },
         "netRoleDeltas": {
-          "UNKNOWN|USDC": -33784.31294700001,
-          "XPLACE2_PDA|USDC": 77193.75513100004,
-          "SYSTEM_ACCOUNT|USDC": -43409.44218399999
+          "UNKNOWN|USDC": -113210.02280600002,
+          "XPLACE2_PDA|USDC": 278214.2217219999,
+          "SYSTEM_ACCOUNT|USDC": -164998.19691599972,
+          "CH_DIRECT|USDC": -6.002
         },
         "examples": [
           "btgUW1qDYQ9H4mA3esUm9ES8S8t8imR3QMx8ue5Sq2Zu94qjH86BVmdaaBwV5P5tb9THezahXZBuhVCnEgcQ5M2",
@@ -693,69 +729,73 @@
       "chPlusUserEvidence": true,
       "effect": "Withdraw USDC from an XPlace 2 card PDA; recent two-signer bundles continue into user payout, Kamino repay/deposit, Jupiter routes, or Relay Bridge.",
       "observed": {
-        "transactions": 210,
-        "success": 202,
+        "transactions": 482,
+        "success": 474,
         "failed": 8,
         "signerLayouts": {
-          "2": 210
+          "2": 482
+        },
+        "signerOutcomes": {
+          "2:success": 474,
+          "2:failed": 8
         },
         "directDescendants": {
-          "SPL Token": 210
+          "SPL Token": 482
         },
         "assets": {
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 106703.84425899999,
-            "transferCount": 649
+            "grossTransferAmount": 514728.3222759992,
+            "transferCount": 1478
           },
           "SOL": {
             "mint": "So11111111111111111111111111111111111111112",
             "decimals": 9,
-            "grossTransferAmount": 25.019912212999994,
-            "transferCount": 103
+            "grossTransferAmount": 71.03284286900009,
+            "transferCount": 191
           },
           "B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": {
             "mint": "B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D",
             "decimals": 6,
-            "grossTransferAmount": 3568.256512000001,
-            "transferCount": 19
+            "grossTransferAmount": 22672.659018000002,
+            "transferCount": 57
           },
           "cbBTC": {
             "mint": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
             "decimals": 8,
-            "grossTransferAmount": 0.00011468,
-            "transferCount": 1
+            "grossTransferAmount": 0.00019447,
+            "transferCount": 5
           },
           "USDT": {
             "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
             "decimals": 6,
-            "grossTransferAmount": 724.4791129999999,
-            "transferCount": 58
+            "grossTransferAmount": 4915.60905,
+            "transferCount": 125
           },
           "USD1": {
             "mint": "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB",
             "decimals": 6,
-            "grossTransferAmount": 505.91657399999997,
-            "transferCount": 14
+            "grossTransferAmount": 528.200252,
+            "transferCount": 26
           },
           "EeiujkXFESt1sFH7aWgd8nqZ39piHNRJw7JFtejMZV93": {
             "mint": "EeiujkXFESt1sFH7aWgd8nqZ39piHNRJw7JFtejMZV93",
             "decimals": 2,
-            "grossTransferAmount": 0.7,
-            "transferCount": 1
+            "grossTransferAmount": 15.29,
+            "transferCount": 2
           },
           "ETH": {
             "mint": "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
             "decimals": 8,
-            "grossTransferAmount": 0.05504470999999999,
-            "transferCount": 4
+            "grossTransferAmount": 0.08360803999999998,
+            "transferCount": 7
           },
           "JitoSOL": {
             "mint": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
             "decimals": 9,
-            "grossTransferAmount": 0.462655546,
-            "transferCount": 2
+            "grossTransferAmount": 0.6123462419999999,
+            "transferCount": 6
           },
           "FZN7QZ8ZUUAxMPfxYEYkH3cXUASzH8EqA6B4tyCL8f1j": {
             "mint": "FZN7QZ8ZUUAxMPfxYEYkH3cXUASzH8EqA6B4tyCL8f1j",
@@ -774,67 +814,79 @@
             "decimals": 6,
             "grossTransferAmount": 0.622398,
             "transferCount": 2
+          },
+          "JupUSD": {
+            "mint": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+            "decimals": 6,
+            "grossTransferAmount": 2009.6478,
+            "transferCount": 9
+          },
+          "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA": {
+            "mint": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+            "decimals": 6,
+            "grossTransferAmount": 0.217608,
+            "transferCount": 2
           }
         },
         "netRoleDeltas": {
-          "USER_SIGNER|USDC": 2.061183,
-          "XPLACE2_PDA|USDC": -46564.42442000001,
-          "XPLACE1_PDA|USDC": 0.000001,
-          "KAMINO_MARKET_AUTHORITY|USDC": 13138.375914999999,
-          "UNKNOWN|USDC": 20793.979828,
-          "SYSTEM_ACCOUNT|USDC": 10992.387338000002,
-          "PDA:BisonFi|SOL": -5.331804583,
-          "PDA:BisonFi|USDC": 406.979903,
-          "PDA:HumidiFi|SOL": -0.222387241,
-          "PDA:HumidiFi|USDC": 122.45597,
-          "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": 3568.256512000001,
+          "USER_SIGNER|USDC": 5.838636,
+          "XPLACE2_PDA|USDC": -188006.50371200003,
+          "SYSTEM_ACCOUNT|USDC": 18615.289383999992,
+          "XPLACE1_PDA|USDC": 0.000007,
+          "KAMINO_MARKET_AUTHORITY|USDC": 137040.675792,
+          "UNKNOWN|USDC": 26507.202336999995,
+          "PDA:BisonFi|SOL": -6.462872086,
+          "PDA:BisonFi|USDC": 495.723317,
+          "PDA:HumidiFi|SOL": -13.638084655,
+          "PDA:HumidiFi|USDC": 1224.072878,
+          "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": 22672.659018000002,
           "PDA:Quantum|SOL": -5.033597221,
           "PDA:Quantum|USDC": 451.019442,
-          "USER_SIGNER|cbBTC": 0.00011468,
+          "USER_SIGNER|cbBTC": 0.00012131,
           "PDA:GoonFi V2|cbBTC": -0.00011468,
-          "PDA:GoonFi V2|USDC": 295.978531,
-          "CH_DIRECT|USDC": 0.82751,
-          "PDA:Flux|SOL": -2.577949169,
-          "PDA:Flux|USDC": 197.696902,
+          "PDA:GoonFi V2|USDC": 708.149846,
+          "CH_DIRECT|USDC": 1.659681,
+          "PDA:Flux|SOL": -3.171761089,
+          "PDA:Flux|USDC": 244.004202,
           "SYSTEM_ACCOUNT|USDT": 0,
           "SYSTEM_ACCOUNT|USD1": 0,
-          "SYSTEM_ACCOUNT|SOL": -0.008751191,
+          "SYSTEM_ACCOUNT|SOL": -0.035100533,
           "PDA:Quantum|USDT": -63.923508,
-          "PDA:SPL Token|USD1": 252.664855,
-          "PDA:SPL Token|USDT": -259.426752,
-          "PDA:Meteora DLMM|SOL": -0.077657661,
-          "PDA:Meteora DLMM|USD1": -0.529436,
-          "PDA:GoonFi V2|SOL": -4.558230119,
-          "PDA:GoonFi V2|USDT": 65.319076,
-          "UNKNOWN|SOL": -0.026282158,
-          "PDA:Jupiter Referral|USDC": 0.000017,
-          "USER_SIGNER|USDT": 286.112991,
-          "PDA:Meteora DLMM|USDC": 4.190454,
-          "PDA:Meteora DLMM|USDT": 2.29035,
-          "PDA:Whirlpool|SOL": 0.290454764,
-          "PDA:Whirlpool|USDC": 7.092572,
-          "PDA:TesseraV|SOL": -0.913682624,
-          "PDA:TesseraV|USDC": 70.85793,
-          "PDA:SPL Token|SOL": -0.205154419,
-          "PDA:SPL Token|USDC": 45.870924,
-          "PDA:Raydium CLMM|USDC": 0,
-          "PDA:Raydium CLMM|SOL": 0.001482647,
-          "SYSTEM_ACCOUNT|EeiujkXFESt1sFH7aWgd8nqZ39piHNRJw7JFtejMZV93": 0.7,
-          "PDA:Raydium CLMM|USD1": -0.114992,
-          "PDA:Whirlpool|USDT": -29.663684,
-          "PDA:PancakeSwap|SOL": 0.007944683,
+          "PDA:SPL Token|USD1": 262.621806,
+          "PDA:SPL Token|USDT": -357.775766,
+          "PDA:Meteora DLMM|SOL": -0.106473398,
+          "PDA:Meteora DLMM|USD1": -0.861135,
+          "PDA:GoonFi V2|SOL": -6.592731214,
+          "PDA:GoonFi V2|USDT": -793.3641,
+          "UNKNOWN|SOL": -0.107798154,
+          "PDA:Jupiter Referral|USDC": 0.000078,
+          "USER_SIGNER|USDT": 335.530629,
+          "PDA:Meteora DLMM|USDC": 6.582794,
+          "PDA:Meteora DLMM|USDT": 2.4736,
+          "PDA:Whirlpool|SOL": 0.387529457,
+          "PDA:Whirlpool|USDC": 8.954244,
+          "PDA:TesseraV|SOL": -0.924980255,
+          "PDA:TesseraV|USDC": 71.739129,
+          "PDA:SPL Token|SOL": -0.113107919,
+          "PDA:SPL Token|USDC": 739.452283,
+          "PDA:Raydium CLMM|USDC": 15.250049,
+          "PDA:Raydium CLMM|SOL": -0.159213679,
+          "SYSTEM_ACCOUNT|EeiujkXFESt1sFH7aWgd8nqZ39piHNRJw7JFtejMZV93": 15.29,
+          "PDA:Raydium CLMM|USD1": -0.089356,
+          "PDA:Whirlpool|USDT": -39.169446,
+          "PDA:PancakeSwap|SOL": 0.012519566,
           "PDA:PancakeSwap|USDT": -0.613366,
-          "USER_SIGNER|ETH": 0.0547847,
-          "PDA:HumidiFi|ETH": -0.05452469,
+          "USER_SIGNER|ETH": 0.05497177,
+          "PDA:HumidiFi|ETH": -0.08271388,
           "PDA:SolFi V2|SOL": -0.446869787,
-          "PDA:SolFi V2|USDC": 34.65,
-          "USER_SIGNER|JitoSOL": 0.231327773,
+          "PDA:SolFi V2|USDC": 38.30274,
+          "USER_SIGNER|JitoSOL": 0.282443815,
           "SYSTEM_ACCOUNT|JitoSOL": 0,
-          "PDA:SPL Token|JitoSOL": -0.231327773,
-          "PDA:Scorch Router|SOL": 3.246682866,
-          "PDA:Scorch Router|USD1": -252.020427,
+          "PDA:SPL Token|JitoSOL": -0.306173121,
+          "PDA:Scorch Router|SOL": -9.372468775,
+          "PDA:Scorch Router|USD1": -261.671315,
           "UNKNOWN|USDH": 0,
-          "UNKNOWN|USDT": -0.00928,
+          "UNKNOWN|USDT": 1760.29126,
           "PDA:Meteora Vault|USDT": -0.085827,
           "PDA:Meteora Vault|SOL": 0.001099021,
           "PDA:SPL Token|EZun6G5514FeqYtUv26cBHWLqXjAEdjGuoX6ThBpBtKj": -0.077072,
@@ -843,12 +895,37 @@
           "SYSTEM_ACCOUNT|TRUMP": 0,
           "PDA:HumidiFi|TRUMP": -0.311199,
           "PDA:Whirlpool|TRUMP": 0.311199,
-          "PDA:Whirlpool|ETH": -0.00026001
+          "PDA:Whirlpool|ETH": -0.00026001,
+          "XPLACE1_CONFIG|USDC": 0.000042,
+          "SYSTEM_ACCOUNT|JupUSD": 0,
+          "PDA:GoonFi V2|JupUSD": 604.575912,
+          "PDA:SPL Token|JupUSD": -604.575912,
+          "PDA:HumidiFi|USDT": -0.44782,
+          "PDA:Riptide|USDT": -1811.804656,
+          "PDA:Riptide|USDC": 1812.251691,
+          "PDA:Scorch Router|USDC": 0.495,
+          "PDA:Raydium CLMM|USDT": -2.946552,
+          "SYSTEM_ACCOUNT|USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA": 0,
+          "PDA:SPL Token|USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA": -0.108804,
+          "PDA:Raydium CLMM|USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA": 0.108804,
+          "PDA:Scorch Router|USDT": 995.344622,
+          "UNKNOWN|ETH": 0.02818919,
+          "PDA:Byreal|USDC": 19.84014,
+          "PDA:Byreal|USDT": -19.85377,
+          "PDA:SolFi V2|USDT": -3.6553,
+          "UNKNOWN|cbBTC": 0.00003658,
+          "SYSTEM_ACCOUNT|cbBTC": 0,
+          "PDA:Raydium CLMM|JitoSOL": 0.023729306,
+          "PDA:Raydium CLMM|cbBTC": -0.00003658,
+          "PDA:Riptide|SOL": -0.01006056,
+          "PDA:PancakeSwap|ETH": -0.00018707,
+          "PDA:BisonFi|cbBTC": -0.00000531,
+          "PDA:HumidiFi|cbBTC": -0.00000132
         },
         "examples": [
+          "2ZJMsfqFDY12W7pUezYRwB6H2MukLytfkxGAAdKpiekuuSrtggS4oCj41VKEmXH5Sc4X4sehYzftUnouCCd1GdSo",
           "2xWiDMvakg8mZb4VFXpcYU8hNhDX1sPPyNQYC124LgBTd5WCP3qXhYGiKUA9ueEqWxhqWMgt2M2ww5s2kSYKZtxc",
-          "3o65wRHBitnvrN9YJPz6z577jEVJxY7J6Ld6HEhT9VPXGqU1kS6pHVhjBjzAKLxF3CceCBZu7nvufD2HxzYjVgZq",
-          "37xsxAewgGGnqLgWFkWkG6qPUYucUk8T9KZ7oSFZnEiSr1gyDQx4TXWmBM9PMEJkxmxhT1vWaFiq8GaBhH6sxpM9"
+          "3o65wRHBitnvrN9YJPz6z577jEVJxY7J6Ld6HEhT9VPXGqU1kS6pHVhjBjzAKLxF3CceCBZu7nvufD2HxzYjVgZq"
         ]
       },
       "caveat": "Observed signer layout proves the concrete captured transaction form only; it does not remove per-account, whitelist, limit, balance, oracle, bundle, or downstream protocol checks."
@@ -861,7 +938,7 @@
       "evidence": "binary_surface_only",
       "chOnlySuccessEvidence": false,
       "chPlusUserEvidence": false,
-      "effect": "Binary-exposed worker withdrawal path; no execution observed in the decoded 2,000-transaction window.",
+      "effect": "Binary-exposed worker withdrawal path; no execution observed in the decoded transaction window.",
       "observed": null,
       "caveat": "Method name and guardrails are present in the current on-chain binary, but no execution is present in the decoded recent window; this is a potential branch, not proven CH access."
     },
@@ -1019,34 +1096,40 @@
       "chPlusUserEvidence": false,
       "effect": "Refresh Scope/reserves/obligation, borrow USDC from Kamino through XPlace 1, then route it to the linked XPlace 2 card PDA.",
       "observed": {
-        "transactions": 186,
-        "success": 186,
+        "transactions": 559,
+        "success": 559,
         "failed": 0,
         "signerLayouts": {
-          "1": 186
+          "1": 559
+        },
+        "signerOutcomes": {
+          "1:success": 559
         },
         "directDescendants": {
-          "Kamino Lending:BorrowObligationLiquidityV2": 186,
-          "SPL Token": 558
+          "Kamino Lending:BorrowObligationLiquidityV2": 559,
+          "SPL Token": 1695,
+          "Associated Token": 6,
+          "System": 6
         },
         "assets": {
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 23171.68000000001,
-            "transferCount": 558
+            "grossTransferAmount": 66768.32000000002,
+            "transferCount": 1677
           }
         },
         "netRoleDeltas": {
           "XPLACE1_PDA|USDC": 0,
-          "XPLACE2_PDA|USDC": 11585.840000000004,
+          "XPLACE2_PDA|USDC": 33383.4,
           "XPLACE1_CONFIG|USDC": 0,
-          "KAMINO_MARKET_AUTHORITY|USDC": -11585.840000000004
+          "KAMINO_MARKET_AUTHORITY|USDC": -33384.16,
+          "UNKNOWN|USDC": 0.76
         },
         "examples": [
+          "44JmyxHKxyHqARnVxb6eWoH8w4MJjwrsNbyBWku4vwgBk3CKdKDpWtbPYH2gk7766DmELFTh3mGMNXAhbVyvBVFE",
           "4Sn7csrdBhRvrpSMxzLJDR2gdXcSnLMRDxahEhrh6RCrbGBT3RxCd4HkEWxdguP5MvbP79rbGgzgdbJNwwXoyyB1",
-          "5qDSxFmBQaTi2736ZHEDq5YFZtpop59FBVX214wxKZExAUxiapziQY26Ybzcehe4Qzo51Lxp88wjoZHxUExmVhAX",
-          "2WwW5fjmEZEZ5aksf8CQVxyywgt5EmgGTfAqw3FcEpDZaySiKHrEWkjVFmPXLt5fcVRWn3yA4kuwDgFr7WGm35u3"
+          "5qDSxFmBQaTi2736ZHEDq5YFZtpop59FBVX214wxKZExAUxiapziQY26Ybzcehe4Qzo51Lxp88wjoZHxUExmVhAX"
         ]
       },
       "caveat": "Observed signer layout proves the concrete captured transaction form only; it does not remove per-account, whitelist, limit, balance, oracle, bundle, or downstream protocol checks."
@@ -1073,29 +1156,32 @@
       "chPlusUserEvidence": false,
       "effect": "Take reclaimed XPlace 2 USDC and repay a Kamino obligation through XPlace 1.",
       "observed": {
-        "transactions": 3,
-        "success": 3,
+        "transactions": 11,
+        "success": 11,
         "failed": 0,
         "signerLayouts": {
-          "1": 3
+          "1": 11
+        },
+        "signerOutcomes": {
+          "1:success": 11
         },
         "directDescendants": {
-          "SPL Token": 6,
-          "Kamino Lending:RepayObligationLiquidityV2": 3
+          "SPL Token": 22,
+          "Kamino Lending:RepayObligationLiquidityV2": 11
         },
         "assets": {
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 42.620000000000005,
-            "transferCount": 9
+            "grossTransferAmount": 352.6199999999999,
+            "transferCount": 33
           }
         },
         "netRoleDeltas": {
-          "XPLACE2_PDA|USDC": -21.31,
+          "XPLACE2_PDA|USDC": -176.31,
           "XPLACE1_PDA|USDC": 0,
           "XPLACE1_CONFIG|USDC": 0,
-          "KAMINO_MARKET_AUTHORITY|USDC": 21.31,
+          "KAMINO_MARKET_AUTHORITY|USDC": 176.31,
           "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": 0
         },
         "examples": [
@@ -1126,7 +1212,7 @@
       "evidence": "observed_legacy_stratified_sample",
       "chOnlySuccessEvidence": true,
       "chPlusUserEvidence": false,
-      "effect": "Worker-side borrow against an XPlace-managed Drift user account; historical one-signer evidence exists outside the latest 2,000 window.",
+      "effect": "Worker-side borrow against an XPlace-managed Drift user account; historical one-signer evidence exists outside the latest decoded window.",
       "observed": {
         "transactions": 6,
         "success": 6,
@@ -1148,14 +1234,18 @@
       "chPlusUserEvidence": false,
       "effect": "Create the program-specific user/card account state and associated PDA links.",
       "observed": {
-        "transactions": 76,
-        "success": 43,
-        "failed": 33,
+        "transactions": 196,
+        "success": 112,
+        "failed": 84,
         "signerLayouts": {
-          "1": 76
+          "1": 196
+        },
+        "signerOutcomes": {
+          "1:failed": 84,
+          "1:success": 112
         },
         "directDescendants": {
-          "System": 119
+          "System": 308
         },
         "assets": {},
         "netRoleDeltas": {},
@@ -1177,69 +1267,106 @@
       "chPlusUserEvidence": true,
       "effect": "Binary-exposed program method; see on-chain account and instruction checks.",
       "observed": {
-        "transactions": 50,
-        "success": 50,
+        "transactions": 152,
+        "success": 152,
         "failed": 0,
         "signerLayouts": {
-          "1": 45,
-          "2": 5
+          "1": 124,
+          "2": 28
+        },
+        "signerOutcomes": {
+          "1:success": 124,
+          "2:success": 28
         },
         "directDescendants": {
-          "Kamino Lending:InitUserMetadata": 44,
-          "System": 94,
-          "Kamino Lending:InitObligation": 50
+          "Kamino Lending:InitUserMetadata": 114,
+          "System": 266,
+          "Kamino Lending:InitObligation": 152
         },
         "assets": {
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 24.57,
-            "transferCount": 3
+            "grossTransferAmount": 50.579998999999994,
+            "transferCount": 9
           },
           "B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": {
             "mint": "B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D",
             "decimals": 6,
-            "grossTransferAmount": 6.867635,
-            "transferCount": 1
+            "grossTransferAmount": 14.139775,
+            "transferCount": 3
           },
           "USDT": {
             "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
             "decimals": 6,
-            "grossTransferAmount": 977.160694,
-            "transferCount": 2
+            "grossTransferAmount": 2430.4759420000005,
+            "transferCount": 14
           },
           "B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": {
             "mint": "B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv",
             "decimals": 6,
-            "grossTransferAmount": 415.711004,
-            "transferCount": 1
+            "grossTransferAmount": 1034.086082,
+            "transferCount": 7
           },
           "SOL": {
             "mint": "So11111111111111111111111111111111111111112",
             "decimals": 9,
-            "grossTransferAmount": 85.38761787600001,
-            "transferCount": 8
+            "grossTransferAmount": 164.60115257100009,
+            "transferCount": 50
           },
           "2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": {
             "mint": "2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1",
             "decimals": 6,
-            "grossTransferAmount": 37339.777841999996,
+            "grossTransferAmount": 71983.598585,
+            "transferCount": 25
+          },
+          "ETH": {
+            "mint": "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+            "decimals": 8,
+            "grossTransferAmount": 0.27599342,
             "transferCount": 4
+          },
+          "BE5LqGwfAPYHEGjqR48C8CUu1nCP9BbJwrDUhB141rnL": {
+            "mint": "BE5LqGwfAPYHEGjqR48C8CUu1nCP9BbJwrDUhB141rnL",
+            "decimals": 6,
+            "grossTransferAmount": 13.521309,
+            "transferCount": 2
+          },
+          "JitoSOL": {
+            "mint": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+            "decimals": 9,
+            "grossTransferAmount": 0.102232084,
+            "transferCount": 2
+          },
+          "9ucQp7thL38MDDTSER5ou24QnVSTZFLevDsZC1cAFkKy": {
+            "mint": "9ucQp7thL38MDDTSER5ou24QnVSTZFLevDsZC1cAFkKy",
+            "decimals": 6,
+            "grossTransferAmount": 51.064432,
+            "transferCount": 1
           }
         },
         "netRoleDeltas": {
           "USER_SIGNER|USDC": 0,
-          "XPLACE2_PDA|USDC": -8.19,
-          "XPLACE1_PDA|USDC": 0,
-          "KAMINO_MARKET_AUTHORITY|USDC": 8.19,
-          "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": 6.867635,
-          "SYSTEM_ACCOUNT|USDT": -488.580347,
+          "XPLACE2_PDA|USDC": -16.86,
+          "XPLACE1_PDA|USDC": 0.000001,
+          "KAMINO_MARKET_AUTHORITY|USDC": 16.859999,
+          "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": 14.139775,
+          "SYSTEM_ACCOUNT|USDT": -517.135967,
           "XPLACE1_PDA|USDT": 0,
-          "KAMINO_MARKET_AUTHORITY|USDT": 488.580347,
-          "KAMINO_MARKET_AUTHORITY|B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": 415.711004,
-          "KAMINO_MARKET_AUTHORITY|SOL": 42.693808938,
-          "KAMINO_MARKET_AUTHORITY|2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": 37339.777841999996,
-          "XPLACE1_PDA|SOL": 0
+          "KAMINO_MARKET_AUTHORITY|USDT": 1215.237971,
+          "KAMINO_MARKET_AUTHORITY|B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": 1034.086082,
+          "KAMINO_MARKET_AUTHORITY|SOL": 82.300576283,
+          "KAMINO_MARKET_AUTHORITY|2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": 71983.598585,
+          "XPLACE1_PDA|SOL": 5e-9,
+          "UNKNOWN|USDT": -698.102004,
+          "SYSTEM_ACCOUNT|ETH": -0.13799671,
+          "XPLACE1_PDA|ETH": 0,
+          "KAMINO_MARKET_AUTHORITY|ETH": 0.13799671,
+          "KAMINO_MARKET_AUTHORITY|BE5LqGwfAPYHEGjqR48C8CUu1nCP9BbJwrDUhB141rnL": 13.521309,
+          "SYSTEM_ACCOUNT|JitoSOL": -0.051116042,
+          "XPLACE1_PDA|JitoSOL": 0,
+          "KAMINO_MARKET_AUTHORITY|JitoSOL": 0.051116042,
+          "KAMINO_MARKET_AUTHORITY|9ucQp7thL38MDDTSER5ou24QnVSTZFLevDsZC1cAFkKy": 51.064432
         },
         "examples": [
           "5mqYMGc6MWCeZAPMVNDwDitymFeLdppR5BfmPJ4mEPqdj8wA7Eb43mSFxGVkB7A61S5ZXJC2df7VqWzDXJm8PYTg",
@@ -1319,122 +1446,129 @@
       "chPlusUserEvidence": true,
       "effect": "Deposit SOL/USDC/USDT/ETH/cbBTC/JitoSOL through an XPlace 1 PDA, mint Kamino collateral receipts, and update delegated farm stake when configured.",
       "observed": {
-        "transactions": 120,
-        "success": 118,
-        "failed": 2,
+        "transactions": 306,
+        "success": 302,
+        "failed": 4,
         "signerLayouts": {
-          "1": 60,
-          "2": 60
+          "1": 132,
+          "2": 174
+        },
+        "signerOutcomes": {
+          "1:success": 128,
+          "2:success": 174,
+          "1:failed": 4
         },
         "directDescendants": {
-          "Associated Token": 27,
-          "SPL Token": 437,
-          "System": 27,
-          "Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2": 118,
-          "Kamino Farms:SetStakeDelegated": 107
+          "Associated Token": 75,
+          "SPL Token": 1135,
+          "System": 75,
+          "Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2": 302,
+          "Kamino Farms:SetStakeDelegated": 274
         },
         "assets": {
           "USDT": {
             "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
             "decimals": 6,
-            "grossTransferAmount": 7661.095802999997,
-            "transferCount": 90
+            "grossTransferAmount": 36571.87151300001,
+            "transferCount": 182
           },
           "B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": {
             "mint": "B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv",
             "decimals": 6,
-            "grossTransferAmount": 3256.381894000001,
-            "transferCount": 44
+            "grossTransferAmount": 14818.99609,
+            "transferCount": 89
           },
           "SOL": {
             "mint": "So11111111111111111111111111111111111111112",
             "decimals": 9,
-            "grossTransferAmount": 372.307268841,
-            "transferCount": 82
+            "grossTransferAmount": 1004.5795768009998,
+            "transferCount": 234
           },
           "2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": {
             "mint": "2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1",
             "decimals": 6,
-            "grossTransferAmount": 162804.58806500002,
-            "transferCount": 41
+            "grossTransferAmount": 439320.1134219999,
+            "transferCount": 117
           },
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 12765.839998000003,
-            "transferCount": 57
+            "grossTransferAmount": 81099.869991,
+            "transferCount": 171
           },
           "B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": {
             "mint": "B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D",
             "decimals": 6,
-            "grossTransferAmount": 3568.256512000001,
-            "transferCount": 19
+            "grossTransferAmount": 22672.659018000002,
+            "transferCount": 57
           },
           "cbBTC": {
             "mint": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
             "decimals": 8,
-            "grossTransferAmount": 0.56320598,
-            "transferCount": 6
+            "grossTransferAmount": 0.7142418600000002,
+            "transferCount": 22
           },
           "B3ieCZaTUp8qM9zbPqH2WDhzWpwrvHB2Q2aWB25DW97U": {
             "mint": "B3ieCZaTUp8qM9zbPqH2WDhzWpwrvHB2Q2aWB25DW97U",
             "decimals": 6,
-            "grossTransferAmount": 28.148323999999995,
-            "transferCount": 3
+            "grossTransferAmount": 35.69691099999999,
+            "transferCount": 11
           },
           "ETH": {
             "mint": "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
             "decimals": 8,
-            "grossTransferAmount": 2.3190257799999987,
-            "transferCount": 20
+            "grossTransferAmount": 2.8598450799999977,
+            "transferCount": 50
           },
           "BE5LqGwfAPYHEGjqR48C8CUu1nCP9BbJwrDUhB141rnL": {
             "mint": "BE5LqGwfAPYHEGjqR48C8CUu1nCP9BbJwrDUhB141rnL",
             "decimals": 6,
-            "grossTransferAmount": 113.61194299999998,
-            "transferCount": 10
+            "grossTransferAmount": 140.107453,
+            "transferCount": 25
           },
           "JitoSOL": {
             "mint": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
             "decimals": 9,
-            "grossTransferAmount": 0.462655546,
-            "transferCount": 2
+            "grossTransferAmount": 0.585091468,
+            "transferCount": 6
           },
           "9ucQp7thL38MDDTSER5ou24QnVSTZFLevDsZC1cAFkKy": {
             "mint": "9ucQp7thL38MDDTSER5ou24QnVSTZFLevDsZC1cAFkKy",
             "decimals": 6,
-            "grossTransferAmount": 231.094147,
-            "transferCount": 1
+            "grossTransferAmount": 292.250298,
+            "transferCount": 3
           }
         },
         "netRoleDeltas": {
-          "SYSTEM_ACCOUNT|USDT": -2214.793774,
-          "KAMINO_MARKET_AUTHORITY|USDT": 3827.160377,
-          "KAMINO_MARKET_AUTHORITY|B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": 3256.381894000001,
-          "XPLACE1_PDA|USDT": 0.000004,
-          "XPLACE1_PDA|SOL": 5e-9,
-          "KAMINO_MARKET_AUTHORITY|SOL": 186.153634418,
-          "KAMINO_MARKET_AUTHORITY|2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": 162804.58806500002,
+          "SYSTEM_ACCOUNT|USDT": -10395.540217999998,
+          "KAMINO_MARKET_AUTHORITY|USDT": 17414.767887999995,
+          "KAMINO_MARKET_AUTHORITY|B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": 14818.99609,
+          "XPLACE1_PDA|USDT": 0.000012,
+          "XPLACE1_PDA|SOL": 1.5e-8,
+          "KAMINO_MARKET_AUTHORITY|SOL": 502.289788393,
+          "KAMINO_MARKET_AUTHORITY|2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": 439320.1134219999,
           "USER_SIGNER|USDC": 0,
-          "XPLACE2_PDA|USDC": -4255.28,
-          "KAMINO_MARKET_AUTHORITY|USDC": 4255.279998,
-          "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": 3568.256512000001,
-          "XPLACE1_PDA|USDC": 0.000002,
-          "SYSTEM_ACCOUNT|cbBTC": -0.28160299,
+          "XPLACE2_PDA|USDC": -27033.289999999997,
+          "KAMINO_MARKET_AUTHORITY|USDC": 27033.289990999994,
+          "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": 22672.659018000002,
+          "XPLACE1_PDA|USDC": 0.000009,
+          "SYSTEM_ACCOUNT|cbBTC": -0.35648626,
           "XPLACE1_PDA|cbBTC": 0,
-          "KAMINO_MARKET_AUTHORITY|cbBTC": 0.28160299,
-          "KAMINO_MARKET_AUTHORITY|B3ieCZaTUp8qM9zbPqH2WDhzWpwrvHB2Q2aWB25DW97U": 28.148324,
-          "UNKNOWN|USDT": -1612.366607,
-          "SYSTEM_ACCOUNT|ETH": -1.15951289,
+          "KAMINO_MARKET_AUTHORITY|cbBTC": 0.35712093,
+          "KAMINO_MARKET_AUTHORITY|B3ieCZaTUp8qM9zbPqH2WDhzWpwrvHB2Q2aWB25DW97U": 35.696911,
+          "UNKNOWN|USDT": -7019.227682,
+          "SYSTEM_ACCOUNT|ETH": -1.40173335,
           "XPLACE1_PDA|ETH": 0,
-          "KAMINO_MARKET_AUTHORITY|ETH": 1.15951289,
-          "KAMINO_MARKET_AUTHORITY|BE5LqGwfAPYHEGjqR48C8CUu1nCP9BbJwrDUhB141rnL": 113.611943,
+          "KAMINO_MARKET_AUTHORITY|ETH": 1.42992254,
+          "KAMINO_MARKET_AUTHORITY|BE5LqGwfAPYHEGjqR48C8CUu1nCP9BbJwrDUhB141rnL": 140.107453,
           "UNKNOWN|USDC": 0,
           "USER_SIGNER|SOL": 0,
-          "SYSTEM_ACCOUNT|JitoSOL": -0.231327773,
+          "SYSTEM_ACCOUNT|JitoSOL": -0.292545734,
           "XPLACE1_PDA|JitoSOL": 0,
-          "KAMINO_MARKET_AUTHORITY|JitoSOL": 0.231327773,
-          "KAMINO_MARKET_AUTHORITY|9ucQp7thL38MDDTSER5ou24QnVSTZFLevDsZC1cAFkKy": 231.094147
+          "KAMINO_MARKET_AUTHORITY|JitoSOL": 0.292545734,
+          "KAMINO_MARKET_AUTHORITY|9ucQp7thL38MDDTSER5ou24QnVSTZFLevDsZC1cAFkKy": 292.250298,
+          "UNKNOWN|cbBTC": -0.00063467,
+          "UNKNOWN|ETH": -0.02818919
         },
         "examples": [
           "2Tm9ADzXsfYnTV4uPAGvi1aRpbCCCmFjMFQDG1kifxsGVVgUJz6tgGfmP8Ah42oiSMh3WPnxz3W3LaevWdc2ZtsM",
@@ -1466,101 +1600,122 @@
       "chPlusUserEvidence": true,
       "effect": "Redeem Kamino obligation collateral, burn reserve collateral receipts, move the underlying asset through the XPlace 1 UserAccount PDA, and pay the user ATA.",
       "observed": {
-        "transactions": 103,
-        "success": 103,
-        "failed": 0,
+        "transactions": 212,
+        "success": 208,
+        "failed": 4,
         "signerLayouts": {
-          "2": 103
+          "2": 212
+        },
+        "signerOutcomes": {
+          "2:success": 208,
+          "2:failed": 4
         },
         "directDescendants": {
-          "Kamino Lending:WithdrawObligationCollateralAndRedeemReserveCollateralV2": 103,
-          "SPL Token": 309,
-          "Kamino Farms:SetStakeDelegated": 95
+          "Kamino Lending:WithdrawObligationCollateralAndRedeemReserveCollateralV2": 212,
+          "SPL Token": 624,
+          "Kamino Farms:SetStakeDelegated": 189
         },
         "assets": {
           "B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": {
             "mint": "B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv",
             "decimals": 6,
-            "grossTransferAmount": 4165.831566,
-            "transferCount": 37
+            "grossTransferAmount": 12326.912993999995,
+            "transferCount": 66
           },
           "USDT": {
             "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
             "decimals": 6,
-            "grossTransferAmount": 9791.783242000001,
-            "transferCount": 74
+            "grossTransferAmount": 28972.273124000003,
+            "transferCount": 132
           },
           "B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": {
             "mint": "B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D",
             "decimals": 6,
-            "grossTransferAmount": 348.45292,
-            "transferCount": 16
+            "grossTransferAmount": 7242.801342999999,
+            "transferCount": 34
           },
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 831.0960630000001,
-            "transferCount": 32
+            "grossTransferAmount": 17271.3222,
+            "transferCount": 68
           },
           "2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": {
             "mint": "2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1",
             "decimals": 6,
-            "grossTransferAmount": 124116.84588600001,
-            "transferCount": 37
+            "grossTransferAmount": 165105.54197500006,
+            "transferCount": 71
           },
           "SOL": {
             "mint": "So11111111111111111111111111111111111111112",
             "decimals": 9,
-            "grossTransferAmount": 283.836467829,
-            "transferCount": 74
+            "grossTransferAmount": 377.5599323519997,
+            "transferCount": 142
           },
           "BE5LqGwfAPYHEGjqR48C8CUu1nCP9BbJwrDUhB141rnL": {
             "mint": "BE5LqGwfAPYHEGjqR48C8CUu1nCP9BbJwrDUhB141rnL",
             "decimals": 6,
-            "grossTransferAmount": 32.178249,
-            "transferCount": 8
+            "grossTransferAmount": 49.643946,
+            "transferCount": 17
           },
           "ETH": {
             "mint": "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
             "decimals": 8,
-            "grossTransferAmount": 0.6568163600000001,
-            "transferCount": 16
+            "grossTransferAmount": 1.0133213,
+            "transferCount": 34
           },
           "B3ieCZaTUp8qM9zbPqH2WDhzWpwrvHB2Q2aWB25DW97U": {
             "mint": "B3ieCZaTUp8qM9zbPqH2WDhzWpwrvHB2Q2aWB25DW97U",
             "decimals": 6,
-            "grossTransferAmount": 29.14736,
-            "transferCount": 5
+            "grossTransferAmount": 33.959422999999994,
+            "transferCount": 18
           },
           "cbBTC": {
             "mint": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
             "decimals": 8,
-            "grossTransferAmount": 0.58319514,
-            "transferCount": 10
+            "grossTransferAmount": 0.6794770800000001,
+            "transferCount": 36
+          },
+          "9ucQp7thL38MDDTSER5ou24QnVSTZFLevDsZC1cAFkKy": {
+            "mint": "9ucQp7thL38MDDTSER5ou24QnVSTZFLevDsZC1cAFkKy",
+            "decimals": 6,
+            "grossTransferAmount": 146.090183,
+            "transferCount": 2
+          },
+          "JitoSOL": {
+            "mint": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+            "decimals": 9,
+            "grossTransferAmount": 0.2924757,
+            "transferCount": 4
           }
         },
         "netRoleDeltas": {
-          "UNKNOWN|USDT": 2670.319729,
-          "XPLACE1_PDA|USDT": -0.000004,
-          "KAMINO_MARKET_AUTHORITY|B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": -4165.831566,
-          "KAMINO_MARKET_AUTHORITY|USDT": -4895.891619,
-          "USER_SIGNER|USDC": 415.478032,
-          "XPLACE1_PDA|USDC": -0.000003,
-          "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": -348.45292,
-          "KAMINO_MARKET_AUTHORITY|USDC": -415.54803,
-          "XPLACE1_PDA|SOL": -3e-9,
-          "KAMINO_MARKET_AUTHORITY|2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": -124116.84588600001,
-          "KAMINO_MARKET_AUTHORITY|SOL": -141.918233913,
-          "USER_SIGNER|USDT": 2225.571894000001,
-          "USER_SIGNER|ETH": 0.32840818,
+          "UNKNOWN|USDT": 10565.572470000001,
+          "XPLACE1_PDA|USDT": -0.00001,
+          "KAMINO_MARKET_AUTHORITY|B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": -12326.912993999995,
+          "KAMINO_MARKET_AUTHORITY|USDT": -14486.136557,
+          "USER_SIGNER|USDC": 735.131297,
+          "XPLACE1_PDA|USDC": -0.000004,
+          "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": -7242.801342999999,
+          "KAMINO_MARKET_AUTHORITY|USDC": -8635.661097999999,
+          "XPLACE1_PDA|SOL": -8e-9,
+          "KAMINO_MARKET_AUTHORITY|2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": -165105.54197500006,
+          "KAMINO_MARKET_AUTHORITY|SOL": -188.779966172,
+          "USER_SIGNER|USDT": 3920.564097,
+          "USER_SIGNER|ETH": 0.50666065,
           "XPLACE1_PDA|ETH": 0,
-          "KAMINO_MARKET_AUTHORITY|BE5LqGwfAPYHEGjqR48C8CUu1nCP9BbJwrDUhB141rnL": -32.178249,
-          "KAMINO_MARKET_AUTHORITY|ETH": -0.32840818,
-          "USER_SIGNER|cbBTC": 0.29159757,
+          "KAMINO_MARKET_AUTHORITY|BE5LqGwfAPYHEGjqR48C8CUu1nCP9BbJwrDUhB141rnL": -49.643946,
+          "KAMINO_MARKET_AUTHORITY|ETH": -0.50666065,
+          "USER_SIGNER|cbBTC": 0.33675834,
           "XPLACE1_PDA|cbBTC": 0,
-          "KAMINO_MARKET_AUTHORITY|B3ieCZaTUp8qM9zbPqH2WDhzWpwrvHB2Q2aWB25DW97U": -29.14736,
-          "KAMINO_MARKET_AUTHORITY|cbBTC": -0.29159757,
-          "UNKNOWN|USDC": 0.070001
+          "KAMINO_MARKET_AUTHORITY|B3ieCZaTUp8qM9zbPqH2WDhzWpwrvHB2Q2aWB25DW97U": -33.959423,
+          "KAMINO_MARKET_AUTHORITY|cbBTC": -0.33973854,
+          "UNKNOWN|USDC": 7900.529805,
+          "USER_SIGNER|JitoSOL": 0.14623785,
+          "XPLACE1_PDA|JitoSOL": 0,
+          "KAMINO_MARKET_AUTHORITY|9ucQp7thL38MDDTSER5ou24QnVSTZFLevDsZC1cAFkKy": -146.090183,
+          "KAMINO_MARKET_AUTHORITY|JitoSOL": -0.14623785,
+          "UNKNOWN|cbBTC": 0.0029802
         },
         "examples": [
           "2qPm4K4T3J14eocr9ca3u9oLxpNffMJ4jNEDhh6GBsWSDZ1KHr83M4iBSvSaTshahEQxv6T7wWVfAYPzEyeU2mnu",
@@ -1580,55 +1735,59 @@
       "chPlusUserEvidence": true,
       "effect": "Redeem Kamino collateral and forward the underlying asset to a destination in the same atomic transaction.",
       "observed": {
-        "transactions": 13,
-        "success": 13,
+        "transactions": 39,
+        "success": 39,
         "failed": 0,
         "signerLayouts": {
-          "2": 13
+          "2": 39
+        },
+        "signerOutcomes": {
+          "2:success": 39
         },
         "directDescendants": {
-          "Kamino Lending:WithdrawObligationCollateralAndRedeemReserveCollateralV2": 13,
-          "SPL Token": 42,
-          "Kamino Farms:SetStakeDelegated": 13,
-          "System": 10,
-          "Associated Token": 1
+          "Kamino Lending:WithdrawObligationCollateralAndRedeemReserveCollateralV2": 39,
+          "SPL Token": 135,
+          "Kamino Farms:SetStakeDelegated": 39,
+          "System": 37,
+          "Associated Token": 6
         },
         "assets": {
           "2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": {
             "mint": "2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1",
             "decimals": 6,
-            "grossTransferAmount": 5466.705557,
-            "transferCount": 9
+            "grossTransferAmount": 57748.074202999975,
+            "transferCount": 31
           },
           "SOL": {
             "mint": "So11111111111111111111111111111111111111112",
             "decimals": 9,
-            "grossTransferAmount": 6.250817082999999,
-            "transferCount": 9
+            "grossTransferAmount": 66.02130441699998,
+            "transferCount": 31
           },
           "B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": {
             "mint": "B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv",
             "decimals": 6,
-            "grossTransferAmount": 765.86339,
-            "transferCount": 4
+            "grossTransferAmount": 1682.1962039999999,
+            "transferCount": 8
           },
           "USDT": {
             "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
             "decimals": 6,
-            "grossTransferAmount": 1800.258149,
-            "transferCount": 8
+            "grossTransferAmount": 3953.747667,
+            "transferCount": 16
           }
         },
         "netRoleDeltas": {
-          "XPLACE1_PDA|SOL": -3e-9,
-          "KAMINO_MARKET_AUTHORITY|2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": -5466.705557,
-          "KAMINO_MARKET_AUTHORITY|SOL": -6.250817083,
+          "XPLACE1_PDA|SOL": -5e-9,
+          "KAMINO_MARKET_AUTHORITY|2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": -57748.074202999975,
+          "KAMINO_MARKET_AUTHORITY|SOL": -66.021304417,
           "SYSTEM_ACCOUNT|SOL": 0,
-          "SYSTEM_ACCOUNT|USDT": 900.129075,
-          "XPLACE1_PDA|USDT": -0.000001,
-          "KAMINO_MARKET_AUTHORITY|B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": -765.86339,
-          "KAMINO_MARKET_AUTHORITY|USDT": -900.129074,
-          "UNKNOWN|SOL": 0
+          "SYSTEM_ACCOUNT|USDT": 1904.456253,
+          "XPLACE1_PDA|USDT": -0.000003,
+          "KAMINO_MARKET_AUTHORITY|B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": -1682.196204,
+          "KAMINO_MARKET_AUTHORITY|USDT": -1976.873832,
+          "UNKNOWN|SOL": 0,
+          "UNKNOWN|USDT": 72.417582
         },
         "examples": [
           "shDf6DxRFTFNFSABxXo69hVmKMyV6ioq2M1nGd4HMa1CsZVjejsAQ5VHnsp8785nmMippLNoBUzBwLky1oPYqrr",
@@ -1648,34 +1807,38 @@
       "chPlusUserEvidence": true,
       "effect": "Borrow using a synchronized loan snapshot/target-APY sequence and then update state.",
       "observed": {
-        "transactions": 2,
-        "success": 2,
+        "transactions": 4,
+        "success": 4,
         "failed": 0,
         "signerLayouts": {
-          "2": 2
+          "2": 4
+        },
+        "signerOutcomes": {
+          "2:success": 4
         },
         "directDescendants": {
-          "Kamino Lending:BorrowObligationLiquidityV2": 2,
-          "SPL Token": 5
+          "Kamino Lending:BorrowObligationLiquidityV2": 4,
+          "SPL Token": 9
         },
         "assets": {
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 14.277008000000002,
-            "transferCount": 5
+            "grossTransferAmount": 43.10124,
+            "transferCount": 9
           }
         },
         "netRoleDeltas": {
           "USER_SIGNER|USDC": 5,
           "XPLACE1_PDA|USDC": 0,
           "XPLACE1_CONFIG|USDC": -0.000042,
-          "KAMINO_MARKET_AUTHORITY|USDC": -7.138462,
-          "UNKNOWN|USDC": 2.138504
+          "KAMINO_MARKET_AUTHORITY|USDC": -21.550578,
+          "UNKNOWN|USDC": 16.55062
         },
         "examples": [
           "5u3qGGmhbNPdACGJGAi6uKzuEwJgS6K6ZGmEe5qJq25met2Tp5gSdoxte8HLd6S5htNnf4zbAhBbK2bFjdpJ2z7C",
-          "w3fJAYnuHEvAQ1Ta6vcvJJnNajXcdQwyXQqZNqcQ6DqixF4RbzLYgwKzjqy1cGW3cUKFPtmFjG2kXW3Z6DEjfxX"
+          "w3fJAYnuHEvAQ1Ta6vcvJJnNajXcdQwyXQqZNqcQ6DqixF4RbzLYgwKzjqy1cGW3cUKFPtmFjG2kXW3Z6DEjfxX",
+          "5k2oCN3jPvUL9pSjLETB3Dmr17YnR6hMUYfnN2nMefu4mRQGhtzQyF13TyJMSgG3CoDFvLtYaSF82un4kpxNTNK2"
         ]
       },
       "caveat": "Observed signer layout proves the concrete captured transaction form only; it does not remove per-account, whitelist, limit, balance, oracle, bundle, or downstream protocol checks."
@@ -1690,32 +1853,35 @@
       "chPlusUserEvidence": true,
       "effect": "Two-signer user borrow through XPlace 1 into Kamino Lending; recent evidence pays underlying USDC to the user side.",
       "observed": {
-        "transactions": 22,
-        "success": 22,
+        "transactions": 48,
+        "success": 48,
         "failed": 0,
         "signerLayouts": {
-          "2": 22
+          "2": 48
+        },
+        "signerOutcomes": {
+          "2:success": 48
         },
         "directDescendants": {
-          "Kamino Lending:BorrowObligationLiquidityV2": 22,
-          "SPL Token": 72,
-          "Associated Token": 2,
-          "System": 2
+          "Kamino Lending:BorrowObligationLiquidityV2": 48,
+          "SPL Token": 165,
+          "Associated Token": 7,
+          "System": 7
         },
         "assets": {
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 1912.5176319999996,
-            "transferCount": 66
+            "grossTransferAmount": 3887.8893480000006,
+            "transferCount": 144
           }
         },
         "netRoleDeltas": {
-          "USER_SIGNER|USDC": 953.064109,
+          "USER_SIGNER|USDC": 1893.954632,
           "XPLACE1_PDA|USDC": 0,
           "XPLACE1_CONFIG|USDC": 0,
-          "KAMINO_MARKET_AUTHORITY|USDC": -956.258816,
-          "UNKNOWN|USDC": 3.194707
+          "KAMINO_MARKET_AUTHORITY|USDC": -1943.944674,
+          "UNKNOWN|USDC": 49.990042
         },
         "examples": [
           "3xb2XDjmtzKQ4FPJ3Vt2n6YHxQcZb6hPDT7wswKftbjarU7WS1gpwAbVLvVcd3K6LUpxDfGRF5UiARzCoS7qAhNz",
@@ -1742,12 +1908,45 @@
       "program": "XPlace Program 1",
       "method": "RepaySyncKamino",
       "accessClass": "user_position",
-      "evidence": "binary_surface_only",
+      "evidence": "observed_recent_window",
       "chOnlySuccessEvidence": false,
-      "chPlusUserEvidence": false,
+      "chPlusUserEvidence": true,
       "effect": "Binary-exposed program method; see on-chain account and instruction checks.",
-      "observed": null,
-      "caveat": "Method name and guardrails are present in the current on-chain binary, but no execution is present in the decoded recent window; this is a potential branch, not proven CH access."
+      "observed": {
+        "transactions": 2,
+        "success": 2,
+        "failed": 0,
+        "signerLayouts": {
+          "2": 2
+        },
+        "signerOutcomes": {
+          "2:success": 2
+        },
+        "directDescendants": {
+          "SPL Token": 8,
+          "Kamino Lending:RepayObligationLiquidityV2": 2
+        },
+        "assets": {
+          "USDC": {
+            "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "decimals": 6,
+            "grossTransferAmount": 129.766215,
+            "transferCount": 10
+          }
+        },
+        "netRoleDeltas": {
+          "UNKNOWN|USDC": 0.043209,
+          "XPLACE2_PDA|USDC": -43.255405,
+          "XPLACE1_PDA|USDC": 0,
+          "XPLACE1_CONFIG|USDC": 0.000042,
+          "KAMINO_MARKET_AUTHORITY|USDC": 43.212154
+        },
+        "examples": [
+          "SR1ytxnL4bdrpLSkrZPKkX2GgGVgmUJz1QLpQp5Px9juFiCEYXyLsjNzT2UVoS5BQHhfabaUe4Ca5KocH3MTCBi",
+          "PKY6LXB5e2FT1cGjSH8qMKbcY2Qx1zyPKS1rT7qu16LjtkKJRoCd82q1VsjdcXBJdGM3KCqRbAn7ULgmJ9AYeAT"
+        ]
+      },
+      "caveat": "Observed signer layout proves the concrete captured transaction form only; it does not remove per-account, whitelist, limit, balance, oracle, bundle, or downstream protocol checks."
     },
     {
       "programId": "CWhvrgNvYNdkT4gnjPcdVxaNB8HQkXgBTsJAwp3GaHop",
@@ -1759,30 +1958,33 @@
       "chPlusUserEvidence": true,
       "effect": "Two-signer repayment using USDC withdrawn from the linked XPlace 2 card PDA.",
       "observed": {
-        "transactions": 75,
-        "success": 75,
+        "transactions": 171,
+        "success": 171,
         "failed": 0,
         "signerLayouts": {
-          "2": 75
+          "2": 171
+        },
+        "signerOutcomes": {
+          "2:success": 171
         },
         "directDescendants": {
-          "SPL Token": 168,
-          "Kamino Lending:RepayObligationLiquidityV2": 75
+          "SPL Token": 393,
+          "Kamino Lending:RepayObligationLiquidityV2": 171
         },
         "assets": {
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 26655.91803999999,
-            "transferCount": 243
+            "grossTransferAmount": 329915.62936699984,
+            "transferCount": 564
           }
         },
         "netRoleDeltas": {
-          "USER_SIGNER|USDC": 2.061183,
-          "XPLACE2_PDA|USDC": -8885.306013000005,
-          "XPLACE1_PDA|USDC": -0.000001,
-          "KAMINO_MARKET_AUTHORITY|USDC": 8883.095917000002,
-          "UNKNOWN|USDC": 0.148914
+          "USER_SIGNER|USDC": 5.838636,
+          "XPLACE2_PDA|USDC": -109971.876455,
+          "XPLACE1_PDA|USDC": -0.000002,
+          "KAMINO_MARKET_AUTHORITY|USDC": 109964.17364700005,
+          "UNKNOWN|USDC": 1.864174
         },
         "examples": [
           "2xWiDMvakg8mZb4VFXpcYU8hNhDX1sPPyNQYC124LgBTd5WCP3qXhYGiKUA9ueEqWxhqWMgt2M2ww5s2kSYKZtxc",
@@ -1836,7 +2038,7 @@
       "evidence": "binary_surface_only",
       "chOnlySuccessEvidence": false,
       "chPlusUserEvidence": false,
-      "effect": "Binary-exposed worker withdrawal path; no execution observed in the decoded 2,000-transaction window.",
+      "effect": "Binary-exposed worker withdrawal path; no execution observed in the decoded transaction window.",
       "observed": null,
       "caveat": "Method name and guardrails are present in the current on-chain binary, but no execution is present in the decoded recent window; this is a potential branch, not proven CH access."
     },
@@ -1886,20 +2088,24 @@
       "chPlusUserEvidence": false,
       "effect": "Worker-side target borrow APY maintenance.",
       "observed": {
-        "transactions": 2,
-        "success": 2,
+        "transactions": 3,
+        "success": 3,
         "failed": 0,
         "signerLayouts": {
-          "1": 2
+          "1": 3
+        },
+        "signerOutcomes": {
+          "1:success": 3
         },
         "directDescendants": {
-          "System": 1
+          "System": 2
         },
         "assets": {},
         "netRoleDeltas": {},
         "examples": [
           "2K33DnFx985kxLNFxmcSp7Eu6QcY88aHnYr6rRmmN3CN7fnaztPrfqqCJqxGWXfqEYYnLv1kRxAzeCNnKYNk4mNC",
-          "5KVug6DSRDWHa2D8wxADLAdwit99oeWhe4yfmad3GoB7m8kTK9pWmDMKvMeFgHMYrKaS6LuztzhPPGG6rcVAughF"
+          "5KVug6DSRDWHa2D8wxADLAdwit99oeWhe4yfmad3GoB7m8kTK9pWmDMKvMeFgHMYrKaS6LuztzhPPGG6rcVAughF",
+          "AHcxXsJzJpQccrGLTBcY2eVoxDQs6p1wTUMY6YGJQZp51DBKt19Y15ay8cAdtzcsftsu6ABW7GYSXbAJ6GqbD4x"
         ]
       },
       "caveat": "Observed signer layout proves the concrete captured transaction form only; it does not remove per-account, whitelist, limit, balance, oracle, bundle, or downstream protocol checks."
@@ -1914,28 +2120,33 @@
       "chPlusUserEvidence": true,
       "effect": "Refresh the loan snapshot used by synchronized borrow/repay guardrails.",
       "observed": {
-        "transactions": 3,
-        "success": 3,
+        "transactions": 7,
+        "success": 7,
         "failed": 0,
         "signerLayouts": {
           "1": 1,
-          "2": 2
+          "2": 6
+        },
+        "signerOutcomes": {
+          "2:success": 6,
+          "1:success": 1
         },
         "directDescendants": {},
         "assets": {
           "USDC": {
             "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
             "decimals": 6,
-            "grossTransferAmount": 14.277008000000002,
-            "transferCount": 5
+            "grossTransferAmount": 172.867455,
+            "transferCount": 19
           }
         },
         "netRoleDeltas": {
           "USER_SIGNER|USDC": 5,
           "XPLACE1_PDA|USDC": 0,
-          "XPLACE1_CONFIG|USDC": -0.000042,
-          "KAMINO_MARKET_AUTHORITY|USDC": -7.138462,
-          "UNKNOWN|USDC": 2.138504
+          "XPLACE1_CONFIG|USDC": 0,
+          "KAMINO_MARKET_AUTHORITY|USDC": 21.661576,
+          "UNKNOWN|USDC": 16.593829,
+          "XPLACE2_PDA|USDC": -43.255405
         },
         "examples": [
           "5u3qGGmhbNPdACGJGAi6uKzuEwJgS6K6ZGmEe5qJq25met2Tp5gSdoxte8HLd6S5htNnf4zbAhBbK2bFjdpJ2z7C",
@@ -1975,7 +2186,7 @@
       "programId": "ccfVv3fLftghgTRwz6xMoU2HoDvevXhfzMYjMnJFNEy",
       "label": "XPlace CCTP Bridge Program",
       "relationship": "token_recipient_owner_in_xplace2_repay_settlement",
-      "transactions": 591,
+      "transactions": 1697,
       "invocations": 0,
       "topLevelInvocations": 0,
       "innerInvocations": 0,
@@ -1995,35 +2206,35 @@
         "Settle",
         "Bridge"
       ],
-      "recentUsdcToProgramOwnedRecipient": 39766.57999999998,
+      "recentUsdcToProgramOwnedRecipient": 130647.95000000019,
       "ownershipInterpretation": "The recent transactions transfer USDC into a token account owned by this bridge program; the bridge program itself is not invoked in those same transactions, so the transfer is settlement input rather than proof of an inline cross-chain completion."
     },
     {
       "programId": "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD",
       "label": "Kamino Lending",
       "relationship": "direct_cpi_from_xplace1",
-      "transactions": 569,
-      "invocations": 2595,
-      "topLevelInvocations": 1979,
-      "innerInvocations": 616,
+      "transactions": 1467,
+      "invocations": 6588,
+      "topLevelInvocations": 4974,
+      "innerInvocations": 1614,
       "decodedInstructions": {
-        "RefreshReserve": 1432,
-        "RefreshObligation": 525,
-        "BorrowObligationLiquidityV2": 210,
-        "WithdrawObligationCollateralAndRedeemReserveCollateralV2": 116,
-        "InitObligationFarmsForReserve": 22,
-        "DepositReserveLiquidityAndObligationCollateralV2": 118,
-        "InitUserMetadata": 44,
-        "InitObligation": 50,
-        "RepayObligationLiquidityV2": 78
+        "RefreshReserve": 3560,
+        "RefreshObligation": 1353,
+        "BorrowObligationLiquidityV2": 611,
+        "WithdrawObligationCollateralAndRedeemReserveCollateralV2": 251,
+        "InitObligationFarmsForReserve": 61,
+        "DepositReserveLiquidityAndObligationCollateralV2": 302,
+        "InitUserMetadata": 114,
+        "InitObligation": 152,
+        "RepayObligationLiquidityV2": 184
       },
       "parents": {
-        "CWhvrgNvYNdkT4gnjPcdVxaNB8HQkXgBTsJAwp3GaHop": 616
+        "CWhvrgNvYNdkT4gnjPcdVxaNB8HQkXgBTsJAwp3GaHop": 1614
       },
       "examples": [
-        "4Sn7csrdBhRvrpSMxzLJDR2gdXcSnLMRDxahEhrh6RCrbGBT3RxCd4HkEWxdguP5MvbP79rbGgzgdbJNwwXoyyB1",
-        "4Sn7csrdBhRvrpSMxzLJDR2gdXcSnLMRDxahEhrh6RCrbGBT3RxCd4HkEWxdguP5MvbP79rbGgzgdbJNwwXoyyB1",
-        "4Sn7csrdBhRvrpSMxzLJDR2gdXcSnLMRDxahEhrh6RCrbGBT3RxCd4HkEWxdguP5MvbP79rbGgzgdbJNwwXoyyB1"
+        "44JmyxHKxyHqARnVxb6eWoH8w4MJjwrsNbyBWku4vwgBk3CKdKDpWtbPYH2gk7766DmELFTh3mGMNXAhbVyvBVFE",
+        "44JmyxHKxyHqARnVxb6eWoH8w4MJjwrsNbyBWku4vwgBk3CKdKDpWtbPYH2gk7766DmELFTh3mGMNXAhbVyvBVFE",
+        "44JmyxHKxyHqARnVxb6eWoH8w4MJjwrsNbyBWku4vwgBk3CKdKDpWtbPYH2gk7766DmELFTh3mGMNXAhbVyvBVFE"
       ],
       "ownershipInterpretation": "Program participation does not by itself make its vaults or user positions CH-owned."
     },
@@ -2031,18 +2242,18 @@
       "programId": "HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ",
       "label": "Kamino Scope",
       "relationship": "top_level_oracle_refresh_before_xplace1",
-      "transactions": 525,
-      "invocations": 525,
-      "topLevelInvocations": 525,
+      "transactions": 1353,
+      "invocations": 1353,
+      "topLevelInvocations": 1353,
       "innerInvocations": 0,
       "decodedInstructions": {
-        "RefreshPriceList": 525
+        "RefreshPriceList": 1353
       },
       "parents": {},
       "examples": [
+        "44JmyxHKxyHqARnVxb6eWoH8w4MJjwrsNbyBWku4vwgBk3CKdKDpWtbPYH2gk7766DmELFTh3mGMNXAhbVyvBVFE",
         "4Sn7csrdBhRvrpSMxzLJDR2gdXcSnLMRDxahEhrh6RCrbGBT3RxCd4HkEWxdguP5MvbP79rbGgzgdbJNwwXoyyB1",
-        "5qDSxFmBQaTi2736ZHEDq5YFZtpop59FBVX214wxKZExAUxiapziQY26Ybzcehe4Qzo51Lxp88wjoZHxUExmVhAX",
-        "2WwW5fjmEZEZ5aksf8CQVxyywgt5EmgGTfAqw3FcEpDZaySiKHrEWkjVFmPXLt5fcVRWn3yA4kuwDgFr7WGm35u3"
+        "5qDSxFmBQaTi2736ZHEDq5YFZtpop59FBVX214wxKZExAUxiapziQY26Ybzcehe4Qzo51Lxp88wjoZHxUExmVhAX"
       ],
       "ownershipInterpretation": "Program participation does not by itself make its vaults or user positions CH-owned."
     },
@@ -2050,16 +2261,16 @@
       "programId": "FarmsPZpWu9i7Kky8tPN37rs2TpmMrAZrC7S7vJa91Hr",
       "label": "Kamino Farms",
       "relationship": "direct_cpi_from_xplace1",
-      "transactions": 215,
-      "invocations": 237,
+      "transactions": 502,
+      "invocations": 563,
       "topLevelInvocations": 0,
-      "innerInvocations": 237,
+      "innerInvocations": 563,
       "decodedInstructions": {
-        "SetStakeDelegated": 215,
-        "InitializeUser": 22
+        "SetStakeDelegated": 502,
+        "InitializeUser": 61
       },
       "parents": {
-        "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD": 237
+        "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD": 563
       },
       "examples": [
         "shDf6DxRFTFNFSABxXo69hVmKMyV6ioq2M1nGd4HMa1CsZVjejsAQ5VHnsp8785nmMippLNoBUzBwLky1oPYqrr",
@@ -2072,16 +2283,16 @@
       "programId": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
       "label": "Jupiter V6",
       "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 127,
-      "invocations": 253,
-      "topLevelInvocations": 127,
-      "innerInvocations": 126,
+      "transactions": 258,
+      "invocations": 514,
+      "topLevelInvocations": 258,
+      "innerInvocations": 256,
       "decodedInstructions": {
-        "RouteV2": 67,
-        "SharedAccountsRouteV2": 60
+        "RouteV2": 133,
+        "SharedAccountsRouteV2": 125
       },
       "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 126
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 256
       },
       "examples": [
         "kNM6hzewzNnQACMHyxoroqhwkg1B8AxVmnfChTvJyFj5SaxTqj1zobEkuZ5puujLckVQNG7JNGME5Kfk9zRQM9w",
@@ -2094,13 +2305,13 @@
       "programId": "goonuddtQRrWqqn5nFyczVKaie28f3kDkHWkHtURSLE",
       "label": "GoonFi V2",
       "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 55,
-      "invocations": 59,
+      "transactions": 107,
+      "invocations": 124,
       "topLevelInvocations": 0,
-      "innerInvocations": 59,
+      "innerInvocations": 124,
       "decodedInstructions": {},
       "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 59
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 124
       },
       "examples": [
         "2sddhfWK6Q9RFGxRhumpdgM8JPJsEWYzKdABWB9tLGUAArGFBniFi4c73FEoZPgukR6CBDqt3Z5hvB8R5JCv4U2a",
@@ -2110,57 +2321,16 @@
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
     {
-      "programId": "QuaNtZsgYRe5Z9Bk4LZ4cTD9tbkVoyCNf1R2BN9bBDv",
-      "label": "Quantum",
-      "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 28,
-      "invocations": 43,
-      "topLevelInvocations": 0,
-      "innerInvocations": 43,
-      "decodedInstructions": {},
-      "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 43
-      },
-      "examples": [
-        "2f4GkVC55wvkQq96WpND9uX8PXpddcuEb2wyLceQai3PyZ65ZfFctUZ4XpibJB7yAV5kmV5kkXEeDfM6xAA1W3bg",
-        "2f4GkVC55wvkQq96WpND9uX8PXpddcuEb2wyLceQai3PyZ65ZfFctUZ4XpibJB7yAV5kmV5kkXEeDfM6xAA1W3bg",
-        "57mNQZRETFtbFksqpFy6w37sfURQkzZ7195PaNAiHiZ8esbfVVuFsuZctArTry8ubM1h9vtZNwkefaTsC16cLXmM"
-      ],
-      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
-    },
-    {
-      "programId": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
-      "label": "Meteora DLMM",
-      "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 27,
-      "invocations": 87,
-      "topLevelInvocations": 0,
-      "innerInvocations": 87,
-      "decodedInstructions": {
-        "Swap": 29
-      },
-      "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 29,
-        "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo": 58
-      },
-      "examples": [
-        "5oTgA5XgmjbNtXRArXXSnBmjFnPrYdggputqML8LYFGTvHFSsPTTYxQBnpWSALp7qk4SBWuKumhAXWHbVZi1xa1k",
-        "5oTgA5XgmjbNtXRArXXSnBmjFnPrYdggputqML8LYFGTvHFSsPTTYxQBnpWSALp7qk4SBWuKumhAXWHbVZi1xa1k",
-        "5oTgA5XgmjbNtXRArXXSnBmjFnPrYdggputqML8LYFGTvHFSsPTTYxQBnpWSALp7qk4SBWuKumhAXWHbVZi1xa1k"
-      ],
-      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
-    },
-    {
       "programId": "ALPHAQmeA7bjrVuccPsYPiCvsi428SNwte66Srvs4pHA",
       "label": "AlphaQ",
       "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 20,
-      "invocations": 21,
+      "transactions": 50,
+      "invocations": 53,
       "topLevelInvocations": 0,
-      "innerInvocations": 21,
+      "innerInvocations": 53,
       "decodedInstructions": {},
       "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 21
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 53
       },
       "examples": [
         "5oTgA5XgmjbNtXRArXXSnBmjFnPrYdggputqML8LYFGTvHFSsPTTYxQBnpWSALp7qk4SBWuKumhAXWHbVZi1xa1k",
@@ -2170,59 +2340,25 @@
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
     {
-      "programId": "DRVSpZ2YUYYKgZP8XtLhAGtT1zYSCKzeHfb4DgRnrgqD",
-      "label": "Deriverse",
+      "programId": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "label": "Meteora DLMM",
       "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 17,
-      "invocations": 17,
+      "transactions": 50,
+      "invocations": 171,
       "topLevelInvocations": 0,
-      "innerInvocations": 17,
-      "decodedInstructions": {},
+      "innerInvocations": 171,
+      "decodedInstructions": {
+        "Swap": 55,
+        "Swap2": 2
+      },
       "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 17
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 57,
+        "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo": 114
       },
       "examples": [
-        "kNM6hzewzNnQACMHyxoroqhwkg1B8AxVmnfChTvJyFj5SaxTqj1zobEkuZ5puujLckVQNG7JNGME5Kfk9zRQM9w",
-        "5My7YUTV2QcwMQW4mN6M2m5B37sQu5vXmE34mk75xfpYPB1rJ9XdwTZnMnfRe3MnTVrwC1s1Y9y9nXWBcG1PiZ35",
-        "3JzCkJrPw8AdE1mH5BSB5UtMxR3g951n1KT3U1p2JV9gLAxeR4ng1WQ66JMctxNJZfgjUUNh8n9gs7ZPuoR2xhhw"
-      ],
-      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
-    },
-    {
-      "programId": "BiSoNHVpsVZW2F7rx2eQ59yQwKxzU5NvBcmKshCSUypi",
-      "label": "BisonFi",
-      "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 16,
-      "invocations": 16,
-      "topLevelInvocations": 0,
-      "innerInvocations": 16,
-      "decodedInstructions": {},
-      "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 16
-      },
-      "examples": [
-        "37xsxAewgGGnqLgWFkWkG6qPUYucUk8T9KZ7oSFZnEiSr1gyDQx4TXWmBM9PMEJkxmxhT1vWaFiq8GaBhH6sxpM9",
-        "2M32ePBYQ7pR3Fz2bj2bZc7pgMVCEbD5QB73Y7eoetdWfUWXFrHNpHvkPutfv3winY7vbv2VqY6P1NYts4LbufDV",
-        "3FSPr4pPJtZ7hThckzHGhLVFchGJoHJDvruqbeJpJZbPoPw5vTeKQDWBz9RcGC8gWti6Cw2Df99hZc4ZB6bWHTaJ"
-      ],
-      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
-    },
-    {
-      "programId": "TessVdML9pBGgG9yGks7o4HewRaXVAMuoVj4x83GLQH",
-      "label": "TesseraV",
-      "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 16,
-      "invocations": 17,
-      "topLevelInvocations": 0,
-      "innerInvocations": 17,
-      "decodedInstructions": {},
-      "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 17
-      },
-      "examples": [
-        "3FSPr4pPJtZ7hThckzHGhLVFchGJoHJDvruqbeJpJZbPoPw5vTeKQDWBz9RcGC8gWti6Cw2Df99hZc4ZB6bWHTaJ",
-        "3fkxKixvpgvHYmLoEAzoW6FMf97e1qu2mXbEKZrSipFbKStPoEumr2rXnyfzDEJ2upNndYBrqXhbUfNXRLNB9i7g",
-        "5BznpTnRhRW7FsDUTTRqthYXzN48VEtZnf3S9zLvP8BGbs5tqDFUVWjSer2w7FHMZgikuDmYACXKgsFzxU88FCFG"
+        "5oTgA5XgmjbNtXRArXXSnBmjFnPrYdggputqML8LYFGTvHFSsPTTYxQBnpWSALp7qk4SBWuKumhAXWHbVZi1xa1k",
+        "5oTgA5XgmjbNtXRArXXSnBmjFnPrYdggputqML8LYFGTvHFSsPTTYxQBnpWSALp7qk4SBWuKumhAXWHbVZi1xa1k",
+        "5oTgA5XgmjbNtXRArXXSnBmjFnPrYdggputqML8LYFGTvHFSsPTTYxQBnpWSALp7qk4SBWuKumhAXWHbVZi1xa1k"
       ],
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
@@ -2230,13 +2366,13 @@
       "programId": "MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms",
       "label": "Manifest",
       "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 13,
-      "invocations": 13,
+      "transactions": 37,
+      "invocations": 37,
       "topLevelInvocations": 0,
-      "innerInvocations": 13,
+      "innerInvocations": 37,
       "decodedInstructions": {},
       "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 13
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 37
       },
       "examples": [
         "2TF432CC7m9QtgU4wEbvGNAApu7dh5tFBQB8XAf8378nszCE5XPVFv1L4hB4EwEfPBLZmUYSyH8QhLL4MnjzD5M2",
@@ -2246,21 +2382,40 @@
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
     {
+      "programId": "BiSoNHVpsVZW2F7rx2eQ59yQwKxzU5NvBcmKshCSUypi",
+      "label": "BisonFi",
+      "relationship": "jupiter_routed_cpi_or_route_helper",
+      "transactions": 35,
+      "invocations": 35,
+      "topLevelInvocations": 0,
+      "innerInvocations": 35,
+      "decodedInstructions": {},
+      "parents": {
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 35
+      },
+      "examples": [
+        "37xsxAewgGGnqLgWFkWkG6qPUYucUk8T9KZ7oSFZnEiSr1gyDQx4TXWmBM9PMEJkxmxhT1vWaFiq8GaBhH6sxpM9",
+        "2M32ePBYQ7pR3Fz2bj2bZc7pgMVCEbD5QB73Y7eoetdWfUWXFrHNpHvkPutfv3winY7vbv2VqY6P1NYts4LbufDV",
+        "3FSPr4pPJtZ7hThckzHGhLVFchGJoHJDvruqbeJpJZbPoPw5vTeKQDWBz9RcGC8gWti6Cw2Df99hZc4ZB6bWHTaJ"
+      ],
+      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
+    },
+    {
       "programId": "99vQwtBwYtrqqD9YSXbdum3KBdxPAVxYTaQ3cfnJSrN2",
       "label": "Relay Bridge",
       "relationship": "top_level_atomic_bundle_after_xplace2_withdraw",
-      "transactions": 11,
-      "invocations": 11,
-      "topLevelInvocations": 11,
+      "transactions": 33,
+      "invocations": 33,
+      "topLevelInvocations": 33,
       "innerInvocations": 0,
       "decodedInstructions": {
-        "DepositToken": 11
+        "DepositToken": 33
       },
       "parents": {},
       "examples": [
+        "2ZJMsfqFDY12W7pUezYRwB6H2MukLytfkxGAAdKpiekuuSrtggS4oCj41VKEmXH5Sc4X4sehYzftUnouCCd1GdSo",
         "4mVfVezG4QBWV5Uzy2zLCRjqpyv7atrZ66Niv8Hz521uSs4eiPm6UiYRFqV2igEVfcPNbMd4H8N6WpQjKCvX8jKp",
-        "QR4xV7iRN51ZdEfJQHnj3A4e7rDhRN7HNSMT3yfgx9oJBR1e7nbrYhg87rTcF3gLXvJB9J5ivn2vXXMPJvxpkg4",
-        "31peYBJtbQ8B2v8XoRq3GndUFmS665vuFvzP2Hw7zGLoRrLFTLTtcvpwwsahqKs4roVojn6PFE6expuNsdTqtiJv"
+        "QR4xV7iRN51ZdEfJQHnj3A4e7rDhRN7HNSMT3yfgx9oJBR1e7nbrYhg87rTcF3gLXvJB9J5ivn2vXXMPJvxpkg4"
       ],
       "ownershipInterpretation": "Program participation does not by itself make its vaults or user positions CH-owned.",
       "currentBinarySha256": "93a89aef6dd30e66f4cda6d3dafecddbfe58ecc98e5596dbc832feaf5eed9e91",
@@ -2273,7 +2428,7 @@
         "DepositToken",
         "ExecuteTransfer"
       ],
-      "recentUsdcDeposited": 953.12,
+      "recentUsdcDeposited": 2528.469888,
       "guardrails": [
         "allocator signer",
         "ed25519 request verification",
@@ -2284,24 +2439,21 @@
       ]
     },
     {
-      "programId": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
-      "label": "Whirlpool",
+      "programId": "QuaNtZsgYRe5Z9Bk4LZ4cTD9tbkVoyCNf1R2BN9bBDv",
+      "label": "Quantum",
       "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 9,
-      "invocations": 11,
+      "transactions": 30,
+      "invocations": 46,
       "topLevelInvocations": 0,
-      "innerInvocations": 11,
-      "decodedInstructions": {
-        "Swap": 6,
-        "SwapV2": 5
-      },
+      "innerInvocations": 46,
+      "decodedInstructions": {},
       "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 11
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 46
       },
       "examples": [
-        "2bi2hZrwsTz6exWLMXSnRjn7HnHYWmGuQ2mEthgWXR1QP9vGSzPNuovCg1Y6UtUZ63hfRGsSkzzWsUttKBVgxQbJ",
-        "4frh4QNdGNBikrH7qZYDXHi6CD2f8AKwjCSsuEydkWekA1QY1LYZFLYjQRthCgFfCh47FdcGfQhRmmCpgAC9zKT",
-        "5RFrwPWNWmErUL3e2PgUZ18NqA59UoUUvtXkw6KgugTcLpGtdEzaWJCpi5ify4R8rBNN6KSonMhisWDAPv9wyCzk"
+        "2f4GkVC55wvkQq96WpND9uX8PXpddcuEb2wyLceQai3PyZ65ZfFctUZ4XpibJB7yAV5kmV5kkXEeDfM6xAA1W3bg",
+        "2f4GkVC55wvkQq96WpND9uX8PXpddcuEb2wyLceQai3PyZ65ZfFctUZ4XpibJB7yAV5kmV5kkXEeDfM6xAA1W3bg",
+        "57mNQZRETFtbFksqpFy6w37sfURQkzZ7195PaNAiHiZ8esbfVVuFsuZctArTry8ubM1h9vtZNwkefaTsC16cLXmM"
       ],
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
@@ -2309,15 +2461,15 @@
       "programId": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
       "label": "Raydium CLMM",
       "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 8,
-      "invocations": 8,
+      "transactions": 25,
+      "invocations": 26,
       "topLevelInvocations": 0,
-      "innerInvocations": 8,
+      "innerInvocations": 26,
       "decodedInstructions": {
-        "Swap": 8
+        "Swap": 26
       },
       "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 8
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 26
       },
       "examples": [
         "5My7YUTV2QcwMQW4mN6M2m5B37sQu5vXmE34mk75xfpYPB1rJ9XdwTZnMnfRe3MnTVrwC1s1Y9y9nXWBcG1PiZ35",
@@ -2327,63 +2479,62 @@
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
     {
-      "programId": "AQU1FRd7papthgdrwPTTq5JacJh8YtwEXaBfKU3bTz45",
-      "label": "Aquifer",
+      "programId": "TessVdML9pBGgG9yGks7o4HewRaXVAMuoVj4x83GLQH",
+      "label": "TesseraV",
       "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 7,
-      "invocations": 7,
+      "transactions": 25,
+      "invocations": 26,
       "topLevelInvocations": 0,
-      "innerInvocations": 7,
+      "innerInvocations": 26,
       "decodedInstructions": {},
       "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 7
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 26
       },
       "examples": [
-        "3NUCVSSvwQv9mVMb1vybgimyWQX8XYTEypzFXx682htSPJiNPNbnoffsSx1Hi2ysphuFodzcMcbs269HbsBMfxdo",
-        "WTd2wEt5sWDKrigZwS6AtZN3K7LPQtEVtzHw7QfUwgJy1fzh3Fqm3cyz1YM1nafsfk2SrBaJpBi8X5b3GFNqA36",
-        "2kznUGmnRuWXAmotaF61YgPwcFH6kVfzfM7DdTu1BW7vzWxqstgk2ShTHfEnQPHZsFi7xpCe9GnFLd4vPQDdHDV6"
+        "3FSPr4pPJtZ7hThckzHGhLVFchGJoHJDvruqbeJpJZbPoPw5vTeKQDWBz9RcGC8gWti6Cw2Df99hZc4ZB6bWHTaJ",
+        "3fkxKixvpgvHYmLoEAzoW6FMf97e1qu2mXbEKZrSipFbKStPoEumr2rXnyfzDEJ2upNndYBrqXhbUfNXRLNB9i7g",
+        "5BznpTnRhRW7FsDUTTRqthYXzN48VEtZnf3S9zLvP8BGbs5tqDFUVWjSer2w7FHMZgikuDmYACXKgsFzxU88FCFG"
       ],
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
     {
-      "programId": "DEXYosS6oEGvk8uCDayvwEZz4qEyDJRf9nFgYCaqPMTm",
-      "label": "1DEX",
+      "programId": "DRVSpZ2YUYYKgZP8XtLhAGtT1zYSCKzeHfb4DgRnrgqD",
+      "label": "Deriverse",
       "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 6,
-      "invocations": 6,
+      "transactions": 24,
+      "invocations": 24,
       "topLevelInvocations": 0,
-      "innerInvocations": 6,
-      "decodedInstructions": {
-        "SwapExactAmountIn": 6
-      },
+      "innerInvocations": 24,
+      "decodedInstructions": {},
       "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 6
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 24
       },
       "examples": [
-        "ygRsVCKhtkEWDZZZYRMg8qjwN8q7RcN3zBqrHvo2kxovQHU16w1EeDr9g4x75wAyUigUnLy8gwXU4zq1dGcqaZH",
-        "2wM26QPrXtV6y7hjq6vWfc4sWXqfrcUC9SZadyt3Fvm1jh2Pza5uLMxTxG4j7a4J5hJhKUxA24AfSm9e1XbiMcp4",
-        "2Sub63zTZ18tBbjfWunb8Pxtyk5BQnzG3ZdswpTxaCuRMR5Rpq2Bee5HvC6Aji8YneUtiJUdUBdRgYgb7zVJXvTn"
+        "kNM6hzewzNnQACMHyxoroqhwkg1B8AxVmnfChTvJyFj5SaxTqj1zobEkuZ5puujLckVQNG7JNGME5Kfk9zRQM9w",
+        "5My7YUTV2QcwMQW4mN6M2m5B37sQu5vXmE34mk75xfpYPB1rJ9XdwTZnMnfRe3MnTVrwC1s1Y9y9nXWBcG1PiZ35",
+        "3JzCkJrPw8AdE1mH5BSB5UtMxR3g951n1KT3U1p2JV9gLAxeR4ng1WQ66JMctxNJZfgjUUNh8n9gs7ZPuoR2xhhw"
       ],
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
     {
-      "programId": "HyaB3W9q6XdA5xwpU4XnSZV94htfmbmqJXZcEbRaJutt",
-      "label": "Invariant",
+      "programId": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+      "label": "Whirlpool",
       "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 6,
-      "invocations": 6,
+      "transactions": 21,
+      "invocations": 24,
       "topLevelInvocations": 0,
-      "innerInvocations": 6,
+      "innerInvocations": 24,
       "decodedInstructions": {
-        "Swap": 6
+        "Swap": 15,
+        "SwapV2": 9
       },
       "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 6
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 24
       },
       "examples": [
-        "3ybqnm5XtohoxmAAi61F3LW1MCTxQhz1HbRxLtyHK96ayCvE2j6o9jirhxnXVTH9yinMaNcXThTs4NbvafwDVopE",
-        "DH3tR6qBYh2VbjBTPhcHj7A3hA9WpEu8hjn37P28su8TbpsAr6JGfXWuYrxJCRKPCZGFmG1oKXW8SQL8YJoZp3x",
-        "58upi84kErH1jRhrWisxS3vdMfRuHXS2xwo3RoesVBvyU4PaBGpv15XeFbvxVPNzFsw6DDRuEWf5ey8ezu73WeXS"
+        "2bi2hZrwsTz6exWLMXSnRjn7HnHYWmGuQ2mEthgWXR1QP9vGSzPNuovCg1Y6UtUZ63hfRGsSkzzWsUttKBVgxQbJ",
+        "4frh4QNdGNBikrH7qZYDXHi6CD2f8AKwjCSsuEydkWekA1QY1LYZFLYjQRthCgFfCh47FdcGfQhRmmCpgAC9zKT",
+        "5RFrwPWNWmErUL3e2PgUZ18NqA59UoUUvtXkw6KgugTcLpGtdEzaWJCpi5ify4R8rBNN6KSonMhisWDAPv9wyCzk"
       ],
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
@@ -2391,13 +2542,13 @@
       "programId": "9H6tua7jkLhdm3w8BvgpTn5LZNU7g4ZynDmCiNN3q6Rp",
       "label": "HumidiFi",
       "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 5,
-      "invocations": 5,
+      "transactions": 16,
+      "invocations": 16,
       "topLevelInvocations": 0,
-      "innerInvocations": 5,
+      "innerInvocations": 16,
       "decodedInstructions": {},
       "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 5
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 16
       },
       "examples": [
         "5fu9VVxEHs6Y6i5ujjxYP23EmmZWzDNwNCqGM2mM29UKXc2rSpZ1ftvRrBcE3GMYJPZjAS8Z4Qb3dPhEv324Pbgj",
@@ -2407,39 +2558,18 @@
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
     {
-      "programId": "ZERor4xhbUycZ6gb9ntrhqscUcZmAbQDjEAtCf4hbZY",
-      "label": "ZeroFi",
-      "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 5,
-      "invocations": 5,
-      "topLevelInvocations": 0,
-      "innerInvocations": 5,
-      "decodedInstructions": {
-        "swap_v4": 5
-      },
-      "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 5
-      },
-      "examples": [
-        "anHvGecS1x19CGMYBpo1DLXvHnqgzwj8cnHpMdT5JvmyMe3GAwz2xmC6XMJ3YfoPcizWwwWvii1xcs3tUPqyfTF",
-        "2EN43RfpVLafTE8mhu9ii5Rb1wmsFsrDJMEebpQ5Z13CASjwbJB9hkYn9yGiyN8xXEJi1hffntjino1Z3xQeSpmb",
-        "5UKg9gRnuze84Zbwuw1t5q7fVPywdTUYkMqWJgcYyVP58WSze43xQRq4ug3rQNDXgz5ksLpR77tyZodrAK667xNo"
-      ],
-      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
-    },
-    {
       "programId": "REALQqNEomY6cQGZJUGwywTBD2UmDT32rZcNnfxQ5N2",
       "label": "Byreal",
       "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 4,
-      "invocations": 4,
+      "transactions": 14,
+      "invocations": 14,
       "topLevelInvocations": 0,
-      "innerInvocations": 4,
+      "innerInvocations": 14,
       "decodedInstructions": {
-        "SwapV3Dyn": 4
+        "SwapV3Dyn": 14
       },
       "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 4
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 14
       },
       "examples": [
         "2bX2nPJjbetp3mb2sNHXhujr1KFeq9AGXwnAmCe6Xb5Ma6a5moTYgWgG99CBLfLKgdD88tusdn9JyiiL1KdHFjTC",
@@ -2449,21 +2579,184 @@
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
     {
+      "programId": "AQU1FRd7papthgdrwPTTq5JacJh8YtwEXaBfKU3bTz45",
+      "label": "Aquifer",
+      "relationship": "jupiter_routed_cpi_or_route_helper",
+      "transactions": 13,
+      "invocations": 13,
+      "topLevelInvocations": 0,
+      "innerInvocations": 13,
+      "decodedInstructions": {},
+      "parents": {
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 13
+      },
+      "examples": [
+        "3NUCVSSvwQv9mVMb1vybgimyWQX8XYTEypzFXx682htSPJiNPNbnoffsSx1Hi2ysphuFodzcMcbs269HbsBMfxdo",
+        "WTd2wEt5sWDKrigZwS6AtZN3K7LPQtEVtzHw7QfUwgJy1fzh3Fqm3cyz1YM1nafsfk2SrBaJpBi8X5b3GFNqA36",
+        "2kznUGmnRuWXAmotaF61YgPwcFH6kVfzfM7DdTu1BW7vzWxqstgk2ShTHfEnQPHZsFi7xpCe9GnFLd4vPQDdHDV6"
+      ],
+      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
+    },
+    {
+      "programId": "HyaB3W9q6XdA5xwpU4XnSZV94htfmbmqJXZcEbRaJutt",
+      "label": "Invariant",
+      "relationship": "jupiter_routed_cpi_or_route_helper",
+      "transactions": 13,
+      "invocations": 13,
+      "topLevelInvocations": 0,
+      "innerInvocations": 13,
+      "decodedInstructions": {
+        "Swap": 13
+      },
+      "parents": {
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 13
+      },
+      "examples": [
+        "3ybqnm5XtohoxmAAi61F3LW1MCTxQhz1HbRxLtyHK96ayCvE2j6o9jirhxnXVTH9yinMaNcXThTs4NbvafwDVopE",
+        "DH3tR6qBYh2VbjBTPhcHj7A3hA9WpEu8hjn37P28su8TbpsAr6JGfXWuYrxJCRKPCZGFmG1oKXW8SQL8YJoZp3x",
+        "58upi84kErH1jRhrWisxS3vdMfRuHXS2xwo3RoesVBvyU4PaBGpv15XeFbvxVPNzFsw6DDRuEWf5ey8ezu73WeXS"
+      ],
+      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
+    },
+    {
+      "programId": "ZERor4xhbUycZ6gb9ntrhqscUcZmAbQDjEAtCf4hbZY",
+      "label": "ZeroFi",
+      "relationship": "jupiter_routed_cpi_or_route_helper",
+      "transactions": 13,
+      "invocations": 13,
+      "topLevelInvocations": 0,
+      "innerInvocations": 13,
+      "decodedInstructions": {
+        "swap_v4": 13
+      },
+      "parents": {
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 13
+      },
+      "examples": [
+        "anHvGecS1x19CGMYBpo1DLXvHnqgzwj8cnHpMdT5JvmyMe3GAwz2xmC6XMJ3YfoPcizWwwWvii1xcs3tUPqyfTF",
+        "2EN43RfpVLafTE8mhu9ii5Rb1wmsFsrDJMEebpQ5Z13CASjwbJB9hkYn9yGiyN8xXEJi1hffntjino1Z3xQeSpmb",
+        "5UKg9gRnuze84Zbwuw1t5q7fVPywdTUYkMqWJgcYyVP58WSze43xQRq4ug3rQNDXgz5ksLpR77tyZodrAK667xNo"
+      ],
+      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
+    },
+    {
+      "programId": "DEXYosS6oEGvk8uCDayvwEZz4qEyDJRf9nFgYCaqPMTm",
+      "label": "1DEX",
+      "relationship": "jupiter_routed_cpi_or_route_helper",
+      "transactions": 11,
+      "invocations": 11,
+      "topLevelInvocations": 0,
+      "innerInvocations": 11,
+      "decodedInstructions": {
+        "SwapExactAmountIn": 11
+      },
+      "parents": {
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 11
+      },
+      "examples": [
+        "ygRsVCKhtkEWDZZZYRMg8qjwN8q7RcN3zBqrHvo2kxovQHU16w1EeDr9g4x75wAyUigUnLy8gwXU4zq1dGcqaZH",
+        "2wM26QPrXtV6y7hjq6vWfc4sWXqfrcUC9SZadyt3Fvm1jh2Pza5uLMxTxG4j7a4J5hJhKUxA24AfSm9e1XbiMcp4",
+        "2Sub63zTZ18tBbjfWunb8Pxtyk5BQnzG3ZdswpTxaCuRMR5Rpq2Bee5HvC6Aji8YneUtiJUdUBdRgYgb7zVJXvTn"
+      ],
+      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
+    },
+    {
+      "programId": "riptK81hDxhe5pW5jSzSM9iRA8azgEgLJ4dXkPtBS7j",
+      "label": "Riptide",
+      "relationship": "jupiter_routed_cpi_or_route_helper",
+      "transactions": 10,
+      "invocations": 10,
+      "topLevelInvocations": 0,
+      "innerInvocations": 10,
+      "decodedInstructions": {
+        "SwapExactIn": 10
+      },
+      "parents": {
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 10
+      },
+      "examples": [
+        "55xgHq8LdfF5WZL9fnUM2vZWXVpCJnmsJPoAcxkdmoiD3pX1AEj9MjPSMY1A4oE9A7aFF6RZrXxyG3iTEhfZCFvR",
+        "3BFN4yeLmMSd3Psv6ScGPiSY9hLFCcZ81ZdFQsEkR3ELPvKema8HFs9Xg4gEhMNyXY7CHv647vDmkQb5miYzubXV",
+        "5f8TxGoApBmipK76AE8etfhbgAgKJMy16Ndy5pfQn4Wpd52TuiCyvexUmYVBk8u6im1da1FJzKBXNu3otDfi5nQG"
+      ],
+      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
+    },
+    {
+      "programId": "HpNfyc2Saw7RKkQd8nEL4khUcuPhQ7WwY1B2qjx8jxFq",
+      "label": "PancakeSwap",
+      "relationship": "jupiter_routed_cpi_or_route_helper",
+      "transactions": 9,
+      "invocations": 10,
+      "topLevelInvocations": 0,
+      "innerInvocations": 10,
+      "decodedInstructions": {
+        "Swap": 9,
+        "SwapV2": 1
+      },
+      "parents": {
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 10
+      },
+      "examples": [
+        "5BznpTnRhRW7FsDUTTRqthYXzN48VEtZnf3S9zLvP8BGbs5tqDFUVWjSer2w7FHMZgikuDmYACXKgsFzxU88FCFG",
+        "2TaesXXL9pFouLyxeHtVHVSUeKBuVqHtDYCnfskwePjoofaA1abeVidRtMDgVhCYgJRKjZvJebczZVoLyc2yb3og",
+        "5UKg9gRnuze84Zbwuw1t5q7fVPywdTUYkMqWJgcYyVP58WSze43xQRq4ug3rQNDXgz5ksLpR77tyZodrAK667xNo"
+      ],
+      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
+    },
+    {
       "programId": "FLUX6xBayGxLX9UcimVRxXFMHH6q43mAbRvDzSpCsvfK",
       "label": "Flux",
       "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 4,
-      "invocations": 4,
+      "transactions": 5,
+      "invocations": 5,
       "topLevelInvocations": 0,
-      "innerInvocations": 4,
+      "innerInvocations": 5,
       "decodedInstructions": {},
       "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 4
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 5
       },
       "examples": [
         "57mNQZRETFtbFksqpFy6w37sfURQkzZ7195PaNAiHiZ8esbfVVuFsuZctArTry8ubM1h9vtZNwkefaTsC16cLXmM",
         "4JwDnVhkEVJTQ5i8apow2YAAWDCpTkb1edqDJEBZweGR7LsJe93JzETC5vZpej9CPKipWPXJpngW1FhYyy8uvNKU",
         "4f5J51gRaTenLKVTS4jpsAb6oWJquegeHcnNnMMpgGsZSMRWzifXyjD7mzeTCgzvjLYQMcZ2gERXe7iKXepXFhCu"
+      ],
+      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
+    },
+    {
+      "programId": "ojh19ojaKduoJZuaJADhcVGp4xt1TcdAvZmpVsCorch",
+      "label": "Scorch",
+      "relationship": "observed_helper_program",
+      "transactions": 5,
+      "invocations": 5,
+      "topLevelInvocations": 0,
+      "innerInvocations": 5,
+      "decodedInstructions": {},
+      "parents": {
+        "SCoRcH8c2dpjvcJD6FiPbCSQyQgu3PcUAWj2Xxx3mqn": 5
+      },
+      "examples": [
+        "2mpU8bjjKgU1MUSugZnrrGTW3hS2Pp4nCTo7MLsPtwkKaTUFhBLn3pyW4132euwXAwiRQB2DunLPKB4gkn2gb2Ww",
+        "35ybzCkR4CRxs4XqowCHr2szkYRQt93NKo6Jfm4wuY1TT6ZhEadrVdp6edCwrhesxeVHmNwarD6WABRScCZHoHLC",
+        "5pvH13qGbhkXFcCyKno1ohZpF8Q2o5GM1jpfPQuoaGpQcSHMzd5FcGj5ZFUV2FE6Ece8Fyzdnvfaz6Lh1Dut8jZN"
+      ],
+      "ownershipInterpretation": "Program participation does not by itself make its vaults or user positions CH-owned."
+    },
+    {
+      "programId": "SCoRcH8c2dpjvcJD6FiPbCSQyQgu3PcUAWj2Xxx3mqn",
+      "label": "Scorch Router",
+      "relationship": "jupiter_routed_cpi_or_route_helper",
+      "transactions": 5,
+      "invocations": 5,
+      "topLevelInvocations": 0,
+      "innerInvocations": 5,
+      "decodedInstructions": {},
+      "parents": {
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 5
+      },
+      "examples": [
+        "2mpU8bjjKgU1MUSugZnrrGTW3hS2Pp4nCTo7MLsPtwkKaTUFhBLn3pyW4132euwXAwiRQB2DunLPKB4gkn2gb2Ww",
+        "35ybzCkR4CRxs4XqowCHr2szkYRQt93NKo6Jfm4wuY1TT6ZhEadrVdp6edCwrhesxeVHmNwarD6WABRScCZHoHLC",
+        "5pvH13qGbhkXFcCyKno1ohZpF8Q2o5GM1jpfPQuoaGpQcSHMzd5FcGj5ZFUV2FE6Ece8Fyzdnvfaz6Lh1Dut8jZN"
       ],
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
@@ -2489,8 +2782,8 @@
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
     {
-      "programId": "HpNfyc2Saw7RKkQd8nEL4khUcuPhQ7WwY1B2qjx8jxFq",
-      "label": "PancakeSwap",
+      "programId": "9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP",
+      "label": "Orca V2",
       "relationship": "jupiter_routed_cpi_or_route_helper",
       "transactions": 3,
       "invocations": 3,
@@ -2503,9 +2796,87 @@
         "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 3
       },
       "examples": [
-        "5BznpTnRhRW7FsDUTTRqthYXzN48VEtZnf3S9zLvP8BGbs5tqDFUVWjSer2w7FHMZgikuDmYACXKgsFzxU88FCFG",
-        "2TaesXXL9pFouLyxeHtVHVSUeKBuVqHtDYCnfskwePjoofaA1abeVidRtMDgVhCYgJRKjZvJebczZVoLyc2yb3og",
-        "5UKg9gRnuze84Zbwuw1t5q7fVPywdTUYkMqWJgcYyVP58WSze43xQRq4ug3rQNDXgz5ksLpR77tyZodrAK667xNo"
+        "5m8CbXZD6H93ycuexrbRmw6DGQQWjxMGCCmM6GqYYdCJ9m5dHXV2rEZi7uotezcFjoncf5B3kMdt6i6pLwysAJmj",
+        "2Ci7THtHREv1jvA8pGn3PNDQyEWw5NfQPfDRK964mKpyRUuJNxCTm3BvYNmYpcUTQAsjskH1kP3ifrEuf6BNU811",
+        "2UuPFcLaYfbaBs9yK2JK3XpdSVhpKa9FkkhBgonSvGNJHH6WTmcJwY9VavqRYxE1owhGATKagg1Sasu3nexiFotW"
+      ],
+      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
+    },
+    {
+      "programId": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+      "label": "Raydium",
+      "relationship": "jupiter_routed_cpi_or_route_helper",
+      "transactions": 3,
+      "invocations": 3,
+      "topLevelInvocations": 0,
+      "innerInvocations": 3,
+      "decodedInstructions": {},
+      "parents": {
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 3
+      },
+      "examples": [
+        "59oJx5ubLy627TeW3iNSFnfqhapmu3crsEdpefz6QEGr7dQyxRaTxVnDbNRZauJjVyzEKLbZ1M6rf1nwLcWx6nYJ",
+        "4ekHF5zhdbnt8brSa1B93ZYmgotYK3syWNibWqnevqGLiHQqG2eQc8RL7GMgutt4sBQ7SYNW5p1ZHLJZXFkxcXC5",
+        "2Ci7THtHREv1jvA8pGn3PNDQyEWw5NfQPfDRK964mKpyRUuJNxCTm3BvYNmYpcUTQAsjskH1kP3ifrEuf6BNU811"
+      ],
+      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
+    },
+    {
+      "programId": "SV2EYYJyRz2YhfXwXnhNAevDEui5Q6yrfyo13WtupPF",
+      "label": "SolFi V2",
+      "relationship": "jupiter_routed_cpi_or_route_helper",
+      "transactions": 3,
+      "invocations": 3,
+      "topLevelInvocations": 0,
+      "innerInvocations": 3,
+      "decodedInstructions": {},
+      "parents": {
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 3
+      },
+      "examples": [
+        "5hcdh3zHL5Z13hvuyqJ6Ao5QUWXYVh2aYx78akmTeeRW3Q3ByGoxupr21ipnhv9SqNF3APYcdkiFkXq5pYth2VnT",
+        "4zc9rsVv1atsxQ9wKidjbdN4tMzzPV2huaWH24WWdU2RYYgQqCRYsdRLJKyZTEcuMcRtpnzVz4cQMBEGJGRa7Bwi",
+        "38TickRK7yTNTBtZX7KtFUEkUaDGp8seoCBYmjqNwrymKFvkEzq98JhPKyNaqVwujrbEBA2RTg5PyLc5hLGdZn6v"
+      ],
+      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
+    },
+    {
+      "programId": "DSwpgjMvXhtGn6BsbqmacdBZyfLj6jSWf3HJpdJtmg6N",
+      "label": "DexLab",
+      "relationship": "jupiter_routed_cpi_or_route_helper",
+      "transactions": 2,
+      "invocations": 2,
+      "topLevelInvocations": 0,
+      "innerInvocations": 2,
+      "decodedInstructions": {
+        "Swap": 2
+      },
+      "parents": {
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 2
+      },
+      "examples": [
+        "2wM26QPrXtV6y7hjq6vWfc4sWXqfrcUC9SZadyt3Fvm1jh2Pza5uLMxTxG4j7a4J5hJhKUxA24AfSm9e1XbiMcp4",
+        "4dAYwhB5Ax9CtA2a1Q5SaqGyFsvS62EAuzUN4qVWVRLYrqWZgCAjfYmhXmirm4fm2KZLa1TZUVC6gC11EqKFcgo7"
+      ],
+      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
+    },
+    {
+      "programId": "Bvs46DPFxiFE6YHxLDLD6QAUcmy51FyRVPZJusPxLk3j",
+      "label": "Metric",
+      "relationship": "jupiter_routed_cpi_or_route_helper",
+      "transactions": 2,
+      "invocations": 4,
+      "topLevelInvocations": 0,
+      "innerInvocations": 4,
+      "decodedInstructions": {},
+      "parents": {
+        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 2,
+        "Bvs46DPFxiFE6YHxLDLD6QAUcmy51FyRVPZJusPxLk3j": 2
+      },
+      "examples": [
+        "21Uw3HJn7BrZC2Nyyy2Bkb8HUV8joeSGJ4Br3qAWP2fh8YdhrjyNUspxH3LY5i6Ko2g2TApVnQHbvmUypJGpL1TT",
+        "21Uw3HJn7BrZC2Nyyy2Bkb8HUV8joeSGJ4Br3qAWP2fh8YdhrjyNUspxH3LY5i6Ko2g2TApVnQHbvmUypJGpL1TT",
+        "vyLHbs7vEPsUKKCT4RfBET7hZzNnARjRVuUigN7BnA9z6ELNc14DYhKbrZ3XpDDUFUteub7jCcBkDsUaNXWiRun"
       ],
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
@@ -2533,21 +2904,37 @@
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
     {
-      "programId": "DSwpgjMvXhtGn6BsbqmacdBZyfLj6jSWf3HJpdJtmg6N",
-      "label": "DexLab",
+      "programId": "CvGnk4HouriGypBTZhYc76esyN5kWBepWueYVeSpR1L1",
+      "label": "Unknown",
+      "relationship": "observed_helper_program",
+      "transactions": 2,
+      "invocations": 2,
+      "topLevelInvocations": 0,
+      "innerInvocations": 2,
+      "decodedInstructions": {},
+      "parents": {
+        "Bvs46DPFxiFE6YHxLDLD6QAUcmy51FyRVPZJusPxLk3j": 2
+      },
+      "examples": [
+        "21Uw3HJn7BrZC2Nyyy2Bkb8HUV8joeSGJ4Br3qAWP2fh8YdhrjyNUspxH3LY5i6Ko2g2TApVnQHbvmUypJGpL1TT",
+        "vyLHbs7vEPsUKKCT4RfBET7hZzNnARjRVuUigN7BnA9z6ELNc14DYhKbrZ3XpDDUFUteub7jCcBkDsUaNXWiRun"
+      ],
+      "ownershipInterpretation": "Program participation does not by itself make its vaults or user positions CH-owned."
+    },
+    {
+      "programId": "HADRoNbLovyqhCsocfYQYB7QdfCAAinN9HTePvBCVDQ8",
+      "label": "Hadron",
       "relationship": "jupiter_routed_cpi_or_route_helper",
       "transactions": 1,
       "invocations": 1,
       "topLevelInvocations": 0,
       "innerInvocations": 1,
-      "decodedInstructions": {
-        "Swap": 1
-      },
+      "decodedInstructions": {},
       "parents": {
         "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 1
       },
       "examples": [
-        "2wM26QPrXtV6y7hjq6vWfc4sWXqfrcUC9SZadyt3Fvm1jh2Pza5uLMxTxG4j7a4J5hJhKUxA24AfSm9e1XbiMcp4"
+        "2g7CX7qhTkBF9wVvnfRCYZFvfCtqXdcqGn2PiE2T6AAR3qXFexQkHDy24gRMJ5rJC4CHWSDkMvxv9JGBENyoosrM"
       ],
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
@@ -2592,42 +2979,6 @@
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     },
     {
-      "programId": "9W959DqEETiGZocYWCQPaJ6sBmUzgfxXfqGeTEdp3aQP",
-      "label": "Orca V2",
-      "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 1,
-      "invocations": 1,
-      "topLevelInvocations": 0,
-      "innerInvocations": 1,
-      "decodedInstructions": {
-        "Swap": 1
-      },
-      "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 1
-      },
-      "examples": [
-        "5m8CbXZD6H93ycuexrbRmw6DGQQWjxMGCCmM6GqYYdCJ9m5dHXV2rEZi7uotezcFjoncf5B3kMdt6i6pLwysAJmj"
-      ],
-      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
-    },
-    {
-      "programId": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
-      "label": "Raydium",
-      "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 1,
-      "invocations": 1,
-      "topLevelInvocations": 0,
-      "innerInvocations": 1,
-      "decodedInstructions": {},
-      "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 1
-      },
-      "examples": [
-        "59oJx5ubLy627TeW3iNSFnfqhapmu3crsEdpefz6QEGr7dQyxRaTxVnDbNRZauJjVyzEKLbZ1M6rf1nwLcWx6nYJ"
-      ],
-      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
-    },
-    {
       "programId": "SSwpkEEcbUqx4vtoEByFjSkhKdCT862DNVb52nZg1UZ",
       "label": "Saber",
       "relationship": "jupiter_routed_cpi_or_route_helper",
@@ -2645,67 +2996,16 @@
         "456JoTrYWmVhfnndr5HgQWAcURxHSinUCQruQgbCkmocKgnJuHTrh9X3YHsZ1UhqXwPBX6J6eY7yEDtftjTa1XLw"
       ],
       "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
-    },
-    {
-      "programId": "ojh19ojaKduoJZuaJADhcVGp4xt1TcdAvZmpVsCorch",
-      "label": "Scorch",
-      "relationship": "observed_helper_program",
-      "transactions": 1,
-      "invocations": 1,
-      "topLevelInvocations": 0,
-      "innerInvocations": 1,
-      "decodedInstructions": {},
-      "parents": {
-        "SCoRcH8c2dpjvcJD6FiPbCSQyQgu3PcUAWj2Xxx3mqn": 1
-      },
-      "examples": [
-        "2mpU8bjjKgU1MUSugZnrrGTW3hS2Pp4nCTo7MLsPtwkKaTUFhBLn3pyW4132euwXAwiRQB2DunLPKB4gkn2gb2Ww"
-      ],
-      "ownershipInterpretation": "Program participation does not by itself make its vaults or user positions CH-owned."
-    },
-    {
-      "programId": "SCoRcH8c2dpjvcJD6FiPbCSQyQgu3PcUAWj2Xxx3mqn",
-      "label": "Scorch Router",
-      "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 1,
-      "invocations": 1,
-      "topLevelInvocations": 0,
-      "innerInvocations": 1,
-      "decodedInstructions": {},
-      "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 1
-      },
-      "examples": [
-        "2mpU8bjjKgU1MUSugZnrrGTW3hS2Pp4nCTo7MLsPtwkKaTUFhBLn3pyW4132euwXAwiRQB2DunLPKB4gkn2gb2Ww"
-      ],
-      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
-    },
-    {
-      "programId": "SV2EYYJyRz2YhfXwXnhNAevDEui5Q6yrfyo13WtupPF",
-      "label": "SolFi V2",
-      "relationship": "jupiter_routed_cpi_or_route_helper",
-      "transactions": 1,
-      "invocations": 1,
-      "topLevelInvocations": 0,
-      "innerInvocations": 1,
-      "decodedInstructions": {},
-      "parents": {
-        "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4": 1
-      },
-      "examples": [
-        "5hcdh3zHL5Z13hvuyqJ6Ao5QUWXYVh2aYx78akmTeeRW3Q3ByGoxupr21ipnhv9SqNF3APYcdkiFkXq5pYth2VnT"
-      ],
-      "ownershipInterpretation": "A routed CPI proves use as swap-path liquidity, not a persistent CH-owned LP position."
     }
   ],
   "atomicFlowCorrelations": [
     {
       "sequence": "XPlace Program 2:RepayByWorker",
-      "transactions": 590,
-      "success": 590,
+      "transactions": 1696,
+      "success": 1696,
       "failed": 0,
       "signerLayouts": {
-        "1": 590
+        "1": 1696
       },
       "examples": [
         "5SB5s2VPVNmi2nBUYcVkWu8gJB2WfB5AXgXCfBpTZdkwu87P1j4UuMxxUdxsu5TDXFwsCMmNaNsUKUmwb4WXRgqq",
@@ -2715,11 +3015,11 @@
     },
     {
       "sequence": "XPlace Program 2:TopUp",
-      "transactions": 390,
-      "success": 341,
-      "failed": 49,
+      "transactions": 906,
+      "success": 804,
+      "failed": 102,
       "signerLayouts": {
-        "1": 390
+        "1": 906
       },
       "examples": [
         "btgUW1qDYQ9H4mA3esUm9ES8S8t8imR3QMx8ue5Sq2Zu94qjH86BVmdaaBwV5P5tb9THezahXZBuhVCnEgcQ5M2",
@@ -2729,25 +3029,25 @@
     },
     {
       "sequence": "XPlace Program 1:BorrowByWorkerKamino -> Kamino Lending:BorrowObligationLiquidityV2",
-      "transactions": 186,
-      "success": 186,
+      "transactions": 559,
+      "success": 559,
       "failed": 0,
       "signerLayouts": {
-        "1": 186
+        "1": 559
       },
       "examples": [
+        "44JmyxHKxyHqARnVxb6eWoH8w4MJjwrsNbyBWku4vwgBk3CKdKDpWtbPYH2gk7766DmELFTh3mGMNXAhbVyvBVFE",
         "4Sn7csrdBhRvrpSMxzLJDR2gdXcSnLMRDxahEhrh6RCrbGBT3RxCd4HkEWxdguP5MvbP79rbGgzgdbJNwwXoyyB1",
-        "5qDSxFmBQaTi2736ZHEDq5YFZtpop59FBVX214wxKZExAUxiapziQY26Ybzcehe4Qzo51Lxp88wjoZHxUExmVhAX",
-        "2WwW5fjmEZEZ5aksf8CQVxyywgt5EmgGTfAqw3FcEpDZaySiKHrEWkjVFmPXLt5fcVRWn3yA4kuwDgFr7WGm35u3"
+        "5qDSxFmBQaTi2736ZHEDq5YFZtpop59FBVX214wxKZExAUxiapziQY26Ybzcehe4Qzo51Lxp88wjoZHxUExmVhAX"
       ]
     },
     {
       "sequence": "XPlace Program 1:WithdrawKamino -> Kamino Lending:WithdrawObligationCollateralAndRedeemReserveCollateralV2 -> Kamino Farms:SetStakeDelegated",
-      "transactions": 95,
-      "success": 95,
+      "transactions": 189,
+      "success": 189,
       "failed": 0,
       "signerLayouts": {
-        "2": 95
+        "2": 189
       },
       "examples": [
         "2qPm4K4T3J14eocr9ca3u9oLxpNffMJ4jNEDhh6GBsWSDZ1KHr83M4iBSvSaTshahEQxv6T7wWVfAYPzEyeU2mnu",
@@ -2757,11 +3057,11 @@
     },
     {
       "sequence": "XPlace Program 2:Withdraw -> XPlace Program 1:RepayKamino -> Kamino Lending:RepayObligationLiquidityV2",
-      "transactions": 75,
-      "success": 75,
+      "transactions": 170,
+      "success": 170,
       "failed": 0,
       "signerLayouts": {
-        "2": 75
+        "2": 170
       },
       "examples": [
         "2xWiDMvakg8mZb4VFXpcYU8hNhDX1sPPyNQYC124LgBTd5WCP3qXhYGiKUA9ueEqWxhqWMgt2M2ww5s2kSYKZtxc",
@@ -2771,12 +3071,12 @@
     },
     {
       "sequence": "XPlace Program 1:DepositKamino -> Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2 -> Kamino Farms:SetStakeDelegated",
-      "transactions": 68,
-      "success": 68,
+      "transactions": 142,
+      "success": 142,
       "failed": 0,
       "signerLayouts": {
-        "1": 38,
-        "2": 30
+        "1": 72,
+        "2": 70
       },
       "examples": [
         "5bhGwzuhEuTdVu4CAvWYUiMfKMUsvfSietx3bqLUm21h16dJmaGvaaSFs3MKuJiTsa4BJtSV1MfAkdqM7WhEL29C",
@@ -2786,11 +3086,11 @@
     },
     {
       "sequence": "XPlace Program 2:Withdraw",
-      "transactions": 56,
-      "success": 50,
+      "transactions": 118,
+      "success": 112,
       "failed": 6,
       "signerLayouts": {
-        "2": 56
+        "2": 118
       },
       "examples": [
         "4MvWoFd8pCXHpboDQR4RKZAaeuF8wA7gbwbj7TMEjMFpBgDXq2jKSoPmPvkLb7JbyKRqbZ21qfJ78ZsLd4Bj6gvX",
@@ -2800,11 +3100,11 @@
     },
     {
       "sequence": "XPlace Program 1:CreateAccount -> XPlace Program 1:CreateAccountKamino -> Kamino Lending:InitUserMetadata -> Kamino Lending:InitObligation",
-      "transactions": 43,
-      "success": 43,
+      "transactions": 112,
+      "success": 112,
       "failed": 0,
       "signerLayouts": {
-        "1": 43
+        "1": 112
       },
       "examples": [
         "c8tDfwUHPAiTJDKmmEKsXJawYUdj7JkehJ8pYQrXQnHgdC3VMSAfiHuDdGNV9xDAHaZFMwWC5D2beD1vfpr1Ety",
@@ -2813,26 +3113,12 @@
       ]
     },
     {
-      "sequence": "Jupiter V6:RouteV2",
-      "transactions": 40,
-      "success": 40,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 40
-      },
-      "examples": [
-        "kNM6hzewzNnQACMHyxoroqhwkg1B8AxVmnfChTvJyFj5SaxTqj1zobEkuZ5puujLckVQNG7JNGME5Kfk9zRQM9w",
-        "2TF432CC7m9QtgU4wEbvGNAApu7dh5tFBQB8XAf8378nszCE5XPVFv1L4hB4EwEfPBLZmUYSyH8QhLL4MnjzD5M2",
-        "22cA6XWm8tYuwQHGmLvRxHyMmTs2im5oC18jLVnsNUDLs4trwJsVAJ6FA81f1fCijDYUEuj7nmZAfe1fmQR9nghn"
-      ]
-    },
-    {
       "sequence": "XPlace Program 1:CreateAccount",
-      "transactions": 33,
+      "transactions": 84,
       "success": 0,
-      "failed": 33,
+      "failed": 84,
       "signerLayouts": {
-        "1": 33
+        "1": 84
       },
       "examples": [
         "4w8Tto466mHNo4xkK5zwbDhwokMt3r3bGSPRQy9k5dxvokJ741DjWb7VqPiwMvwFCsvGH7VpW4jwztD2PxmeA2JM",
@@ -2841,12 +3127,26 @@
       ]
     },
     {
-      "sequence": "XPlace Program 1:BorrowKamino -> Kamino Lending:BorrowObligationLiquidityV2",
-      "transactions": 22,
-      "success": 22,
+      "sequence": "Jupiter V6:RouteV2",
+      "transactions": 76,
+      "success": 76,
       "failed": 0,
       "signerLayouts": {
-        "2": 22
+        "2": 76
+      },
+      "examples": [
+        "kNM6hzewzNnQACMHyxoroqhwkg1B8AxVmnfChTvJyFj5SaxTqj1zobEkuZ5puujLckVQNG7JNGME5Kfk9zRQM9w",
+        "2TF432CC7m9QtgU4wEbvGNAApu7dh5tFBQB8XAf8378nszCE5XPVFv1L4hB4EwEfPBLZmUYSyH8QhLL4MnjzD5M2",
+        "22cA6XWm8tYuwQHGmLvRxHyMmTs2im5oC18jLVnsNUDLs4trwJsVAJ6FA81f1fCijDYUEuj7nmZAfe1fmQR9nghn"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 1:BorrowKamino -> Kamino Lending:BorrowObligationLiquidityV2",
+      "transactions": 48,
+      "success": 48,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 48
       },
       "examples": [
         "3xb2XDjmtzKQ4FPJ3Vt2n6YHxQcZb6hPDT7wswKftbjarU7WS1gpwAbVLvVcd3K6LUpxDfGRF5UiARzCoS7qAhNz",
@@ -2856,12 +3156,12 @@
     },
     {
       "sequence": "Kamino Lending:InitObligationFarmsForReserve -> Kamino Farms:InitializeUser -> XPlace Program 1:DepositKamino -> Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2 -> Kamino Farms:SetStakeDelegated",
-      "transactions": 15,
-      "success": 15,
+      "transactions": 43,
+      "success": 43,
       "failed": 0,
       "signerLayouts": {
-        "1": 8,
-        "2": 7
+        "1": 21,
+        "2": 22
       },
       "examples": [
         "2Tm9ADzXsfYnTV4uPAGvi1aRpbCCCmFjMFQDG1kifxsGVVgUJz6tgGfmP8Ah42oiSMh3WPnxz3W3LaevWdc2ZtsM",
@@ -2871,11 +3171,11 @@
     },
     {
       "sequence": "XPlace Program 1:WithdrawAndSendKamino -> Kamino Lending:WithdrawObligationCollateralAndRedeemReserveCollateralV2 -> Kamino Farms:SetStakeDelegated",
-      "transactions": 13,
-      "success": 13,
+      "transactions": 39,
+      "success": 39,
       "failed": 0,
       "signerLayouts": {
-        "2": 13
+        "2": 39
       },
       "examples": [
         "shDf6DxRFTFNFSABxXo69hVmKMyV6ioq2M1nGd4HMa1CsZVjejsAQ5VHnsp8785nmMippLNoBUzBwLky1oPYqrr",
@@ -2884,54 +3184,12 @@
       ]
     },
     {
-      "sequence": "Jupiter V6:SharedAccountsRouteV2",
-      "transactions": 12,
-      "success": 11,
-      "failed": 1,
-      "signerLayouts": {
-        "2": 12
-      },
-      "examples": [
-        "3fkxKixvpgvHYmLoEAzoW6FMf97e1qu2mXbEKZrSipFbKStPoEumr2rXnyfzDEJ2upNndYBrqXhbUfNXRLNB9i7g",
-        "4viz1kx6Ac78V8cT7dYKZEkyrhTnhRs4heXxxJ3ezWDDgC4WnjJdwfBhASKa46PfgXter4NJXyNs3S2mnQ5xus8W",
-        "3JzCkJrPw8AdE1mH5BSB5UtMxR3g951n1KT3U1p2JV9gLAxeR4ng1WQ66JMctxNJZfgjUUNh8n9gs7ZPuoR2xhhw"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:CreateAccount -> XPlace Program 2:TopUp",
-      "transactions": 12,
-      "success": 12,
-      "failed": 0,
-      "signerLayouts": {
-        "1": 12
-      },
-      "examples": [
-        "2VBiSy7Sw3Pcws5UQVpCJGSwGnDPggobjgyeJ1QCfZJdvffehLHGK3HicZyN6CBcoZ2t8kc8UttaqSDxahTd2dNM",
-        "4U9RmZb7NCjeFmdoZwUuY46ZcZ3TZAmJYGrMNPbTVffXUVczrPnSCDhU85DQPhuGSs4x9RXzMxFMhu45TXJA2jdU",
-        "48WsxD7VS9GUJrV52A2jCFfnvF4vsq711aepzWkNUVkDv2sJEat9xLPBGYDQ8FqZkkbrtR3Yn4CmX95M8nHaHQLt"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:RouteV2",
-      "transactions": 12,
-      "success": 12,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 12
-      },
-      "examples": [
-        "37xsxAewgGGnqLgWFkWkG6qPUYucUk8T9KZ7oSFZnEiSr1gyDQx4TXWmBM9PMEJkxmxhT1vWaFiq8GaBhH6sxpM9",
-        "2M32ePBYQ7pR3Fz2bj2bZc7pgMVCEbD5QB73Y7eoetdWfUWXFrHNpHvkPutfv3winY7vbv2VqY6P1NYts4LbufDV",
-        "5fu9VVxEHs6Y6i5ujjxYP23EmmZWzDNwNCqGM2mM29UKXc2rSpZ1ftvRrBcE3GMYJPZjAS8Z4Qb3dPhEv324Pbgj"
-      ]
-    },
-    {
       "sequence": "XPlace Program 2:Withdraw -> XPlace Program 1:DepositKamino -> Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2 -> Kamino Farms:SetStakeDelegated",
-      "transactions": 12,
-      "success": 12,
+      "transactions": 39,
+      "success": 39,
       "failed": 0,
       "signerLayouts": {
-        "2": 12
+        "2": 39
       },
       "examples": [
         "2RfFKyKUtpAdkMiRRzox2SjzTPpA5sMRJ4CDrZ77YTXtWLUcJu3EiF4xw3XBhBZFEBFCrD4rRpq6AgdChe4tvb8C",
@@ -2940,83 +3198,27 @@
       ]
     },
     {
-      "sequence": "XPlace Program 1:DepositKamino -> Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2",
-      "transactions": 11,
-      "success": 11,
+      "sequence": "XPlace Program 2:CreateAccount -> XPlace Program 2:TopUp",
+      "transactions": 33,
+      "success": 33,
       "failed": 0,
       "signerLayouts": {
-        "1": 11
+        "1": 33
       },
       "examples": [
-        "5DL9txiAuY14ig93Dn9GaHXGhUXpGJ1U5u3rZRwDwQiqoWhxeDrKX2pT9BvMgUif2Yc2XfYifcdcT593KopFDTMv",
-        "PV1hoSY7J3wuJQhShzHDx9QpwXNcFwzUF4uQw3DhwpTnL4qxLbMGmrpo7ngxWGhgWwiyAuGGtqELdZTFWUYSg7z",
-        "4HyathpgfMzaCA7kJ2rDSXskd5EUNPKPjAca1S9ZeAEb5NHpgBRSRg6zkbShQSTTKeCkvyzhXMMsxDn4YG5YP7K1"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Relay Bridge:DepositToken",
-      "transactions": 11,
-      "success": 11,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 11
-      },
-      "examples": [
-        "4mVfVezG4QBWV5Uzy2zLCRjqpyv7atrZ66Niv8Hz521uSs4eiPm6UiYRFqV2igEVfcPNbMd4H8N6WpQjKCvX8jKp",
-        "QR4xV7iRN51ZdEfJQHnj3A4e7rDhRN7HNSMT3yfgx9oJBR1e7nbrYhg87rTcF3gLXvJB9J5ivn2vXXMPJvxpkg4",
-        "31peYBJtbQ8B2v8XoRq3GndUFmS665vuFvzP2Hw7zGLoRrLFTLTtcvpwwsahqKs4roVojn6PFE6expuNsdTqtiJv"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 1:WithdrawKamino -> Kamino Lending:WithdrawObligationCollateralAndRedeemReserveCollateralV2",
-      "transactions": 8,
-      "success": 8,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 8
-      },
-      "examples": [
-        "1uz7XysPVMDHpiYcKSoAFbUVwDKpJDfpTzWuSkBsMReJQM1wzrKiqG5Ytm3oB8Z2UmQsLdLoRH4Pbvpw1enHVtQ",
-        "3p2WPbRbioMgey3uphixmJ3v7JBPNDtCiTpJfcyciCGg1cJbVdJR4F3NzFmwdj22so7aZVMzVBSuHV8ys4k7oskR",
-        "5wQKXY5q5bZqUXRWSTK6keQdZQHSYhTMpog249Kq4qi68MnboEdcMyTqZ9YgA7C7E4sFrQfwqTAupYGQ1fQ7msyn"
-      ]
-    },
-    {
-      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap",
-      "transactions": 7,
-      "success": 7,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 7
-      },
-      "examples": [
-        "243hsfRVSoongnsHY1m2P73Kbn1eKE1ckSbTVMVr97PBhGvjuTG2QgSJGZNprd5ntsZhzvb39Qbwm65Z2Ev7bpkT",
-        "4Psod6mkQsFDofW1ns1LM9UwPQvfHDU8ZFWFm13QjWx5U5UQnk1vWysKzQ9LGnjCDbErZNXdjx9uAELQ8aYA452S",
-        "1nHNCGS1ye8ZovP4feRMeMjxihwnbdMXgpyAubVbCYRDiEMTRhsXTvhdWRv6z5PbDGD8Hbc3BB4fEteG5Mx2jGh"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap",
-      "transactions": 6,
-      "success": 6,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 6
-      },
-      "examples": [
-        "5oTgA5XgmjbNtXRArXXSnBmjFnPrYdggputqML8LYFGTvHFSsPTTYxQBnpWSALp7qk4SBWuKumhAXWHbVZi1xa1k",
-        "bjV2DJ5Td6ZWqoiAGDxATqfUodb4cUHb9737uJUq4hrYXT1BY2xLJZxA7LspNRirX4gGu47q8ip69Y6PPafmpEK",
-        "5fTTtFPHHo7KbXUy2zM3DKcU7NpzkiwU8ZzKKfBkC7k4LUg4E7wSXVYPCJ3j42fNY5PoTHUdQE9Qw69TYxMy78g8"
+        "2VBiSy7Sw3Pcws5UQVpCJGSwGnDPggobjgyeJ1QCfZJdvffehLHGK3HicZyN6CBcoZ2t8kc8UttaqSDxahTd2dNM",
+        "4U9RmZb7NCjeFmdoZwUuY46ZcZ3TZAmJYGrMNPbTVffXUVczrPnSCDhU85DQPhuGSs4x9RXzMxFMhu45TXJA2jdU",
+        "48WsxD7VS9GUJrV52A2jCFfnvF4vsq711aepzWkNUVkDv2sJEat9xLPBGYDQ8FqZkkbrtR3Yn4CmX95M8nHaHQLt"
       ]
     },
     {
       "sequence": "XPlace Program 1:CreateAccountKamino -> Kamino Lending:InitObligation -> XPlace Program 1:DepositKamino -> Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2 -> Kamino Farms:SetStakeDelegated",
-      "transactions": 5,
-      "success": 5,
+      "transactions": 31,
+      "success": 31,
       "failed": 0,
       "signerLayouts": {
-        "1": 1,
-        "2": 4
+        "1": 6,
+        "2": 25
       },
       "examples": [
         "C2Hqc1juEkVQQm4k77MCxR7R1zTBbpnsfajA28KJMupF6tbthChTPZYzwmq7zd2bMfEVqRWtL5px8FsFtMBfwxp",
@@ -3025,26 +3227,110 @@
       ]
     },
     {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2",
-      "transactions": 5,
-      "success": 5,
+      "sequence": "XPlace Program 2:Withdraw -> Relay Bridge:DepositToken",
+      "transactions": 29,
+      "success": 29,
       "failed": 0,
       "signerLayouts": {
-        "2": 5
+        "2": 29
       },
       "examples": [
-        "2ckMqmV1aFfigRSbBCBE6DPaHzMG1s1WzKBXa91E2q7n2BAssZeEHrNXQQpUQqFar6Q25XniGYRBtrKQujYYXabt",
-        "BzSkWfrfnR5Y3HkNufJCvB9hQFbsFZSbo34c373SNcZWjSSx17rtYk5gJfBDnNGV9FNWr7PuPcW79ejCb7fH5St",
-        "GbYLX29dFSeUXYywqHA6pSUErGoXxGZGXVS5oW2wmW9BEtwSrqx7annxd6MV6QbhCYnkfynHR6bbCuUBq8QZ4ST"
+        "2ZJMsfqFDY12W7pUezYRwB6H2MukLytfkxGAAdKpiekuuSrtggS4oCj41VKEmXH5Sc4X4sehYzftUnouCCd1GdSo",
+        "4mVfVezG4QBWV5Uzy2zLCRjqpyv7atrZ66Niv8Hz521uSs4eiPm6UiYRFqV2igEVfcPNbMd4H8N6WpQjKCvX8jKp",
+        "QR4xV7iRN51ZdEfJQHnj3A4e7rDhRN7HNSMT3yfgx9oJBR1e7nbrYhg87rTcF3gLXvJB9J5ivn2vXXMPJvxpkg4"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 1:DepositKamino -> Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2",
+      "transactions": 25,
+      "success": 25,
+      "failed": 0,
+      "signerLayouts": {
+        "1": 25
+      },
+      "examples": [
+        "5DL9txiAuY14ig93Dn9GaHXGhUXpGJ1U5u3rZRwDwQiqoWhxeDrKX2pT9BvMgUif2Yc2XfYifcdcT593KopFDTMv",
+        "PV1hoSY7J3wuJQhShzHDx9QpwXNcFwzUF4uQw3DhwpTnL4qxLbMGmrpo7ngxWGhgWwiyAuGGtqELdZTFWUYSg7z",
+        "4HyathpgfMzaCA7kJ2rDSXskd5EUNPKPjAca1S9ZeAEb5NHpgBRSRg6zkbShQSTTKeCkvyzhXMMsxDn4YG5YP7K1"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 1:WithdrawKamino -> Kamino Lending:WithdrawObligationCollateralAndRedeemReserveCollateralV2",
+      "transactions": 23,
+      "success": 19,
+      "failed": 4,
+      "signerLayouts": {
+        "2": 23
+      },
+      "examples": [
+        "1uz7XysPVMDHpiYcKSoAFbUVwDKpJDfpTzWuSkBsMReJQM1wzrKiqG5Ytm3oB8Z2UmQsLdLoRH4Pbvpw1enHVtQ",
+        "3p2WPbRbioMgey3uphixmJ3v7JBPNDtCiTpJfcyciCGg1cJbVdJR4F3NzFmwdj22so7aZVMzVBSuHV8ys4k7oskR",
+        "5wQKXY5q5bZqUXRWSTK6keQdZQHSYhTMpog249Kq4qi68MnboEdcMyTqZ9YgA7C7E4sFrQfwqTAupYGQ1fQ7msyn"
+      ]
+    },
+    {
+      "sequence": "Jupiter V6:SharedAccountsRouteV2",
+      "transactions": 21,
+      "success": 20,
+      "failed": 1,
+      "signerLayouts": {
+        "2": 21
+      },
+      "examples": [
+        "3fkxKixvpgvHYmLoEAzoW6FMf97e1qu2mXbEKZrSipFbKStPoEumr2rXnyfzDEJ2upNndYBrqXhbUfNXRLNB9i7g",
+        "4viz1kx6Ac78V8cT7dYKZEkyrhTnhRs4heXxxJ3ezWDDgC4WnjJdwfBhASKa46PfgXter4NJXyNs3S2mnQ5xus8W",
+        "3JzCkJrPw8AdE1mH5BSB5UtMxR3g951n1KT3U1p2JV9gLAxeR4ng1WQ66JMctxNJZfgjUUNh8n9gs7ZPuoR2xhhw"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:RouteV2",
+      "transactions": 20,
+      "success": 20,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 20
+      },
+      "examples": [
+        "37xsxAewgGGnqLgWFkWkG6qPUYucUk8T9KZ7oSFZnEiSr1gyDQx4TXWmBM9PMEJkxmxhT1vWaFiq8GaBhH6sxpM9",
+        "2M32ePBYQ7pR3Fz2bj2bZc7pgMVCEbD5QB73Y7eoetdWfUWXFrHNpHvkPutfv3winY7vbv2VqY6P1NYts4LbufDV",
+        "5fu9VVxEHs6Y6i5ujjxYP23EmmZWzDNwNCqGM2mM29UKXc2rSpZ1ftvRrBcE3GMYJPZjAS8Z4Qb3dPhEv324Pbgj"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 2:ReclaimByWorker -> XPlace Program 1:RepayByWorkerKamino -> Kamino Lending:RepayObligationLiquidityV2",
+      "transactions": 11,
+      "success": 11,
+      "failed": 0,
+      "signerLayouts": {
+        "1": 11
+      },
+      "examples": [
+        "KBg6jVTwaEhDGuSR7A7siA9G8cuE7TG4xPxtRjzNe1M4Umy3LL8LWT6koimZkNMLY9aZPG7F6g3vkvYiW6dFu7K",
+        "2421ocUf2kQ5uRSi4QmAh4D1Jpi8M2MsnNLNaG95Gg9TnXmSHUkKDutfrHGDukPsDzTNFG48vcAj2PHbTH3wYtnu",
+        "aumeEzqwQFsUnMWnSQoPk5BPvvzFLp8hqZPKpXTprv2hfjRdYYpSi8i9s9RGgiXLiNvNgY55RxH4PtEHdi7x1Be"
+      ]
+    },
+    {
+      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap",
+      "transactions": 10,
+      "success": 10,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 10
+      },
+      "examples": [
+        "243hsfRVSoongnsHY1m2P73Kbn1eKE1ckSbTVMVr97PBhGvjuTG2QgSJGZNprd5ntsZhzvb39Qbwm65Z2Ev7bpkT",
+        "4Psod6mkQsFDofW1ns1LM9UwPQvfHDU8ZFWFm13QjWx5U5UQnk1vWysKzQ9LGnjCDbErZNXdjx9uAELQ8aYA452S",
+        "1nHNCGS1ye8ZovP4feRMeMjxihwnbdMXgpyAubVbCYRDiEMTRhsXTvhdWRv6z5PbDGD8Hbc3BB4fEteG5Mx2jGh"
       ]
     },
     {
       "sequence": "Kamino Lending:InitObligationFarmsForReserve -> Kamino Farms:InitializeUser -> XPlace Program 2:Withdraw -> XPlace Program 1:DepositKamino -> Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2 -> Kamino Farms:SetStakeDelegated",
-      "transactions": 4,
-      "success": 4,
+      "transactions": 10,
+      "success": 10,
       "failed": 0,
       "signerLayouts": {
-        "2": 4
+        "2": 10
       },
       "examples": [
         "4cxr8PGyzAsYR4i65g3dXtSGu3b3jJJNgL5bWbVj3kmHR6zaZ43PiNAb9KD7Fshjsiw3zFqCbVw2VYZ7h3qFWzr3",
@@ -3054,11 +3340,11 @@
     },
     {
       "sequence": "XPlace Program 2:UpdateRepayLimit -> XPlace Program 2:Withdraw",
-      "transactions": 4,
-      "success": 3,
+      "transactions": 10,
+      "success": 9,
       "failed": 1,
       "signerLayouts": {
-        "2": 4
+        "2": 10
       },
       "examples": [
         "qJLZgKLRYE8nZssiEcujKJhd9XJESAa7CovqLb1aeQ4LaiTp9jostga5XBjHXALhraRXy5BJmnmbpRrPeKFqPv7",
@@ -3067,26 +3353,68 @@
       ]
     },
     {
-      "sequence": "XPlace Program 2:ReclaimByWorker -> XPlace Program 1:RepayByWorkerKamino -> Kamino Lending:RepayObligationLiquidityV2",
-      "transactions": 3,
-      "success": 3,
+      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2",
+      "transactions": 10,
+      "success": 10,
       "failed": 0,
       "signerLayouts": {
-        "1": 3
+        "2": 10
       },
       "examples": [
-        "KBg6jVTwaEhDGuSR7A7siA9G8cuE7TG4xPxtRjzNe1M4Umy3LL8LWT6koimZkNMLY9aZPG7F6g3vkvYiW6dFu7K",
-        "2421ocUf2kQ5uRSi4QmAh4D1Jpi8M2MsnNLNaG95Gg9TnXmSHUkKDutfrHGDukPsDzTNFG48vcAj2PHbTH3wYtnu",
-        "aumeEzqwQFsUnMWnSQoPk5BPvvzFLp8hqZPKpXTprv2hfjRdYYpSi8i9s9RGgiXLiNvNgY55RxH4PtEHdi7x1Be"
+        "2ckMqmV1aFfigRSbBCBE6DPaHzMG1s1WzKBXa91E2q7n2BAssZeEHrNXQQpUQqFar6Q25XniGYRBtrKQujYYXabt",
+        "BzSkWfrfnR5Y3HkNufJCvB9hQFbsFZSbo34c373SNcZWjSSx17rtYk5gJfBDnNGV9FNWr7PuPcW79ejCb7fH5St",
+        "GbYLX29dFSeUXYywqHA6pSUErGoXxGZGXVS5oW2wmW9BEtwSrqx7annxd6MV6QbhCYnkfynHR6bbCuUBq8QZ4ST"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap",
+      "transactions": 8,
+      "success": 8,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 8
+      },
+      "examples": [
+        "5oTgA5XgmjbNtXRArXXSnBmjFnPrYdggputqML8LYFGTvHFSsPTTYxQBnpWSALp7qk4SBWuKumhAXWHbVZi1xa1k",
+        "bjV2DJ5Td6ZWqoiAGDxATqfUodb4cUHb9737uJUq4hrYXT1BY2xLJZxA7LspNRirX4gGu47q8ip69Y6PPafmpEK",
+        "5fTTtFPHHo7KbXUy2zM3DKcU7NpzkiwU8ZzKKfBkC7k4LUg4E7wSXVYPCJ3j42fNY5PoTHUdQE9Qw69TYxMy78g8"
+      ]
+    },
+    {
+      "sequence": "Jupiter V6:RouteV2 -> Byreal:SwapV3Dyn",
+      "transactions": 6,
+      "success": 6,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 6
+      },
+      "examples": [
+        "4AZo4nDYjyQRrmc6SftP2vv9uwh4Wx1rmFJQUJPCvQwoJN7Xi1DUzhcV921WsqE3W4zSzZVjsaWJ9Ddf3V3EMxPb",
+        "gN4PbmFu4MJtKgFkefze4Y2jJiJGJA2grat8RyLfVK9e7C2LPRDzyyAYXaxAMczUtusF6rKsXBanWwc7pqhcvq1",
+        "TYYo9HG2zp3oXaZNmTAmCod8ZqY4fym8AqE5bDopR8Bqnt2QUCeYFPtw6e4pHmiTiWGvjL23McTG8rvUngnMvsh"
+      ]
+    },
+    {
+      "sequence": "Kamino Lending:InitObligationFarmsForReserve -> Kamino Farms:InitializeUser -> XPlace Program 2:UpdateRepayLimit -> XPlace Program 2:Withdraw -> XPlace Program 1:DepositKamino -> Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2 -> Kamino Farms:SetStakeDelegated",
+      "transactions": 5,
+      "success": 5,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 5
+      },
+      "examples": [
+        "4YeT5dcovi26YF3EqgZCaCsag1M6WQHsBdC9uhSAtrztRRuiugpA3JvFZBG8kEVuPtMQkTyy2pYpmzaa98sUz7W3",
+        "Gba4XLBfGsDGRWiLXSRtKwGHi5fjZqtZkhdLRF6qjqjS9DdJtLGDkCTPuGMrSRSyRihx1BndZjEgUAo9EwTgf5F",
+        "k3CdjZj3RqzWwAroK4QJqA6idZW1xx1VQcfYnu41azJkxfyGqbAseGjCaJQQCsoBzhMqL1ooR6cstjF4hCcCJZP"
       ]
     },
     {
       "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> 1DEX:SwapExactAmountIn",
-      "transactions": 3,
-      "success": 3,
+      "transactions": 5,
+      "success": 5,
       "failed": 0,
       "signerLayouts": {
-        "2": 3
+        "2": 5
       },
       "examples": [
         "ygRsVCKhtkEWDZZZYRMg8qjwN8q7RcN3zBqrHvo2kxovQHU16w1EeDr9g4x75wAyUigUnLy8gwXU4zq1dGcqaZH",
@@ -3095,46 +3423,188 @@
       ]
     },
     {
-      "sequence": "Jupiter V6:RouteV2 -> Byreal:SwapV3Dyn",
-      "transactions": 2,
-      "success": 2,
-      "failed": 0,
+      "sequence": "XPlace Program 1:DepositKamino",
+      "transactions": 4,
+      "success": 0,
+      "failed": 4,
       "signerLayouts": {
-        "2": 2
+        "1": 4
       },
       "examples": [
-        "4AZo4nDYjyQRrmc6SftP2vv9uwh4Wx1rmFJQUJPCvQwoJN7Xi1DUzhcV921WsqE3W4zSzZVjsaWJ9Ddf3V3EMxPb",
-        "gN4PbmFu4MJtKgFkefze4Y2jJiJGJA2grat8RyLfVK9e7C2LPRDzyyAYXaxAMczUtusF6rKsXBanWwc7pqhcvq1"
+        "5ac28vxZeQHAJCQBWB3UR8FyySHD4mxpdvEUuE2zXF5Y8NDu6HMk2r9DXdvJDDrcNjMtkrVJ8uQukc7hYYQGgfPL",
+        "3gNtMzpZ6YmXEZ7dnkLjEYeHjaqwioVadwCbq3RT7FuuGMk14BDQGdp7ouRJYhCpwRwVNbPVZWGQFgV6RCsbVX6k",
+        "5hRi5r4JmqwD7TH5LtZYEiUEGZteWNoKidEee91LbDszGiVQzcKcVGmQDMatU99UQtHqYCCjYgRhUr5DyiNqzUJT"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 1:UpdateLoanSnapshotKamino -> XPlace Program 1:BorrowSyncKamino -> Kamino Lending:BorrowObligationLiquidityV2",
+      "transactions": 4,
+      "success": 4,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 4
+      },
+      "examples": [
+        "5u3qGGmhbNPdACGJGAi6uKzuEwJgS6K6ZGmEe5qJq25met2Tp5gSdoxte8HLd6S5htNnf4zbAhBbK2bFjdpJ2z7C",
+        "w3fJAYnuHEvAQ1Ta6vcvJJnNajXcdQwyXQqZNqcQ6DqixF4RbzLYgwKzjqy1cGW3cUKFPtmFjG2kXW3Z6DEjfxX",
+        "5k2oCN3jPvUL9pSjLETB3Dmr17YnR6hMUYfnN2nMefu4mRQGhtzQyF13TyJMSgG3CoDFvLtYaSF82un4kpxNTNK2"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 2:UpdateRepayLimit -> XPlace Program 2:Withdraw -> Relay Bridge:DepositToken",
+      "transactions": 4,
+      "success": 4,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 4
+      },
+      "examples": [
+        "sPkL3TV2nVDSzrKFQa8gimz6uZG4ASTEdrqCEnZoyL8zyiznS7qckyVqEpYXYwcysr48YQWbJmiDUnbrwX6HREa",
+        "2wcFQYm8rYKvDziTrRKt46MCFsNdC8KH7PieQg1ihFCPxmkerZP5jaBsmqdNng61WdgpuaP6izPaBfzPWjbD3Ho6",
+        "4aPb8VYFp1F43cvtL7dmpGqMWv99L6btkuEM88bj49RGwwL6uBiq2NBfFfEy6b1Rabdo1yWzW9UZjBeqbc13ECGn"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> Raydium CLMM:Swap",
+      "transactions": 4,
+      "success": 4,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 4
+      },
+      "examples": [
+        "5pvH13qGbhkXFcCyKno1ohZpF8Q2o5GM1jpfPQuoaGpQcSHMzd5FcGj5ZFUV2FE6Ece8Fyzdnvfaz6Lh1Dut8jZN",
+        "2ymKJeH3sFNw3rLXx6zYWrJmn7F9TRx63E6M67scuC1YH6y3vveBRzUyZWWwW2Whme1idn6bq41TJio3sPXSxc46",
+        "5bKiSpHoktcW24LiZVsRi4sciTT8wp3ziH2ThHZgPCKJ4TcQrXHZuRgCWx3o7FEpuCsYr7o4brUji48LY8MhijGB"
       ]
     },
     {
       "sequence": "Jupiter V6:RouteV2 -> Invariant:Swap",
-      "transactions": 2,
-      "success": 2,
+      "transactions": 3,
+      "success": 3,
       "failed": 0,
       "signerLayouts": {
-        "2": 2
+        "2": 3
       },
       "examples": [
         "DH3tR6qBYh2VbjBTPhcHj7A3hA9WpEu8hjn37P28su8TbpsAr6JGfXWuYrxJCRKPCZGFmG1oKXW8SQL8YJoZp3x",
-        "3ujgb33vpBUDQvHL6j5z4DyKEoxojdNc8zDg5xVvk2WMf6kVhrm4g2GvP2QfhxW3SevxUcSoDWzxEpmYmbgGyLfj"
+        "3ujgb33vpBUDQvHL6j5z4DyKEoxojdNc8zDg5xVvk2WMf6kVhrm4g2GvP2QfhxW3SevxUcSoDWzxEpmYmbgGyLfj",
+        "36ZzYGLe43zfVbpHjVigbTYNDoizbvWeNKp2WhzEMaNziGPy35iPRFEsSq8LX6AwoNbTF9y8GPsDeLKCqkwG557K"
+      ]
+    },
+    {
+      "sequence": "Jupiter V6:RouteV2 -> Riptide:SwapExactIn",
+      "transactions": 3,
+      "success": 3,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 3
+      },
+      "examples": [
+        "55xgHq8LdfF5WZL9fnUM2vZWXVpCJnmsJPoAcxkdmoiD3pX1AEj9MjPSMY1A4oE9A7aFF6RZrXxyG3iTEhfZCFvR",
+        "3BFN4yeLmMSd3Psv6ScGPiSY9hLFCcZ81ZdFQsEkR3ELPvKema8HFs9Xg4gEhMNyXY7CHv647vDmkQb5miYzubXV",
+        "5f8TxGoApBmipK76AE8etfhbgAgKJMy16Ndy5pfQn4Wpd52TuiCyvexUmYVBk8u6im1da1FJzKBXNu3otDfi5nQG"
+      ]
+    },
+    {
+      "sequence": "Jupiter V6:RouteV2 -> ZeroFi:swap_v4",
+      "transactions": 3,
+      "success": 3,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 3
+      },
+      "examples": [
+        "2vB29GaCmaNmbz5dp3sQPGSQwFPFyk3wjXfGiA3e2JxjYBjXkK4SEk2uXbKDv9LDUnYyx5c7BgpaD8ZF9GQXw4Pr",
+        "5hqG22yFLUGjjHH1q1Dacje1sTV7LMC3wHbnKvC5S4u3Ua7zhG9eqCmhfaoywCdM1iHdXWzk8AKMaLEuDsRutY5G",
+        "3YFeerPwFrfyJtKjWfrSztPKESL175SUqNcqCaGWahdTyAAV72isQ91neFWZdD8CUhvmvGuBTK13nd5q9hHy9beX"
+      ]
+    },
+    {
+      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap -> Meteora DLMM:Swap",
+      "transactions": 3,
+      "success": 2,
+      "failed": 1,
+      "signerLayouts": {
+        "2": 3
+      },
+      "examples": [
+        "B5x5RpMxKVUVYiRS7wAx1TiHWTzXUhLdm7ctwCN9hpGo4DW7BT8BgusM5tmGFsdw6jt8otKsfPHj5qrpUkBb5sK",
+        "3PvmpYzYGcBUx5wWAiFJZREF94rKPKwov8W2ma7KLqEGBKsgoChFsg8CLEG7q5fRCvJBQEC8yZcL8jic9DGP82Js",
+        "4B2xsGxaE9dEDBXyA19oH8xM3N1pVVqhSKTEScoj8cuR8vJQ5EQKgtUTjHHfJvzS82KEewTktzETqwZUKZeJVjM4"
+      ]
+    },
+    {
+      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> PancakeSwap:Swap",
+      "transactions": 3,
+      "success": 3,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 3
+      },
+      "examples": [
+        "5BznpTnRhRW7FsDUTTRqthYXzN48VEtZnf3S9zLvP8BGbs5tqDFUVWjSer2w7FHMZgikuDmYACXKgsFzxU88FCFG",
+        "5jKF5k62axzJoP7kBN9qXku7uBJxkhTDs5u9VajW6JKArgKRUohgWnwesjsW3FRMWWyjYJSxe5ciTLhSLvVdthgU",
+        "2CCFCGVjJNw9iUqiQLG9df5hUdtN822WhwPuK6UKWScJeqbvL9DyQB67YCccXvcEXAWL3rTw8EZ7YF4EoA6nPCNS"
       ]
     },
     {
       "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Raydium CLMM:Swap",
-      "transactions": 2,
-      "success": 2,
+      "transactions": 3,
+      "success": 3,
       "failed": 0,
       "signerLayouts": {
-        "2": 2
+        "2": 3
       },
       "examples": [
         "5My7YUTV2QcwMQW4mN6M2m5B37sQu5vXmE34mk75xfpYPB1rJ9XdwTZnMnfRe3MnTVrwC1s1Y9y9nXWBcG1PiZ35",
-        "tzcYxnoCSmtwki7Y1NJYEh3Yr93RibvAF18NxAwmwcsMdV9wnGEsDeFTxwGsKh2Rbi6g8NtoFXnPEeYgcM9bmAx"
+        "tzcYxnoCSmtwki7Y1NJYEh3Yr93RibvAF18NxAwmwcsMdV9wnGEsDeFTxwGsKh2Rbi6g8NtoFXnPEeYgcM9bmAx",
+        "Q1Z1C79r4uvbPpckpDCa7qhCRKs98DoPwXRqqSWtX46ye9dMTtpWtSwWDqKsfsP9NQ21gsJG6mb2sbKsiDYCvrE"
       ]
     },
     {
-      "sequence": "Kamino Lending:InitObligationFarmsForReserve -> Kamino Farms:InitializeUser -> XPlace Program 2:UpdateRepayLimit -> XPlace Program 2:Withdraw -> XPlace Program 1:DepositKamino -> Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2 -> Kamino Farms:SetStakeDelegated",
+      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> ZeroFi:swap_v4",
+      "transactions": 3,
+      "success": 3,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 3
+      },
+      "examples": [
+        "2EN43RfpVLafTE8mhu9ii5Rb1wmsFsrDJMEebpQ5Z13CASjwbJB9hkYn9yGiyN8xXEJi1hffntjino1Z3xQeSpmb",
+        "HoTdPQpfiAoRR8AAUPD3uh3cgEVjGPGauFJwyaRqrbzXSBBP6rjc8FWwcGdCinLyvX7ELhR3Sex81DtybkVo7bs",
+        "vyLHbs7vEPsUKKCT4RfBET7hZzNnARjRVuUigN7BnA9z6ELNc14DYhKbrZ3XpDDUFUteub7jCcBkDsUaNXWiRun"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 1:CreateAccountKamino -> Kamino Lending:InitObligation -> XPlace Program 1:DepositKamino -> Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2",
+      "transactions": 3,
+      "success": 3,
+      "failed": 0,
+      "signerLayouts": {
+        "1": 3
+      },
+      "examples": [
+        "4EBZdvAjFdPafSUMHedFymF22dCQnDbHDWDppGrQJAqZr42yUkcjKT96G3X1thWzV3XRCdjdYGiZJkygvMsCbRyy",
+        "3qNWy3KdSGhmuLY1ervVwB5naYxL7kft7v6DBuKBNxinr9fmbNdeqDUBWeW7jX9vm1x8ZXzqq2m2R4T4KK3jRq1h",
+        "3uCoUWZeoXPt4nfftxNFJgTiUuVnMsyfKnFcznT1fcig4rG5FRUPzXdtFKqMkMTc63VagaKBpH1Xg7Ujz4nD2YG"
+      ]
+    },
+    {
+      "sequence": "Address Lookup Table:CreateLookupTable -> Address Lookup Table:ExtendLookupTable",
+      "transactions": 2,
+      "success": 2,
+      "failed": 0,
+      "signerLayouts": {
+        "1": 2
+      },
+      "examples": [
+        "YQxgH6fo3RGkJeSdt6WtZaPVhbxnWFPZrQazHGw2FqMg28yEfJysA2pFgHWNwzSs2qiDXcYpcfVoYuV6Vkiga2U",
+        "4AbbgNx1evCBNfJWGrX5n3Q4xzkM2FoRiREZHhM7kBFe5VZTxrdZhGn9snHhuUkESqr9GuUKX3xJz5vz1GKMFDDh"
+      ]
+    },
+    {
+      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap -> Raydium CLMM:Swap",
       "transactions": 2,
       "success": 2,
       "failed": 0,
@@ -3142,12 +3612,51 @@
         "2": 2
       },
       "examples": [
-        "4YeT5dcovi26YF3EqgZCaCsag1M6WQHsBdC9uhSAtrztRRuiugpA3JvFZBG8kEVuPtMQkTyy2pYpmzaa98sUz7W3",
-        "Gba4XLBfGsDGRWiLXSRtKwGHi5fjZqtZkhdLRF6qjqjS9DdJtLGDkCTPuGMrSRSyRihx1BndZjEgUAo9EwTgf5F"
+        "2by8T2dKN8iaYf2nctPer1eqqZKtP8zpQExkoMBdKLrYrHCFYf5KAL3nNFCjAaK1KC6jQBNz1Fc5J3xeQqMGZ725",
+        "2VQevk913idfb2vFLshFLZSENFB6DD6YrxnmuYjDmZDxRLTawN79GRdjiLyJam5fLnJPZC6ZSwx9FPK9YLK1r1uN"
       ]
     },
     {
-      "sequence": "XPlace Program 1:DepositKamino",
+      "sequence": "XPlace Program 1:CreateAccountKamino -> Kamino Lending:InitObligation -> Kamino Lending:InitObligationFarmsForReserve -> Kamino Farms:InitializeUser -> XPlace Program 2:Withdraw -> XPlace Program 1:DepositKamino -> Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2 -> Kamino Farms:SetStakeDelegated",
+      "transactions": 2,
+      "success": 2,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 2
+      },
+      "examples": [
+        "4xRtSkxC67yXYd8Jyo8fSKtKAtod6HmqTnJp8KY41SbyQvzQb1fka2deHroa3vMegvwfVTHP9v8Fv2qNHkryz3qY",
+        "3Yabjcp1sdALsfkWjDwj9iQwgXvdw3eiVpuskGn1ujjKkEHC5GiD57Jgw1TbXq12N9u8mJMEC8K64iDaEgkvWt9Q"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 1:CreateAccountKamino -> Kamino Lending:InitUserMetadata -> Kamino Lending:InitObligation",
+      "transactions": 2,
+      "success": 2,
+      "failed": 0,
+      "signerLayouts": {
+        "1": 2
+      },
+      "examples": [
+        "5mqYMGc6MWCeZAPMVNDwDitymFeLdppR5BfmPJ4mEPqdj8wA7Eb43mSFxGVkB7A61S5ZXJC2df7VqWzDXJm8PYTg",
+        "JR8zBT8bJ1V5NwZHzhkxESZAE3LvVEVwZaFh3XBnginnz7n22VTEjyyoux9VVJoD5JV6gRuMHAJU7hUzrNZEgRm"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 1:UpdateTargetBorrowApyKamino",
+      "transactions": 2,
+      "success": 2,
+      "failed": 0,
+      "signerLayouts": {
+        "1": 2
+      },
+      "examples": [
+        "5KVug6DSRDWHa2D8wxADLAdwit99oeWhe4yfmad3GoB7m8kTK9pWmDMKvMeFgHMYrKaS6LuztzhPPGG6rcVAughF",
+        "AHcxXsJzJpQccrGLTBcY2eVoxDQs6p1wTUMY6YGJQZp51DBKt19Y15ay8cAdtzcsftsu6ABW7GYSXbAJ6GqbD4x"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 2:CreateAccount",
       "transactions": 2,
       "success": 0,
       "failed": 2,
@@ -3155,12 +3664,12 @@
         "1": 2
       },
       "examples": [
-        "5ac28vxZeQHAJCQBWB3UR8FyySHD4mxpdvEUuE2zXF5Y8NDu6HMk2r9DXdvJDDrcNjMtkrVJ8uQukc7hYYQGgfPL",
-        "3gNtMzpZ6YmXEZ7dnkLjEYeHjaqwioVadwCbq3RT7FuuGMk14BDQGdp7ouRJYhCpwRwVNbPVZWGQFgV6RCsbVX6k"
+        "LtxWrnWxU3g4M4Kq5MDtZHfjgpNFFzr6WpPVX679dapLmnP7774wouXityHhQNjChYSjCdQtrqyYv4E3S9c52Db",
+        "3y3kGj92shXerZD9u5r9qYZHvuRWNEBew523P7j3uPWzDdVebut6Rin9RFbfwSquY9Srh4nEzRLCAmqzDK6rfMGz"
       ]
     },
     {
-      "sequence": "XPlace Program 1:UpdateLoanSnapshotKamino -> XPlace Program 1:BorrowSyncKamino -> Kamino Lending:BorrowObligationLiquidityV2",
+      "sequence": "XPlace Program 2:UpdateRepayLimit -> XPlace Program 2:Withdraw -> Jupiter V6:RouteV2",
       "transactions": 2,
       "success": 2,
       "failed": 0,
@@ -3168,8 +3677,86 @@
         "2": 2
       },
       "examples": [
-        "5u3qGGmhbNPdACGJGAi6uKzuEwJgS6K6ZGmEe5qJq25met2Tp5gSdoxte8HLd6S5htNnf4zbAhBbK2bFjdpJ2z7C",
-        "w3fJAYnuHEvAQ1Ta6vcvJJnNajXcdQwyXQqZNqcQ6DqixF4RbzLYgwKzjqy1cGW3cUKFPtmFjG2kXW3Z6DEjfxX"
+        "4P2WtVnfd9DA9VzvXCs9ADVfKtNft55RWmat7kpUdcFeFsqVjk3z3RmhD6DmiKh8r9wvGJuV3irnkbpGXNHJSowZ",
+        "4mU1E3BRNuzKb8PfRSQu7isgD8NbWsZEohCVoxepCGm6WnP1mqaDBLV9Fnm2TVzQ2R3JSU5zErpW1FdZTYddQaB8"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:RouteV2 -> 1DEX:SwapExactAmountIn",
+      "transactions": 2,
+      "success": 2,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 2
+      },
+      "examples": [
+        "5t9tdXG8VzaQ3gkpEVfeDcRr6nxDEMkwdnqPZsz27TjoVCYToCtAciFYNxpr9T3Dt1KaNMqcFbu54ZqGcdiGpvrH",
+        "KpKHQeAxdqFo5Hg1HRFVJmyF7AkNb2nFMzLwivFtywRM3fWiUqUxtpP1tKevFfQrHFcBEfoRvrxws4mSvbvPzwB"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:RouteV2 -> Meteora DLMM:Swap",
+      "transactions": 2,
+      "success": 2,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 2
+      },
+      "examples": [
+        "fDkXWLe7KrSGEoY3ueJfw2T7bmBMWrnR2LnRT8Ha4MyWrf5MzXXC9ushh6jPyWyp5MFEzgwa6vJscbzXbHVepiU",
+        "2gUd8akTQAFRmoFC9XmXHqog4epu1d2iJmXkD86UqtiaXtXqxoKB21LBkvnKtqvW6umXwnqoUqrhjaLiJFapY7NE"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:RouteV2 -> Meteora DLMM:Swap -> Invariant:Swap",
+      "transactions": 2,
+      "success": 2,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 2
+      },
+      "examples": [
+        "3ybqnm5XtohoxmAAi61F3LW1MCTxQhz1HbRxLtyHK96ayCvE2j6o9jirhxnXVTH9yinMaNcXThTs4NbvafwDVopE",
+        "3uZCeraKtFYziZ21Tys5Ui8jt3JQrnSddsaEHLtSNW7yKtT8AGS8MxLxcbFBEV1BGvWYvtupsNcH345zFUmJic8"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap -> Raydium CLMM:Swap",
+      "transactions": 2,
+      "success": 2,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 2
+      },
+      "examples": [
+        "23mBTTP1gsZaZmCp4zH9FDqw9zMpUQZWnFkscxe8Z5Y3PtpoF3mA882MYnPKMMKpdepWTSWtAhrg3tPyW3iHd9am",
+        "qEhwj2seKC6UG8UqsqsJSWyZ63T7zuL84H4iprzWtGpKgsaWzmzerVPjL8v8D54CFUWCK9ohDtE9huocqqeTbV9"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> PancakeSwap:Swap",
+      "transactions": 2,
+      "success": 2,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 2
+      },
+      "examples": [
+        "2TaesXXL9pFouLyxeHtVHVSUeKBuVqHtDYCnfskwePjoofaA1abeVidRtMDgVhCYgJRKjZvJebczZVoLyc2yb3og",
+        "3tj2AiXv7igdrrdrpCorB5if1mLrfFtskLDkN9mi5UWttYN9oVqFA9PaBp67765LEW6D9o3JipcobyL713Eu2jEc"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> Riptide:SwapExactIn",
+      "transactions": 2,
+      "success": 2,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 2
+      },
+      "examples": [
+        "3L5hkcYYzRwUaMgqCAsPE5cgpzR6xe43ySFatWVyVfm7CDCptkQZge7HFB6t4tLbFj1MmZgRWJctwGi6yHsceDmn",
+        "5gdQQTzEu29RFhHsJtXm2c8LQhsLM2AG1D18D3tS4jKeAGUZZUiMycKWCymcB1BTfE8thEisknDgCUkftw2LKyoY"
       ]
     },
     {
@@ -3186,15 +3773,29 @@
       ]
     },
     {
-      "sequence": "Address Lookup Table:CreateLookupTable -> Address Lookup Table:ExtendLookupTable",
-      "transactions": 1,
-      "success": 1,
+      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> Whirlpool:Swap -> Raydium CLMM:Swap",
+      "transactions": 2,
+      "success": 2,
       "failed": 0,
       "signerLayouts": {
-        "1": 1
+        "2": 2
       },
       "examples": [
-        "YQxgH6fo3RGkJeSdt6WtZaPVhbxnWFPZrQazHGw2FqMg28yEfJysA2pFgHWNwzSs2qiDXcYpcfVoYuV6Vkiga2U"
+        "7gbrZ8JZ8ynk9LTybSur8NZ5QzZHLxivmJ5uoaiPPFWfEmEpAbusHnJh3qd855Xb5uZDTciL6fFGZEVrYAuvndV",
+        "9QAf6xpPavGPVLjc9o9DeWNHLHebAtzg4bwufYKytc464AMngUYQbrx6cULXRGBrDWFUB6L3BXmMgvngxtsW1w5"
+      ]
+    },
+    {
+      "sequence": "XPlace Program 2:Withdraw -> XPlace Program 1:UpdateLoanSnapshotKamino -> XPlace Program 1:RepaySyncKamino -> Kamino Lending:RepayObligationLiquidityV2",
+      "transactions": 2,
+      "success": 2,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 2
+      },
+      "examples": [
+        "SR1ytxnL4bdrpLSkrZPKkX2GgGVgmUJz1QLpQp5Px9juFiCEYXyLsjNzT2UVoS5BQHhfabaUe4Ca5KocH3MTCBi",
+        "PKY6LXB5e2FT1cGjSH8qMKbcY2Qx1zyPKS1rT7qu16LjtkKJRoCd82q1VsjdcXBJdGM3KCqRbAn7ULgmJ9AYeAT"
       ]
     },
     {
@@ -3234,6 +3835,18 @@
       ]
     },
     {
+      "sequence": "Jupiter V6:RouteV2 -> Orca V2:Swap",
+      "transactions": 1,
+      "success": 1,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 1
+      },
+      "examples": [
+        "2Ci7THtHREv1jvA8pGn3PNDQyEWw5NfQPfDRK964mKpyRUuJNxCTm3BvYNmYpcUTQAsjskH1kP3ifrEuf6BNU811"
+      ]
+    },
+    {
       "sequence": "Jupiter V6:RouteV2 -> Whirlpool:Swap",
       "transactions": 1,
       "success": 1,
@@ -3243,18 +3856,6 @@
       },
       "examples": [
         "5RFrwPWNWmErUL3e2PgUZ18NqA59UoUUvtXkw6KgugTcLpGtdEzaWJCpi5ify4R8rBNN6KSonMhisWDAPv9wyCzk"
-      ]
-    },
-    {
-      "sequence": "Jupiter V6:RouteV2 -> ZeroFi:swap_v4",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "2vB29GaCmaNmbz5dp3sQPGSQwFPFyk3wjXfGiA3e2JxjYBjXkK4SEk2uXbKDv9LDUnYyx5c7BgpaD8ZF9GQXw4Pr"
       ]
     },
     {
@@ -3282,6 +3883,30 @@
       ]
     },
     {
+      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Byreal:SwapV3Dyn -> Riptide:SwapExactIn",
+      "transactions": 1,
+      "success": 1,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 1
+      },
+      "examples": [
+        "MWQiS6J8XpwFkRyoujMDtcNLSh8x6F6WJBaeK6pm3VsM2JWB5ukbTCPvyEutrLGiYdU4bRW4LrD9AD8jMKATsAP"
+      ]
+    },
+    {
+      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Byreal:SwapV3Dyn -> ZeroFi:swap_v4",
+      "transactions": 1,
+      "success": 1,
+      "failed": 0,
+      "signerLayouts": {
+        "2": 1
+      },
+      "examples": [
+        "21Uw3HJn7BrZC2Nyyy2Bkb8HUV8joeSGJ4Br3qAWP2fh8YdhrjyNUspxH3LY5i6Ko2g2TApVnQHbvmUypJGpL1TT"
+      ]
+    },
+    {
       "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Invariant:Swap -> Raydium CLMM:Swap -> Meteora DLMM:Swap",
       "transactions": 1,
       "success": 1,
@@ -3306,7 +3931,7 @@
       ]
     },
     {
-      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap -> Raydium CLMM:Swap",
+      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap -> Invariant:Swap",
       "transactions": 1,
       "success": 1,
       "failed": 0,
@@ -3314,7 +3939,7 @@
         "2": 1
       },
       "examples": [
-        "2by8T2dKN8iaYf2nctPer1eqqZKtP8zpQExkoMBdKLrYrHCFYf5KAL3nNFCjAaK1KC6jQBNz1Fc5J3xeQqMGZ725"
+        "4gKD1jeDZp6UtVChkFuRGvdvqAWAc57412HqcxkkQqifpDfKtDB2kcY3yJs6vnWAnavymBdfWsDBtxdCfx5VGfUu"
       ]
     },
     {
@@ -3330,7 +3955,7 @@
       ]
     },
     {
-      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> PancakeSwap:Swap",
+      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap -> Whirlpool:Swap -> Meteora DLMM:Swap",
       "transactions": 1,
       "success": 1,
       "failed": 0,
@@ -3338,11 +3963,11 @@
         "2": 1
       },
       "examples": [
-        "5BznpTnRhRW7FsDUTTRqthYXzN48VEtZnf3S9zLvP8BGbs5tqDFUVWjSer2w7FHMZgikuDmYACXKgsFzxU88FCFG"
+        "29MTJJ6XsoHRkxMhbts9XVZxojmfNUyTeZc51eHEYczjfwoivJAjC1NEibXkSrDXtkw8b4C5FGKQciT16akwwjjd"
       ]
     },
     {
-      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Perps:AddLiquidity2 -> Whirlpool:SwapV2",
+      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap2 -> Token-2022:TransferChecked -> Token-2022:TransferChecked",
       "transactions": 1,
       "success": 1,
       "failed": 0,
@@ -3350,11 +3975,11 @@
         "2": 1
       },
       "examples": [
-        "2nfP9aHc3VUSNKUTg9TkJ5gPELPs69SbVapE9QTG1VcgtBiH8mD6smTxitnbyubTFNxat12iKhSw1JoLMa5g6qBB"
+        "rz8k8AwBVkR4eYiN2aRBfWMBzfCYvmqMDqgpKY67xgYE6vcycA3YhAo2cs1NAZaARm4An11mpr777DKMNdhLSdf"
       ]
     },
     {
-      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Perps:Swap2 -> Orca V2:Swap",
+      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> PancakeSwap:Swap -> Byreal:SwapV3Dyn",
       "transactions": 1,
       "success": 1,
       "failed": 0,
@@ -3362,11 +3987,11 @@
         "2": 1
       },
       "examples": [
-        "5m8CbXZD6H93ycuexrbRmw6DGQQWjxMGCCmM6GqYYdCJ9m5dHXV2rEZi7uotezcFjoncf5B3kMdt6i6pLwysAJmj"
+        "35ybzCkR4CRxs4XqowCHr2szkYRQt93NKo6Jfm4wuY1TT6ZhEadrVdp6edCwrhesxeVHmNwarD6WABRScCZHoHLC"
       ]
     },
     {
-      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Token-2022:TransferChecked -> Whirlpool:SwapV2 -> Token-2022:TransferChecked",
+      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> PancakeSwap:Swap -> PancakeSwap:SwapV2 -> Token-2022:TransferChecked -> Meteora DLMM:Swap2 -> Token-2022:TransferChecked -> Token-2022:TransferChecked",
       "transactions": 1,
       "success": 1,
       "failed": 0,
@@ -3374,361 +3999,79 @@
         "2": 1
       },
       "examples": [
-        "51hy9zVE39zYNe6TjNVwSBsAB9Jf1HzXqRGP66Ah34RDWmfhxdZpAbKKEGbY5kfQ7X4GRQTyv6qE4N31KepriJRW"
-      ]
-    },
-    {
-      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> Whirlpool:Swap -> Raydium CLMM:Swap -> Whirlpool:SwapV2",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "2LCHg6jofCAur5FYYME9QZtg2Ji2g9sRn4iMchPf1ELAh3gupj2eRdEv2RHfok7nKaRzDGLYAxHhQpSF3x8ZQrif"
-      ]
-    },
-    {
-      "sequence": "Jupiter V6:SharedAccountsRouteV2 -> ZeroFi:swap_v4",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "2EN43RfpVLafTE8mhu9ii5Rb1wmsFsrDJMEebpQ5Z13CASjwbJB9hkYn9yGiyN8xXEJi1hffntjino1Z3xQeSpmb"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 1:CreateAccountKamino -> Kamino Lending:InitObligation -> Kamino Lending:InitObligationFarmsForReserve -> Kamino Farms:InitializeUser -> XPlace Program 2:Withdraw -> XPlace Program 1:DepositKamino -> Kamino Lending:DepositReserveLiquidityAndObligationCollateralV2 -> Kamino Farms:SetStakeDelegated",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "4xRtSkxC67yXYd8Jyo8fSKtKAtod6HmqTnJp8KY41SbyQvzQb1fka2deHroa3vMegvwfVTHP9v8Fv2qNHkryz3qY"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 1:CreateAccountKamino -> Kamino Lending:InitUserMetadata -> Kamino Lending:InitObligation",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "1": 1
-      },
-      "examples": [
-        "5mqYMGc6MWCeZAPMVNDwDitymFeLdppR5BfmPJ4mEPqdj8wA7Eb43mSFxGVkB7A61S5ZXJC2df7VqWzDXJm8PYTg"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 1:UpdateLoanSnapshotKamino -> XPlace Program 1:UpdateTargetBorrowApyKamino",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "1": 1
-      },
-      "examples": [
-        "2K33DnFx985kxLNFxmcSp7Eu6QcY88aHnYr6rRmmN3CN7fnaztPrfqqCJqxGWXfqEYYnLv1kRxAzeCNnKYNk4mNC"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 1:UpdateTargetBorrowApyKamino",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "1": 1
-      },
-      "examples": [
-        "5KVug6DSRDWHa2D8wxADLAdwit99oeWhe4yfmad3GoB7m8kTK9pWmDMKvMeFgHMYrKaS6LuztzhPPGG6rcVAughF"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:CreateAccount -> XPlace Program 2:RepayByWorker",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "1": 1
-      },
-      "examples": [
-        "5k2VKCRXJvzD1qYq7JszUfs3zHtLj7YE4zpijaa69Kjb6we7QgDBhVRwsWSx1Vq99BcTfEE549Q8FWrrV7AthgzC"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:UpdateRepayLimit -> XPlace Program 2:Withdraw -> Jupiter V6:RouteV2 -> Invariant:Swap",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "3nLysiWpckcmLiqjiRsGx7YpTWVLxFci3EdN8A5NjseHsCmdY4aPWJ8nntzFRiWZZp99Rr5HrAMgxwsyjYcGRhTv"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:UpdateRepayLimit -> XPlace Program 2:Withdraw -> Jupiter V6:RouteV2 -> ZeroFi:swap_v4",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "anHvGecS1x19CGMYBpo1DLXvHnqgzwj8cnHpMdT5JvmyMe3GAwz2xmC6XMJ3YfoPcizWwwWvii1xcs3tUPqyfTF"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:UpdateRepayLimit -> XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "4f5J51gRaTenLKVTS4jpsAb6oWJquegeHcnNnMMpgGsZSMRWzifXyjD7mzeTCgzvjLYQMcZ2gERXe7iKXepXFhCu"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:RouteV2 -> Meteora DLMM:Swap -> Invariant:Swap",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "3ybqnm5XtohoxmAAi61F3LW1MCTxQhz1HbRxLtyHK96ayCvE2j6o9jirhxnXVTH9yinMaNcXThTs4NbvafwDVopE"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:RouteV2 -> Meteora DLMM:Swap -> Meteora DLMM:Swap",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "4GaSnWBBhcWHZywe7PmPToNfpkEtDq3J8utDsQZ54cfLQKLYTFyjS6e4RcTDPRNSXqoFkmBLv8k6naaMC5bmZcaY"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:RouteV2 -> Raydium CLMM:Swap",
-      "transactions": 1,
-      "success": 0,
-      "failed": 1,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "x6oQuC1vyeH753C79Diti13exHdQ9R9QMvwzaA8dqCJXZFXqFD8wNKygcxLZFJgNgpBduQN1foELsQKDHUsCCfg"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:RouteV2 -> Whirlpool:Swap",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "2bi2hZrwsTz6exWLMXSnRjn7HnHYWmGuQ2mEthgWXR1QP9vGSzPNuovCg1Y6UtUZ63hfRGsSkzzWsUttKBVgxQbJ"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> 1DEX:SwapExactAmountIn -> DexLab:Swap -> Raydium CLMM:Swap",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "2wM26QPrXtV6y7hjq6vWfc4sWXqfrcUC9SZadyt3Fvm1jh2Pza5uLMxTxG4j7a4J5hJhKUxA24AfSm9e1XbiMcp4"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> 1DEX:SwapExactAmountIn -> Mercurial:Exchange",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "5aPdZH3hYMLcQ7LCiki6gaGJsK5CJdrDryA3Z66iLSTspYqpF37jHUjuXtDkTSnwy2tXGUwr62JeraWhax4XBaX5"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> 1DEX:SwapExactAmountIn -> Meteora DLMM:Swap",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "2Sub63zTZ18tBbjfWunb8Pxtyk5BQnzG3ZdswpTxaCuRMR5Rpq2Bee5HvC6Aji8YneUtiJUdUBdRgYgb7zVJXvTn"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> Invariant:Swap",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "5fjarvn3UEtzuohMzjFBPGTciwJrQhdTQWBaiqGQ62e8Z8RQeHvd9Z7HhMCZdb5WVj7YB6T6zVADMNwPoHZ6m4G7"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap -> Meteora DLMM:Swap",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "5xTsWaBKLT11EXGQGbVsT2GChe4FBEVQXGp47oVAMenebLpqi7X8xsKnkZDqeVy1hKEBEVBaZbg6dG9TmfSVh5QX"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap -> Raydium CLMM:Swap",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "23mBTTP1gsZaZmCp4zH9FDqw9zMpUQZWnFkscxe8Z5Y3PtpoF3mA882MYnPKMMKpdepWTSWtAhrg3tPyW3iHd9am"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> Meteora DLMM:Swap -> Whirlpool:SwapV2",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "5PDgQyf6MoiVMxYcMdzSNFq6mkuyZT7JN1y7867ZPSRZfXbwRhy9QW3PjGipgX9psW8e83bAUySth7BovkmgGiju"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> PancakeSwap:Swap",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "2TaesXXL9pFouLyxeHtVHVSUeKBuVqHtDYCnfskwePjoofaA1abeVidRtMDgVhCYgJRKjZvJebczZVoLyc2yb3og"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> Whirlpool:SwapV2 -> Whirlpool:Swap",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "3StLdGQQ6DofZDH53eaXY282w9Y4tC75ZaN1p32NbQHtEqket4Gv9DYcpSkZCdiutwvtAqyyRRimF2QainPoSQxE"
-      ]
-    },
-    {
-      "sequence": "XPlace Program 2:Withdraw -> Jupiter V6:SharedAccountsRouteV2 -> ZeroFi:swap_v4 -> Meteora:Swap -> Meteora Vault:Deposit -> Meteora Vault:Withdraw -> Meteora DLMM:Swap",
-      "transactions": 1,
-      "success": 1,
-      "failed": 0,
-      "signerLayouts": {
-        "2": 1
-      },
-      "examples": [
-        "5WMtEKf3vmuGtMyuYJaypYHRcCinXSxfbLg9qMDkgLewMJgtNngegpfRVqCFt1TMSkVKYXSaVGGJDvkpV7ZAq9ne"
+        "4zc9rsVv1atsxQ9wKidjbdN4tMzzPV2huaWH24WWdU2RYYgQqCRYsdRLJKyZTEcuMcRtpnzVz4cQMBEGJGRa7Bwi"
       ]
     }
   ],
   "recentHighSignalFundFlows": {
     "xplace2RepaySettlement": {
-      "transactions": 591,
+      "transactions": 1697,
       "signerLayouts": {
-        "1": 591
+        "1": 1697
       },
       "netRoleDeltas": {
-        "XPLACE2_PDA|USDC": -39835.81999999999,
-        "PDA:CCTP Bridge Program|USDC": 39766.57999999998,
-        "XPLACE2_CONFIG|USDC": 69.24
+        "XPLACE2_PDA|USDC": -130828.14999999995,
+        "PDA:CCTP Bridge Program|USDC": 130647.95000000019,
+        "XPLACE2_CONFIG|USDC": 180.2
       }
     },
     "xplace1WorkerBorrowKamino": {
-      "transactions": 186,
+      "transactions": 559,
       "signerLayouts": {
-        "1": 186
+        "1": 559
       },
       "netRoleDeltas": {
         "XPLACE1_PDA|USDC": 0,
-        "XPLACE2_PDA|USDC": 11585.840000000004,
+        "XPLACE2_PDA|USDC": 33383.4,
         "XPLACE1_CONFIG|USDC": 0,
-        "KAMINO_MARKET_AUTHORITY|USDC": -11585.840000000004
+        "KAMINO_MARKET_AUTHORITY|USDC": -33384.16,
+        "UNKNOWN|USDC": 0.76
       }
     },
     "xplace1WithdrawKamino": {
-      "transactions": 103,
+      "transactions": 212,
       "signerLayouts": {
-        "2": 103
+        "2": 212
       },
       "netRoleDeltas": {
-        "UNKNOWN|USDT": 2670.319729,
-        "XPLACE1_PDA|USDT": -0.000004,
-        "KAMINO_MARKET_AUTHORITY|B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": -4165.831566,
-        "KAMINO_MARKET_AUTHORITY|USDT": -4895.891619,
-        "USER_SIGNER|USDC": 415.478032,
-        "XPLACE1_PDA|USDC": -0.000003,
-        "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": -348.45292,
-        "KAMINO_MARKET_AUTHORITY|USDC": -415.54803,
-        "XPLACE1_PDA|SOL": -3e-9,
-        "KAMINO_MARKET_AUTHORITY|2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": -124116.84588600001,
-        "KAMINO_MARKET_AUTHORITY|SOL": -141.918233913,
-        "USER_SIGNER|USDT": 2225.571894000001,
-        "USER_SIGNER|ETH": 0.32840818,
+        "UNKNOWN|USDT": 10565.572470000001,
+        "XPLACE1_PDA|USDT": -0.00001,
+        "KAMINO_MARKET_AUTHORITY|B8zf4kojJbwgCRKA7rLaLhRCZBGhgAJp8wPBVZZHMhSv": -12326.912993999995,
+        "KAMINO_MARKET_AUTHORITY|USDT": -14486.136557,
+        "USER_SIGNER|USDC": 735.131297,
+        "XPLACE1_PDA|USDC": -0.000004,
+        "KAMINO_MARKET_AUTHORITY|B8V6WVjPxW1UGwVDfxH2d2r8SyT4cqn7dQRK6XneVa7D": -7242.801342999999,
+        "KAMINO_MARKET_AUTHORITY|USDC": -8635.661097999999,
+        "XPLACE1_PDA|SOL": -8e-9,
+        "KAMINO_MARKET_AUTHORITY|2UywZrUdyqs5vDchy7fKQJKau2RVyuzBev2XKGPDSiX1": -165105.54197500006,
+        "KAMINO_MARKET_AUTHORITY|SOL": -188.779966172,
+        "USER_SIGNER|USDT": 3920.564097,
+        "USER_SIGNER|ETH": 0.50666065,
         "XPLACE1_PDA|ETH": 0,
-        "KAMINO_MARKET_AUTHORITY|BE5LqGwfAPYHEGjqR48C8CUu1nCP9BbJwrDUhB141rnL": -32.178249,
-        "KAMINO_MARKET_AUTHORITY|ETH": -0.32840818,
-        "USER_SIGNER|cbBTC": 0.29159757,
+        "KAMINO_MARKET_AUTHORITY|BE5LqGwfAPYHEGjqR48C8CUu1nCP9BbJwrDUhB141rnL": -49.643946,
+        "KAMINO_MARKET_AUTHORITY|ETH": -0.50666065,
+        "USER_SIGNER|cbBTC": 0.33675834,
         "XPLACE1_PDA|cbBTC": 0,
-        "KAMINO_MARKET_AUTHORITY|B3ieCZaTUp8qM9zbPqH2WDhzWpwrvHB2Q2aWB25DW97U": -29.14736,
-        "KAMINO_MARKET_AUTHORITY|cbBTC": -0.29159757,
-        "UNKNOWN|USDC": 0.070001
+        "KAMINO_MARKET_AUTHORITY|B3ieCZaTUp8qM9zbPqH2WDhzWpwrvHB2Q2aWB25DW97U": -33.959423,
+        "KAMINO_MARKET_AUTHORITY|cbBTC": -0.33973854,
+        "UNKNOWN|USDC": 7900.529805,
+        "USER_SIGNER|JitoSOL": 0.14623785,
+        "XPLACE1_PDA|JitoSOL": 0,
+        "KAMINO_MARKET_AUTHORITY|9ucQp7thL38MDDTSER5ou24QnVSTZFLevDsZC1cAFkKy": -146.090183,
+        "KAMINO_MARKET_AUTHORITY|JitoSOL": -0.14623785,
+        "UNKNOWN|cbBTC": 0.0029802
       }
     },
     "xplace2RelayDeposit": {
-      "transactions": 11,
+      "transactions": 29,
       "signerLayouts": {
-        "2": 11
+        "2": 29
       },
-      "usdcDeposited": 953.12
+      "usdcDeposited": 2528.469888
     }
   },
   "limitations": [
-    "The full signature crawl is complete at signature level for the recorded snapshot, while instruction-level decoding is complete for the latest 2,000 transactions plus an earlier stratified sample.",
+    "The full signature crawl is complete at signature level for the recorded snapshot, while instruction-level decoding is complete for the latest 5,226 transactions plus an earlier stratified sample.",
     "Binary method presence is not access proof. Access claims require a successful observed signer layout and remain limited by account, whitelist, token, oracle, balance, limit, downstream-program and atomic-bundle checks.",
     "Routed DEX AddLiquidity/Deposit/Withdraw CPIs can be transient swap mechanics. They are not counted as persistent CH liquidity positions without a CH-owned position/share/NFT account.",
     "XPlace-managed user collateral, debt, card balances and all program-owned rent are not added to CH direct net worth.",

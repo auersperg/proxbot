@@ -54,6 +54,156 @@ const dynamic = JSON.parse(fs.readFileSync(dynamicPath, "utf8"));
 const stateInventory = JSON.parse(fs.readFileSync(statePath, "utf8"));
 const mainMap = JSON.parse(fs.readFileSync(mainMapPath, "utf8"));
 const generatedAt = new Date().toISOString();
+const decodedWindowCount = dynamic.capturedTransactions;
+const decodedWindowCountLabel = new Intl.NumberFormat("en-US").format(decodedWindowCount);
+
+const currentStatePath = args["current-state"] ? path.resolve(args["current-state"]) : null;
+const tokenInventoryPath = args["token-inventory"]
+  ? path.resolve(args["token-inventory"])
+  : null;
+const configVaultsPath = args["config-vaults"]
+  ? path.resolve(args["config-vaults"])
+  : null;
+
+if ((currentStatePath && !tokenInventoryPath) || (!currentStatePath && tokenInventoryPath)) {
+  throw new Error("--current-state and --token-inventory must be supplied together");
+}
+
+for (const optionalPath of [currentStatePath, tokenInventoryPath, configVaultsPath].filter(
+  Boolean,
+)) {
+  if (!fs.existsSync(optionalPath)) {
+    throw new Error(`Optional refresh input does not exist: ${optionalPath}`);
+  }
+}
+
+function roundNumber(value, digits = 12) {
+  return Number(Number(value).toFixed(digits));
+}
+
+function refreshCurrentFunds() {
+  if (!currentStatePath || !tokenInventoryPath) return;
+
+  const currentState = JSON.parse(fs.readFileSync(currentStatePath, "utf8"));
+  const tokenInventory = JSON.parse(fs.readFileSync(tokenInventoryPath, "utf8"));
+  const existingTokenByAccount = new Map(
+    (mainMap.funds?.tokens ?? []).map((token) => [token.tokenAccount, token]),
+  );
+  const tokens = tokenInventory.rows.map((token) => ({
+    ...(existingTokenByAccount.get(token.tokenAccount) ?? {}),
+    ...token,
+  }));
+  const solToken = tokens.find(
+    (token) => token.mint === "So11111111111111111111111111111111111111112",
+  );
+  const solPrice = Number(solToken?.usdPrice ?? 0);
+  const liquidSystemSol = Number(currentState.balance.value) / 1_000_000_000;
+  const directTokenUsdIndicative = tokens.reduce(
+    (total, token) => total + Number(token.usdValue ?? 0),
+    0,
+  );
+  const tokenAccountRentSol =
+    tokens.reduce((total, token) => total + Number(token.lamports ?? 0), 0) /
+    1_000_000_000;
+  const liquidSystemSolUsd = liquidSystemSol * solPrice;
+  const tokenAccountRentUsdIndicative = tokenAccountRentSol * solPrice;
+
+  mainMap.funds.tokens = tokens;
+  mainMap.funds.direct = {
+    liquidSystemSol: roundNumber(liquidSystemSol),
+    liquidSystemSolUsd: roundNumber(liquidSystemSolUsd),
+    directTokenUsdIndicative: roundNumber(directTokenUsdIndicative),
+    tokenAccountRentSol: roundNumber(tokenAccountRentSol),
+    tokenAccountRentUsdIndicative: roundNumber(tokenAccountRentUsdIndicative),
+    directLiquidUsdExcludingRent: roundNumber(
+      liquidSystemSolUsd + directTokenUsdIndicative,
+    ),
+    directControlledUsdIncludingRecoverableTokenAccountRent: roundNumber(
+      liquidSystemSolUsd + directTokenUsdIndicative + tokenAccountRentUsdIndicative,
+    ),
+  };
+  mainMap.funds.snapshot = {
+    refreshedAt: generatedAt,
+    systemAccountSlot: currentState.balance.context.slot,
+    legacyTokenAccountsSlot: currentState.tokenAccountsLegacy.context.slot,
+    token2022AccountsSlot: currentState.tokenAccounts2022.context.slot,
+    priceSnapshotAt: tokenInventory.generatedAt,
+    priceSource: tokenInventory.priceSource,
+    priceEndpoint: tokenInventory.priceEndpoint,
+  };
+
+  const protocol = mainMap.funds.protocolAndProgram;
+  protocol.systemProgram.directSol = roundNumber(liquidSystemSol);
+  protocol.systemProgram.usdIndicative = roundNumber(liquidSystemSolUsd);
+  protocol.splTokenAndToken2022.tokenAccounts = tokens.length;
+  protocol.splTokenAndToken2022.totalTokenUsdIndicative =
+    roundNumber(directTokenUsdIndicative);
+  protocol.splTokenAndToken2022.rentSolPotentiallyRecoverableAfterEmptyingAndClosing =
+    roundNumber(tokenAccountRentSol);
+
+  const jlp = tokens.find(
+    (token) => token.mint === "27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4",
+  );
+  if (jlp) {
+    protocol.jupiter.directJlpAmount = jlp.amount;
+    protocol.jupiter.directJlpUsdIndicative = roundNumber(jlp.usdValue ?? 0);
+  }
+  const jitoSol = tokens.find(
+    (token) => token.mint === "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+  );
+  if (jitoSol) {
+    protocol.jito.directJitoSolAmount = jitoSol.amount;
+    protocol.jito.directJitoSolUsdIndicative = roundNumber(jitoSol.usdValue ?? 0);
+  }
+  for (const xplace of [protocol.xplaceProgram1, protocol.xplaceProgram2]) {
+    if (xplace?.allProgramOwnedAccountLamports) {
+      xplace.allProgramOwnedAccountLamports.indicativeUsdAtSolPrice = roundNumber(
+        xplace.allProgramOwnedAccountLamports.sol * solPrice,
+      );
+    }
+  }
+
+  if (!configVaultsPath) return;
+  const configVaults = JSON.parse(fs.readFileSync(configVaultsPath, "utf8"));
+  const refreshConfig = (target, configPda) => {
+    const ownerRecord = configVaults.owners?.[configPda] ?? {};
+    const accounts = Object.entries(ownerRecord).flatMap(([tokenProgram, result]) =>
+      (result.value ?? []).map((entry) => {
+        const info = entry.account.data.parsed.info;
+        return {
+          tokenAccount: entry.pubkey,
+          tokenProgram,
+          mint: info.mint,
+          amountRaw: info.tokenAmount.amount,
+          decimals: info.tokenAmount.decimals,
+          amount: info.tokenAmount.uiAmountString,
+          lamports: String(entry.account.lamports),
+        };
+      }),
+    );
+    const usdc = accounts.find(
+      (account) => account.mint === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    );
+    const usdcPrice = Number(
+      tokens.find(
+        (token) => token.mint === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      )?.usdPrice ?? 0,
+    );
+    target.configOwnedTokenAccounts = accounts;
+    target.configUsdc = Number(usdc?.amount ?? 0);
+    target.configUsdcUsdIndicative = roundNumber(target.configUsdc * usdcPrice);
+  };
+  refreshConfig(protocol.xplaceProgram1, protocol.xplaceProgram1.configPda);
+  refreshConfig(protocol.xplaceProgram2, protocol.xplaceProgram2.configPda);
+  mainMap.funds.snapshot.configVaultSnapshotAt = configVaults.generatedAt;
+  mainMap.funds.snapshot.configVaultSlot = Math.max(
+    ...Object.values(configVaults.owners ?? {}).flatMap((ownerRecord) =>
+      Object.values(ownerRecord).map((result) => Number(result.context?.slot ?? 0)),
+    ),
+  );
+}
+
+refreshCurrentFunds();
 
 const xplace2Methods = [
   "Init",
@@ -164,7 +314,7 @@ const semantics = {
   Withdraw:
     "Withdraw USDC from an XPlace 2 card PDA; recent two-signer bundles continue into user payout, Kamino repay/deposit, Jupiter routes, or Relay Bridge.",
   WithdrawByWorker:
-    "Binary-exposed worker withdrawal path; no execution observed in the decoded 2,000-transaction window.",
+    "Binary-exposed worker withdrawal path; no execution observed in the decoded transaction window.",
   TakeSubscriptionPayment:
     "Binary-exposed constrained subscription collection path.",
   ReturnRefund: "Binary-exposed worker refund return path.",
@@ -175,7 +325,7 @@ const semantics = {
   RepayByWorkerKamino:
     "Take reclaimed XPlace 2 USDC and repay a Kamino obligation through XPlace 1.",
   BorrowByWorkerDrift:
-    "Worker-side borrow against an XPlace-managed Drift user account; historical one-signer evidence exists outside the latest 2,000 window.",
+    "Worker-side borrow against an XPlace-managed Drift user account; historical one-signer evidence exists outside the latest decoded window.",
   RepayByWorkerDrift: "Binary-exposed worker-side repayment through an XPlace-managed Drift account.",
   DepositKamino:
     "Deposit SOL/USDC/USDT/ETH/cbBTC/JitoSOL through an XPlace 1 PDA, mint Kamino collateral receipts, and update delegated farm stake when configured.",
@@ -212,6 +362,19 @@ const semantics = {
 const flowByKey = new Map(
   dynamic.flows.map((flow) => [`${flow.programId}:${flow.method}`, flow]),
 );
+const signerOutcomesByKey = new Map();
+for (const transaction of dynamic.transactions) {
+  for (const frame of transaction.frames) {
+    if (![XPLACE_1, XPLACE_2].includes(frame.programId)) continue;
+    for (const method of frame.instructions) {
+      const key = `${frame.programId}:${method}`;
+      const outcomes = signerOutcomesByKey.get(key) ?? {};
+      const outcomeKey = `${transaction.signers.length}:${transaction.success ? "success" : "failed"}`;
+      outcomes[outcomeKey] = (outcomes[outcomeKey] ?? 0) + 1;
+      signerOutcomesByKey.set(key, outcomes);
+    }
+  }
+}
 
 function accessClass(method) {
   if (adminMethods.has(method)) return "admin_config";
@@ -243,6 +406,7 @@ function normalizeObjectNumbers(input) {
 
 function methodRecord(programId, program, method) {
   const flow = flowByKey.get(`${programId}:${method}`);
+  const signerOutcomes = signerOutcomesByKey.get(`${programId}:${method}`) ?? {};
   const historical =
     programId === XPLACE_1 && method === "BorrowByWorkerDrift"
       ? {
@@ -260,6 +424,7 @@ function methodRecord(programId, program, method) {
         success: flow.success,
         failed: flow.failed,
         signerLayouts: flow.signerLayouts,
+        signerOutcomes,
         directDescendants: flow.descendants,
         assets: flow.assets,
         netRoleDeltas: normalizeObjectNumbers(flow.netRoleDeltas),
@@ -268,10 +433,13 @@ function methodRecord(programId, program, method) {
     : historical;
 
   const oneSignerSuccessEvidence =
-    (flow?.success ?? historical?.success ?? 0) > 0 &&
-    Number(flow?.signerLayouts?.["1"] ?? historical?.signerLayouts?.["1"] ?? 0) > 0;
+    Number(
+      flow ? signerOutcomes["1:success"] : (historical?.signerLayouts?.["1"] ?? 0),
+    ) > 0;
   const twoSignerEvidence =
-    Number(flow?.signerLayouts?.["2"] ?? historical?.signerLayouts?.["2"] ?? 0) > 0;
+    Number(
+      flow ? signerOutcomes["2:success"] : (historical?.signerLayouts?.["2"] ?? 0),
+    ) > 0;
 
   return {
     programId,
@@ -467,7 +635,7 @@ helperPrograms.push({
   programId: CCTP_BRIDGE,
   label: "XPlace CCTP Bridge Program",
   relationship: "token_recipient_owner_in_xplace2_repay_settlement",
-  transactions: 591,
+  transactions: flowByKey.get(`${XPLACE_2}:RepayByWorker`)?.transactions ?? 0,
   invocations: 0,
   topLevelInvocations: 0,
   innerInvocations: 0,
@@ -499,7 +667,7 @@ helperPrograms.sort(
 
 const recentWindowTimes = dynamic.transactions.map((transaction) => transaction.blockTime);
 const recentWindow = {
-  strategy: "latest 2,000 address-referencing transactions fully decoded with log-stack CPI frames",
+  strategy: `latest ${decodedWindowCountLabel} address-referencing transactions fully decoded with log-stack CPI frames`,
   transactions: dynamic.capturedTransactions,
   successfulTransactions: dynamic.transactions.filter((transaction) => transaction.success).length,
   failedTransactions: dynamic.transactions.filter((transaction) => !transaction.success).length,
@@ -535,9 +703,9 @@ const capabilityArtifact = {
   account: ACCOUNT,
   evidenceTiers: {
     observed_recent_window:
-      "Decoded finalized transaction with signer layout, logs, CPI stack and token deltas in the 2,000-transaction window.",
+      `Decoded finalized transaction with signer layout, logs, CPI stack and token deltas in the ${decodedWindowCountLabel}-transaction window.`,
     observed_legacy_stratified_sample:
-      "Decoded finalized transaction in the earlier temporal-stratified sample but outside the latest 2,000 window.",
+      `Decoded finalized transaction in the earlier temporal-stratified sample but outside the latest ${decodedWindowCountLabel} window.`,
     binary_surface_only:
       "Method label/source symbols and validation strings in the current on-chain ProgramData binary; no recent execution proof.",
     inferred:
@@ -648,7 +816,7 @@ const capabilityArtifact = {
     },
   },
   limitations: [
-    "The full signature crawl is complete at signature level for the recorded snapshot, while instruction-level decoding is complete for the latest 2,000 transactions plus an earlier stratified sample.",
+    `The full signature crawl is complete at signature level for the recorded snapshot, while instruction-level decoding is complete for the latest ${decodedWindowCountLabel} transactions plus an earlier stratified sample.`,
     "Binary method presence is not access proof. Access claims require a successful observed signer layout and remain limited by account, whitelist, token, oracle, balance, limit, downstream-program and atomic-bundle checks.",
     "Routed DEX AddLiquidity/Deposit/Withdraw CPIs can be transient swap mechanics. They are not counted as persistent CH liquidity positions without a CH-owned position/share/NFT account.",
     "XPlace-managed user collateral, debt, card balances and all program-owned rent are not added to CH direct net worth.",
@@ -679,6 +847,10 @@ const methodCsvRows = methods.map((record) => ({
   recent_failed: record.observed?.source ? 0 : (record.observed?.failed ?? 0),
   one_signer_messages: record.observed?.signerLayouts?.["1"] ?? 0,
   two_signer_messages: record.observed?.signerLayouts?.["2"] ?? 0,
+  one_signer_success: record.observed?.signerOutcomes?.["1:success"] ?? 0,
+  one_signer_failed: record.observed?.signerOutcomes?.["1:failed"] ?? 0,
+  two_signer_success: record.observed?.signerOutcomes?.["2:success"] ?? 0,
+  two_signer_failed: record.observed?.signerOutcomes?.["2:failed"] ?? 0,
   ch_only_success_evidence: record.chOnlySuccessEvidence,
   ch_plus_user_evidence: record.chPlusUserEvidence,
   effect: record.effect,
@@ -694,6 +866,141 @@ const bundleCsvRows = atomicBundles.slice(0, 75).map((bundle) => ({
   sequence: bundle.sequence,
   examples: bundle.examples.join(" "),
 }));
+
+const fundSnapshot = mainMap.funds.snapshot ?? {};
+const directFunds = mainMap.funds.direct;
+const protocolFunds = mainMap.funds.protocolAndProgram;
+const solPrice =
+  mainMap.funds.tokens.find(
+    (token) => token.mint === "So11111111111111111111111111111111111111112",
+  )?.usdPrice ?? 0;
+const usdcPrice =
+  mainMap.funds.tokens.find(
+    (token) => token.mint === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  )?.usdPrice ?? 0;
+const fundCsvRows = [
+  {
+    scope: "direct",
+    program: "System Program",
+    program_address: ACCOUNT,
+    asset: "SOL",
+    mint: "So11111111111111111111111111111111111111112",
+    account: ACCOUNT,
+    amount: directFunds.liquidSystemSol,
+    usd_price: solPrice,
+    usd_value: directFunds.liquidSystemSolUsd,
+    access: "direct signer",
+    slot: fundSnapshot.systemAccountSlot ?? "",
+    notes: "liquid native balance",
+  },
+  ...mainMap.funds.tokens.map((token) => ({
+    scope: "direct",
+    program:
+      token.program === "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        ? "Token-2022"
+        : "SPL Token",
+    program_address: token.program,
+    asset: token.symbol,
+    mint: token.mint,
+    account: token.tokenAccount,
+    amount: token.amount,
+    usd_price: token.usdPrice ?? "",
+    usd_value: token.usdValue ?? "",
+    access: "direct token owner",
+    slot:
+      token.program === "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        ? (fundSnapshot.token2022AccountsSlot ?? "")
+        : (fundSnapshot.legacyTokenAccountsSlot ?? ""),
+    notes: `${token.isVerified ? "verified" : "unverified"}/${token.organicScoreLabel ?? "unknown"}`,
+  })),
+  {
+    scope: "recoverable-rent",
+    program: "SPL Token + Token-2022",
+    program_address: "",
+    asset: "SOL",
+    mint: "",
+    account: `${mainMap.funds.tokens.length} token accounts`,
+    amount: directFunds.tokenAccountRentSol,
+    usd_price: solPrice,
+    usd_value: directFunds.tokenAccountRentUsdIndicative,
+    access: "after empty+close",
+    slot: "",
+    notes: "not current liquid balance",
+  },
+  ...[
+    ["XPlace Program 2", XPLACE_2, protocolFunds.xplaceProgram2],
+    ["XPlace Program 1", XPLACE_1, protocolFunds.xplaceProgram1],
+  ].flatMap(([program, programAddress, record]) =>
+    (record.configOwnedTokenAccounts ?? []).map((account) => ({
+      scope: "program-controlled",
+      program,
+      program_address: programAddress,
+      asset:
+        account.mint === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+          ? "USDC"
+          : account.mint,
+      mint: account.mint,
+      account: account.tokenAccount,
+      amount: account.amount,
+      usd_price:
+        account.mint === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+          ? usdcPrice
+          : "",
+      usd_value:
+        account.mint === "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+          ? roundNumber(Number(account.amount) * Number(usdcPrice))
+          : "",
+      access: "Config PDA; CH operational authority",
+      slot: fundSnapshot.configVaultSlot ?? "",
+      notes:
+        Number(account.amount) === 0
+          ? "program-controlled empty token account"
+          : "constraint-bound; not direct CH balance",
+    })),
+  ),
+  {
+    scope: "protocol-position",
+    program: "Kamino direct obligations/vaults/rewards",
+    program_address: "",
+    asset: "",
+    mint: "",
+    account: "",
+    amount: 0,
+    usd_price: "",
+    usd_value: 0,
+    access: "none found",
+    slot: "",
+    notes: "",
+  },
+  {
+    scope: "protocol-position",
+    program: "Drift direct User accounts",
+    program_address: "",
+    asset: "",
+    mint: "",
+    account: "",
+    amount: 0,
+    usd_price: "",
+    usd_value: 0,
+    access: "none found",
+    slot: "",
+    notes: "",
+  },
+  {
+    scope: "protocol-position",
+    program: "Orca/Raydium/Meteora direct LP positions",
+    program_address: "",
+    asset: "",
+    mint: "",
+    account: "",
+    amount: 0,
+    usd_price: "",
+    usd_value: 0,
+    access: "none found",
+    slot: "",
+    notes: "",
+  },
+];
 
 fs.mkdirSync(outputDirectory, { recursive: true });
 fs.writeFileSync(
@@ -713,6 +1020,10 @@ fs.writeFileSync(
     "recent_failed",
     "one_signer_messages",
     "two_signer_messages",
+    "one_signer_success",
+    "one_signer_failed",
+    "two_signer_success",
+    "two_signer_failed",
     "ch_only_success_evidence",
     "ch_plus_user_evidence",
     "effect",
@@ -729,6 +1040,23 @@ fs.writeFileSync(
     "two_signer_messages",
     "sequence",
     "examples",
+  ])}\n`,
+);
+fs.writeFileSync(
+  path.join(outputDirectory, "ch-account-funds.csv"),
+  `${toCsv(fundCsvRows, [
+    "scope",
+    "program",
+    "program_address",
+    "asset",
+    "mint",
+    "account",
+    "amount",
+    "usd_price",
+    "usd_value",
+    "access",
+    "slot",
+    "notes",
   ])}\n`,
 );
 
@@ -811,6 +1139,7 @@ console.log(
         path.join(outputDirectory, "ch-cpi-capability-map.json"),
         path.join(outputDirectory, "ch-method-capabilities.csv"),
         path.join(outputDirectory, "ch-atomic-flow-correlations.csv"),
+        path.join(outputDirectory, "ch-account-funds.csv"),
         mainMapPath,
       ],
     },

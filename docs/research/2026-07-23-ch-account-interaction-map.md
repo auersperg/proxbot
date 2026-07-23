@@ -2,17 +2,19 @@
 
 **Network:** Solana mainnet-beta
 
-**Direct-account snapshot:** slot `434738815`
+**Direct-account snapshot:** slot `434755930`
 
-**Token snapshot:** slot `434738817`
+**Token snapshot:** slot `434755932`
+
+**Price snapshot:** `2026-07-23T17:13:51.578Z`, Jupiter Tokens V2 / Price V3
 
 **Полная сигнатурная история на момент среза:** `202,066` transactions/address references
 
-**Глубоко декодированное окно:** последние `2,000` transactions, `2026-07-22T17:13:07Z`…`2026-07-23T16:01:45Z`
+**Глубоко декодированное окно:** последние `5,226` transactions, `2026-07-20T21:00:23Z`…`2026-07-23T16:10:51Z`
 
 **XPlace binary surface:** `15 + 40 = 55` application methods
 
-**Наблюдавшиеся program IDs в глубоком окне:** `42`
+**Наблюдавшиеся program IDs в глубоком окне:** `46`
 
 ## 0. Исправленный главный вывод
 
@@ -41,7 +43,7 @@
 | Tier | Значение |
 |---|---|
 | `observed_recent_window` | finalized transaction декодирована: signers, logs, CPI stack, pre/post token balances и transfers |
-| `observed_legacy_stratified_sample` | finalized transaction была в предыдущем временно-стратифицированном sample, но не попала в последние 2,000 |
+| `observed_legacy_stratified_sample` | finalized transaction была в предыдущем временно-стратифицированном sample, но не попала в последние 5,226 |
 | `binary_surface_only` | method/source label и guardrail strings присутствуют в текущем on-chain ProgramData binary, но execution в глубоком окне отсутствует |
 | `inferred` | структурная связь по account owner/layout/atomic correlation; не превращается в authority claim без transaction evidence |
 
@@ -59,7 +61,7 @@ flowchart LR
     KFarms["Kamino Farms<br/>delegated collateral rewards"]
     Drift["Drift v2<br/>XPlace-managed user accounts"]
     Jupiter["Jupiter V6<br/>route composition"]
-    DEX["35 observed helper/routed programs"]
+    DEX["39 observed helper/routed programs"]
     CCTP["CCTP Bridge Program<br/>repay settlement recipient"]
     Relay["Relay Bridge<br/>DepositToken"]
     User["Second signer / final user ATA"]
@@ -136,7 +138,7 @@ flowchart LR
 
 ## 4. XPlace Program 2 — все 15 методов
 
-Обозначения: `R` = последние 2,000; `L` = предыдущий historical sample; `B` = binary-only.
+Обозначения: `R` = последние 5,226; `L` = предыдущий historical sample; `B` = binary-only.
 
 | Method | Access class | Evidence | Tx / success / failed | 1 signer | 2 signers | Наблюдаемый или потенциальный эффект |
 |---|---|---|---:|---:|---:|---|
@@ -144,12 +146,12 @@ flowchart LR
 | `UpdateConfig` | admin/config | B | 0 | 0 | 0 | update program configuration |
 | `ConfirmAdminRotation` | admin/config | B | 0 | 0 | 0 | commit admin rotation |
 | `Migrate` | admin/config | B | 0 | 0 | 0 | migrate state layout |
-| `RepayByWorker` | worker | R | 591 / 591 / 0 | 591 | 0 | card USDC → CCTP settlement recipient + XPlace 2 fee vault |
-| `ReclaimByWorker` | worker | R | 3 / 3 / 0 | 3 | 0 | XPlace 2 → XPlace 1 `RepayByWorkerKamino` → Kamino repay |
-| `CreateAccount` | hybrid lifecycle | R | 13 / 13 / 0 | 13 | 0 | create CardAccount and PDA link |
-| `UpdateRepayLimit` | user position | R | 9 / 8 / 1 | 0 | 9 | update per-tx/daily repay limits |
-| `TopUp` | user funding | R | 402 / 353 / 49 | 402 | 0 | fund card PDA with USDC |
-| `Withdraw` | user position | R | 210 / 202 / 8 | 0 | 210 | card USDC payout or continuation into repay/deposit/swap/bridge |
+| `RepayByWorker` | worker | R | 1,697 / 1,697 / 0 | 1,697 | 0 | card USDC → CCTP settlement recipient + XPlace 2 fee vault |
+| `ReclaimByWorker` | worker | R | 11 / 11 / 0 | 11 | 0 | XPlace 2 → XPlace 1 `RepayByWorkerKamino` → Kamino repay |
+| `CreateAccount` | hybrid lifecycle | R | 36 / 34 / 2 | 36 | 0 | create CardAccount and PDA link |
+| `UpdateRepayLimit` | user position | R | 31 / 30 / 1 | 0 | 31 | update per-tx/daily repay limits |
+| `TopUp` | user funding | R | 939 / 837 / 102 | 939 | 0 | fund card PDA with USDC |
+| `Withdraw` | user position | R | 482 / 474 / 8 | 0 | 482 | card USDC payout or continuation into repay/deposit/swap/bridge |
 | `WithdrawByWorker` | worker | B | 0 | 0 | 0 | constrained worker withdrawal branch |
 | `TakeSubscriptionPayment` | worker | B | 0 | 0 | 0 | subscription collection |
 | `WithdrawRevenue` | admin/config | B | 0 | 0 | 0 | program revenue withdrawal |
@@ -170,27 +172,27 @@ Binary guardrails include: enabled/pause state, token allowlist, per-transaction
 | `Migrate` | admin/config | B | 0 | 0 | 0 | state migration |
 | `BatchCreateLoanSnapshot` | worker | B | 0 | 0 | 0 | batch snapshot initialization |
 | `BorrowSyncByWorkerKamino` | worker | B | 0 | 0 | 0 | synchronized worker borrow |
-| `BorrowByWorkerKamino` | worker | R | 186 / 186 / 0 | 186 | 0 | Kamino borrow → linked XPlace 2 card PDA |
+| `BorrowByWorkerKamino` | worker | R | 559 / 559 / 0 | 559 | 0 | Kamino borrow → linked XPlace 2 card PDA |
 | `RepaySyncByWorkerKamino` | worker | B | 0 | 0 | 0 | synchronized worker repay |
-| `RepayByWorkerKamino` | worker | R | 3 / 3 / 0 | 3 | 0 | reclaimed XPlace 2 USDC → Kamino repay |
+| `RepayByWorkerKamino` | worker | R | 11 / 11 / 0 | 11 | 0 | reclaimed XPlace 2 USDC → Kamino repay |
 | `RepayByWorkerDrift` | worker | B | 0 | 0 | 0 | worker Drift repay |
 | `BorrowByWorkerDrift` | worker | L | 6 / 6 / 0 | 6 | 0 | worker Drift borrow |
-| `CreateAccount` | hybrid lifecycle | R | 76 / 43 / 33 | 76 | 0 | create XPlace UserAccount/UserId |
-| `CreateAccountKamino` | hybrid lifecycle | R | 50 / 50 / 0 | 45 | 5 | init Kamino metadata/obligation |
+| `CreateAccount` | hybrid lifecycle | R | 196 / 112 / 84 | 196 | 0 | create XPlace UserAccount/UserId |
+| `CreateAccountKamino` | hybrid lifecycle | R | 152 / 152 / 0 | 124 | 28 | init Kamino metadata/obligation |
 | `CreateAccountDrift` | user position | B | 0 | 0 | 0 | create linked Drift user |
 | `CloseAccountDrift` | user position | B | 0 | 0 | 0 | close linked Drift user |
 | `RebalanceDrift` | worker | B | 0 | 0 | 0 | rebalance Drift |
 | `UpdateBorrowLimit` | user position | B | 0 | 0 | 0 | per-user borrow limit |
 | `DepositDrift` | user position | B | 0 | 0 | 0 | Drift deposit |
-| `DepositKamino` | hybrid user/worker | R | 120 / 118 / 2 | 60 | 60 | deposit underlying, mint reserve collateral, update farms |
+| `DepositKamino` | hybrid user/worker | R | 306 / 302 / 4 | 132 | 174 | deposit underlying, mint reserve collateral, update farms |
 | `WithdrawDrift` | user position | B | 0 | 0 | 0 | Drift withdrawal |
-| `WithdrawKamino` | user position | R | 103 / 103 / 0 | 0 | 103 | redeem Kamino collateral and pay underlying to user |
-| `WithdrawAndSendKamino` | user position | R | 13 / 13 / 0 | 0 | 13 | redeem and forward in same atomic transaction |
-| `BorrowSyncKamino` | user position | R | 2 / 2 / 0 | 0 | 2 | snapshot-bound synchronized borrow |
-| `BorrowKamino` | user position | R | 22 / 22 / 0 | 0 | 22 | user borrow through Kamino |
+| `WithdrawKamino` | user position | R | 212 / 208 / 4 | 0 | 212 | redeem Kamino collateral and pay underlying to user |
+| `WithdrawAndSendKamino` | user position | R | 39 / 39 / 0 | 0 | 39 | redeem and forward in same atomic transaction |
+| `BorrowSyncKamino` | user position | R | 4 / 4 / 0 | 0 | 4 | snapshot-bound synchronized borrow |
+| `BorrowKamino` | user position | R | 48 / 48 / 0 | 0 | 48 | user borrow through Kamino |
 | `BorrowDrift` | user position | B | 0 | 0 | 0 | user Drift borrow |
-| `RepaySyncKamino` | user position | B | 0 | 0 | 0 | synchronized repay |
-| `RepayKamino` | user position | R | 75 / 75 / 0 | 0 | 75 | XPlace 2 withdrawal → Kamino repay |
+| `RepaySyncKamino` | user position | R | 2 / 2 / 0 | 0 | 2 | snapshot-bound synchronized repay |
+| `RepayKamino` | user position | R | 171 / 171 / 0 | 0 | 171 | XPlace 2 withdrawal → Kamino repay |
 | `RepayDrift` | user position | B | 0 | 0 | 0 | user Drift repay |
 | `RepayWithBuffer` | user position | B | 0 | 0 | 0 | buffered repay |
 | `RepayWithBufferKamino` | user position | B | 0 | 0 | 0 | Kamino buffered repay |
@@ -198,8 +200,8 @@ Binary guardrails include: enabled/pause state, token allowlist, per-transaction
 | `WithdrawByWorkerKamino` | worker | B | 0 | 0 | 0 | potential worker Kamino collateral redemption |
 | `CompleteDeleverageKamino` | worker | B | 0 | 0 | 0 | complete flash-loan/swap deleverage bundle |
 | `ClaimDfxDrift` | worker | B | 0 | 0 | 0 | Drift/DFX claim path |
-| `UpdateTargetBorrowApyKamino` | worker | R | 2 / 2 / 0 | 2 | 0 | target APY maintenance |
-| `UpdateLoanSnapshotKamino` | hybrid | R | 3 / 3 / 0 | 1 | 2 | snapshot update |
+| `UpdateTargetBorrowApyKamino` | worker | R | 3 / 3 / 0 | 3 | 0 | target APY maintenance |
+| `UpdateLoanSnapshotKamino` | hybrid | R | 7 / 7 / 0 | 1 | 6 | snapshot update |
 | `ResetLoanSnapshotKamino` | worker | B | 0 | 0 | 0 | reset stale snapshot |
 | `RevertRepayWithBufferKamino` | worker | B | 0 | 0 | 0 | timeout-governed buffer revert |
 
@@ -221,31 +223,32 @@ Current binary содержит account names/source paths и validation branche
 
 | Count | Signers | Atomic sequence | Значение |
 |---:|---|---|---|
-| 590 | 1 | XPlace 2 `RepayByWorker` | worker repayment settlement |
-| 390 | 1 | XPlace 2 `TopUp` | card funding |
-| 186 | 1 | XPlace 1 `BorrowByWorkerKamino` → KLend `BorrowObligationLiquidityV2` | automated Kamino borrow to card |
-| 95 | 2 | XPlace 1 `WithdrawKamino` → KLend collateral redemption → Farms stake update | collateral withdrawal/remove-liquidity |
-| 75 | 2 | XPlace 2 `Withdraw` → XPlace 1 `RepayKamino` → KLend repay | card funds repay loan |
-| 68 | 38×1 + 30×2 | XPlace 1 `DepositKamino` → KLend deposit → Farms stake update | collateral deposit |
-| 56 | 2 | XPlace 2 `Withdraw` | direct card payout branch |
-| 43 | 1 | XPlace 1 `CreateAccount` → `CreateAccountKamino` → `InitUserMetadata` → `InitObligation` | user/obligation bootstrap |
-| 40 | 2 | Jupiter `RouteV2` | standalone routed swap |
-| 22 | 2 | XPlace 1 `BorrowKamino` → KLend borrow | user borrow |
-| 15 | mixed | init Farms → XPlace 1 deposit → KLend deposit → Farms update | first deposit with farm init |
-| 13 | 2 | XPlace 1 `WithdrawAndSendKamino` → KLend redemption → Farms update | redeem and forward |
-| 12 | 2 | XPlace 2 `Withdraw` → Jupiter `RouteV2` | card withdrawal converted through Jupiter |
-| 12 | 1 | XPlace 2 `CreateAccount` → `TopUp` | create and fund card |
-| 12 | 2 | XPlace 2 `Withdraw` → XPlace 1 `DepositKamino` → KLend deposit → Farms | card funds become collateral |
-| 11 | 2 | XPlace 2 `Withdraw` → Relay Bridge `DepositToken` | bridge funding |
-| 8 | 2 | XPlace 1 `WithdrawKamino` → KLend redemption | withdrawal without Farms update |
-| 7 | 2 | Jupiter SharedAccountsRouteV2 → Meteora DLMM `Swap` | routed DEX branch |
-| 6 | 2 | XPlace 2 `Withdraw` → Jupiter → Meteora DLMM | card withdrawal converted through DLMM |
-| 4 | 2 | `UpdateRepayLimit` → XPlace 2 `Withdraw` | limit update and payout |
-| 3 | 1 | XPlace 2 `ReclaimByWorker` → XPlace 1 `RepayByWorkerKamino` → KLend repay | cross-program worker recovery/repay |
-| 3 | 2 | XPlace 2 `Withdraw` → Jupiter → 1DEX | card withdrawal routed through 1DEX |
-| 2 | 2 | `UpdateLoanSnapshotKamino` → `BorrowSyncKamino` → KLend borrow | snapshot-bound borrow |
+| 1,696 | 1 | XPlace 2 `RepayByWorker` | worker repayment settlement |
+| 906 | 1 | XPlace 2 `TopUp` | card funding |
+| 559 | 1 | XPlace 1 `BorrowByWorkerKamino` → KLend `BorrowObligationLiquidityV2` | automated Kamino borrow to card |
+| 189 | 2 | XPlace 1 `WithdrawKamino` → KLend collateral redemption → Farms stake update | collateral withdrawal/remove-liquidity |
+| 170 | 2 | XPlace 2 `Withdraw` → XPlace 1 `RepayKamino` → KLend repay | card funds repay loan |
+| 142 | 72×1 + 70×2 | XPlace 1 `DepositKamino` → KLend deposit → Farms stake update | collateral deposit |
+| 118 | 2 | XPlace 2 `Withdraw` | direct card payout branch |
+| 112 | 1 | XPlace 1 `CreateAccount` → `CreateAccountKamino` → `InitUserMetadata` → `InitObligation` | user/obligation bootstrap |
+| 76 | 2 | Jupiter `RouteV2` | standalone routed swap |
+| 48 | 2 | XPlace 1 `BorrowKamino` → KLend borrow | user borrow |
+| 43 | 21×1 + 22×2 | init Farms → XPlace 1 deposit → KLend deposit → Farms update | first deposit with farm init |
+| 39 | 2 | XPlace 1 `WithdrawAndSendKamino` → KLend redemption → Farms update | redeem and forward |
+| 39 | 2 | XPlace 2 `Withdraw` → XPlace 1 `DepositKamino` → KLend deposit → Farms | card funds become collateral |
+| 33 | 1 | XPlace 2 `CreateAccount` → `TopUp` | create and fund card |
+| 29 | 2 | XPlace 2 `Withdraw` → Relay Bridge `DepositToken` | bridge funding |
+| 25 | 1 | XPlace 1 `DepositKamino` → KLend deposit | collateral deposit without Farms update |
+| 23 | 2 | XPlace 1 `WithdrawKamino` → KLend redemption | withdrawal without Farms update |
+| 20 | 2 | XPlace 2 `Withdraw` → Jupiter `RouteV2` | card withdrawal converted through Jupiter |
+| 11 | 1 | XPlace 2 `ReclaimByWorker` → XPlace 1 `RepayByWorkerKamino` → KLend repay | cross-program worker recovery/repay |
+| 10 | 2 | XPlace 2 `UpdateRepayLimit` → `Withdraw` | limit update and payout |
+| 10 | 2 | XPlace 2 `Withdraw` → Jupiter SharedAccountsRouteV2 | card withdrawal converted through Jupiter |
+| 8 | 2 | XPlace 2 `Withdraw` → Jupiter → Meteora DLMM | card withdrawal converted through DLMM |
+| 5 | 2 | XPlace 2 `Withdraw` → Jupiter → 1DEX | card withdrawal routed through 1DEX |
+| 4 | 2 | `UpdateLoanSnapshotKamino` → `BorrowSyncKamino` → KLend borrow | snapshot-bound borrow |
 
-Полные `75` distinct sequence variants с success/failure и example signatures находятся в `artifacts/solana/ch-atomic-flow-correlations.csv`.
+Анализ выявил `121` distinct sequence variants; верхние `75` с success/failure и example signatures находятся в `artifacts/solana/ch-atomic-flow-correlations.csv`.
 
 ## 7. Helper-программы и routed liquidity
 
@@ -253,13 +256,13 @@ Current binary содержит account names/source paths и validation branche
 
 | Program | Address | Recent relationship | Tx count / instructions |
 |---|---|---|---|
-| Kamino Lending | `KLend2g3…avgmjD` | direct CPI from XPlace 1 | 569 tx; 1,432 RefreshReserve; 525 RefreshObligation; 210 borrow; 118 deposit; 116 withdraw/redeem; 78 repay |
-| Kamino Scope | `HFn8GnP…F2fWJ` | oracle refresh before lending | 525 `RefreshPriceList` |
-| Kamino Farms | `FarmsPZ…Ja91Hr` | delegated collateral rewards | 215 tx; 215 `SetStakeDelegated`; 22 `InitializeUser` |
-| CCTP Bridge Program | `ccfVv3f…jMnJFNEy` | owner of settlement recipient for XPlace 2 repay | 591 related repayments; `39,766.58 USDC` received in recent window |
-| Relay Bridge | `99vQwtB…cfnJSrN2` | top-level after XPlace 2 Withdraw | 11 `DepositToken`; `953.12 USDC` passed into the bridge branch |
+| Kamino Lending | `KLend2g3…avgmjD` | direct CPI from XPlace 1 | 1,467 tx; 3,560 RefreshReserve; 1,353 RefreshObligation; 611 borrow; 302 deposit; 251 withdraw/redeem; 184 repay |
+| Kamino Scope | `HFn8GnP…F2fWJ` | oracle refresh before lending | 1,353 `RefreshPriceList` |
+| Kamino Farms | `FarmsPZ…Ja91Hr` | delegated collateral rewards | 502 tx; 502 `SetStakeDelegated`; 61 `InitializeUser` |
+| CCTP Bridge Program | `ccfVv3f…jMnJFNEy` | owner of settlement recipient for XPlace 2 repay | 1,697 related repayments; `130,647.95 USDC` received in decoded window |
+| Relay Bridge | `99vQwtB…cfnJSrN2` | top-level after XPlace 2 Withdraw | 33 `DepositToken`; 29 linked XPlace-withdraw bundles passed `2,528.469888 USDC` |
 
-Current CCTP helper binary SHA-256: `4044c16d7ad4c06b6a41e80a736b1d9bc12236af589b39cf1799ba4f7d2e3315`; visible methods: `InitializeConfig`, `UpdateConfig`, `ProposeUpdateAuthority`, `CommitUpdateAuthority`, `Settle`, `Bridge`. In the 591 `RepayByWorker` transactions USDC is transferred to a token account owned by the bridge program; that same transaction does not invoke the bridge program, so это settlement input, а не доказательство завершённого cross-chain message в том же slot.
+Current CCTP helper binary SHA-256: `4044c16d7ad4c06b6a41e80a736b1d9bc12236af589b39cf1799ba4f7d2e3315`; visible methods: `InitializeConfig`, `UpdateConfig`, `ProposeUpdateAuthority`, `CommitUpdateAuthority`, `Settle`, `Bridge`. In the 1,697 `RepayByWorker` transactions USDC is transferred to a token account owned by the bridge program; that same transaction does not invoke the bridge program, so это settlement input, а не доказательство завершённого cross-chain message в том же slot.
 
 Relay binary SHA-256: `93a89aef6dd30e66f4cda6d3dafecddbfe58ecc98e5596dbc832feaf5eed9e91`; visible methods: `Initialize`, `SetAllocator`, `SetOwner`, `MigrateDomainSeparator`, `DepositNative`, `DepositToken`, `ExecuteTransfer`. Guardrails include allocator signer, ed25519 request verification, signature expiry, domain separator, recipient/mint/vault matching and replay/reentrancy checks.
 
@@ -267,33 +270,33 @@ Relay binary SHA-256: `93a89aef6dd30e66f4cda6d3dafecddbfe58ecc98e5596dbc832feaf5
 
 | Program | Address | Transactions | Decoded nested methods |
 |---|---|---:|---|
-| Jupiter V6 | `JUP6Lkb…NyVTaV4` | 127 | `RouteV2` 67; `SharedAccountsRouteV2` 60 |
-| GoonFi V2 | `goonudd…HtURSLE` | 55 | routed liquidity |
-| Quantum | `QuaNtZs…2BN9bBDv` | 28 | routed liquidity |
-| Meteora DLMM | `LBUZKhR…YuVaPwxo` | 27 | `Swap` 29 invocations |
-| AlphaQ | `ALPHAQm…Srvs4pHA` | 20 | routed liquidity |
-| Deriverse | `DRVSpZ2…DgRnrgqD` | 17 | routed liquidity |
-| BisonFi | `BiSoNHV…KshCSUypi` | 16 | routed liquidity |
-| TesseraV | `TessVdM…4x83GLQH` | 16 | routed liquidity |
-| Manifest | `MNFSTqt…LByLd1k1Ms` | 13 | routed liquidity |
-| Whirlpool | `whirLbM…ff3uctyCc` | 9 | `Swap` 6; `SwapV2` 5 invocations |
-| Raydium CLMM | `CAMMCzo…grrKgrWqK` | 8 | `Swap` 8 |
-| Aquifer | `AQU1FRd…fKU3bTz45` | 7 | routed liquidity |
-| 1DEX | `DEXYosS…gYCaqPMTm` | 6 | `SwapExactAmountIn` 6 |
-| Invariant | `HyaB3W9…cEbRaJutt` | 6 | `Swap` 6 |
-| HumidiFi | `9H6tua7…iNN3q6Rp` | 5 | routed liquidity |
-| ZeroFi | `ZERor4x…tCf4hbZY` | 5 | `swap_v4` 5 |
-| Flux | `FLUX6xB…DzSpCsvfK` | 4 | routed liquidity |
-| Byreal | `REALQqN…NnfxQ5N2` | 4 | `SwapV3Dyn` 4 |
-| PancakeSwap | `HpNfyc2…B2qjx8jxFq` | 3 | `Swap` 3 |
+| Jupiter V6 | `JUP6Lkb…NyVTaV4` | 258 | `RouteV2` 133; `SharedAccountsRouteV2` 125 |
+| GoonFi V2 | `goonudd…HtURSLE` | 107 | routed liquidity |
+| Quantum | `QuaNtZs…2BN9bBDv` | 30 | routed liquidity |
+| Meteora DLMM | `LBUZKhR…YuVaPwxo` | 50 | `Swap` 55; `Swap2` 2 invocations |
+| AlphaQ | `ALPHAQm…Srvs4pHA` | 50 | routed liquidity |
+| Deriverse | `DRVSpZ2…DgRnrgqD` | 24 | routed liquidity |
+| BisonFi | `BiSoNHV…KshCSUypi` | 35 | routed liquidity |
+| TesseraV | `TessVdM…4x83GLQH` | 25 | routed liquidity |
+| Manifest | `MNFSTqt…LByLd1k1Ms` | 37 | routed liquidity |
+| Whirlpool | `whirLbM…ff3uctyCc` | 21 | `Swap` 15; `SwapV2` 9 invocations |
+| Raydium CLMM | `CAMMCzo…grrKgrWqK` | 25 | `Swap` 26 |
+| Aquifer | `AQU1FRd…fKU3bTz45` | 13 | routed liquidity |
+| 1DEX | `DEXYosS…gYCaqPMTm` | 11 | `SwapExactAmountIn` 11 |
+| Invariant | `HyaB3W9…cEbRaJutt` | 13 | `Swap` 13 |
+| HumidiFi | `9H6tua7…iNN3q6Rp` | 16 | routed liquidity |
+| ZeroFi | `ZERor4x…tCf4hbZY` | 13 | `swap_v4` 13 |
+| Flux | `FLUX6xB…DzSpCsvfK` | 5 | routed liquidity |
+| Byreal | `REALQqN…NnfxQ5N2` | 14 | `SwapV3Dyn` 14 |
+| PancakeSwap | `HpNfyc2…B2qjx8jxFq` | 9 | `Swap` 9; `SwapV2` 1 |
 | Mercurial | `MERLuDF…cU2HKky` | 3 | `Exchange` 3 |
 | Jupiter Perps | `PERPHjG…fdBS2qQJu` | 2 | `Swap2` 1; `AddLiquidity2` 1 |
-| Orca V2 | `9W959Dq…eTEdp3aQP` | 1 | `Swap` 1 |
+| Orca V2 | `9W959Dq…eTEdp3aQP` | 3 | `Swap` 3 |
 | Saber | `SSwpkEE…52nZg1UZ` | 1 | `Swap` 1 |
-| DexLab | `DSwpgjM…HJpdJtmg6N` | 1 | `Swap` 1 |
-| SolFi V2 | `SV2EYYJ…yo13WtupPF` | 1 | routed liquidity |
-| Scorch Router / Scorch | `SCoRcH8…Xxx3mqn` / `ojh19…Corch` | 1 | nested router |
-| Raydium AMM | `675kPX9…wFSUt1Mp8` | 1 | routed liquidity |
+| DexLab | `DSwpgjM…HJpdJtmg6N` | 2 | `Swap` 2 |
+| SolFi V2 | `SV2EYYJ…yo13WtupPF` | 3 | routed liquidity |
+| Scorch Router / Scorch | `SCoRcH8…Xxx3mqn` / `ojh19…Corch` | 5 | nested router |
+| Raydium AMM | `675kPX9…wFSUt1Mp8` | 3 | routed liquidity |
 | Meteora AMM | `Eo7WjKq…5EQVn5UaB` | 1 | `Swap` 1 |
 | Meteora Vault | `24Uqj9J…G3LYwBpyTi` | 1 | `Deposit` 1 + `Withdraw` 1 in the same route |
 
@@ -311,44 +314,44 @@ Relay binary SHA-256: `93a89aef6dd30e66f4cda6d3dafecddbfe58ecc98e5596dbc832feaf5
 
 | Класс | Balance | USD mark | Attribution/access |
 |---|---:|---:|---|
-| CH System balance | `4.336825655 SOL` | `$330.753167` | direct CH signature |
-| CH SPL/Token-2022 | 21 ATA, 20 non-zero | `$9.892556` | direct token owner; delegates 0 |
-| Recoverable ATA rent | `0.0431868 SOL` | `$3.293693` | only after token cleanup/close |
-| XPlace 2 Config ATA | `1,431.4 USDC` | `$1,431.285205` | program-controlled; CH operational authority, not token owner |
+| CH System balance | `4.010657855 SOL` | `$304.391809` | direct CH signature |
+| CH SPL/Token-2022 | 21 ATA, 20 non-zero | `$9.885228` | direct token owner; delegates 0 |
+| Recoverable ATA rent | `0.0431868 SOL` | `$3.277694` | only after token cleanup/close |
+| XPlace 2 Config ATA | `1,431.4 USDC` | `$1,431.287393` | program-controlled; CH operational authority, not token owner |
 | XPlace 1 Config ATA | `0 USDC` | `$0` | program-controlled empty ATA |
 | All XPlace 2 account-state lamports | `3.748996345 SOL` | not CH net worth | rent/state across all card users |
 | All XPlace 1 account-state lamports | `13.136958242 SOL` | not CH net worth | rent/state across all XPlace users |
 | Direct Kamino positions for CH | 0 obligations, 0 KVault, 0 rewards | `$0` | XPlace user obligations are separate |
 | Direct Drift User accounts for CH | 0 | `$0` | XPlace-managed Drift accounts are separate |
 
-**Direct liquid mark excluding recoverable rent:** `$340.645723`.
+**Direct liquid mark excluding recoverable rent:** `$314.277037`.
 
-**Including potentially recoverable ATA rent:** `$343.939415`.
+**Including potentially recoverable ATA rent:** `$317.554731`.
 
 ### 8.2 Все 21 direct token accounts
 
 | Symbol | Mint | Amount | USD mark | Quality / extensions |
 |---|---|---:|---:|---|
 | SOL ATA | `So11111111111111111111111111111111111111112` | 0 | $0.000000 | verified/high |
-| cbBTC | `cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij` | 0.000005 | $0.324480 | verified/high |
-| RENDER | `rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof` | 0.108828 | $0.162607 | verified/medium |
-| JLP | `27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4` | 0.097682 | $0.355238 | verified/high |
-| WBTC | `3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh` | 0.000004 | $0.258672 | verified/high |
-| ETH | `7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs` | 0.000339 | $0.642369 | verified/high |
+| cbBTC | `cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij` | 0.000005 | $0.323499 | verified/high |
+| RENDER | `rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof` | 0.108828 | $0.161358 | verified/medium |
+| JLP | `27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4` | 0.097682 | $0.355304 | verified/high |
+| WBTC | `3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh` | 0.000004 | $0.258486 | verified/high |
+| ETH | `7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs` | 0.000339 | $0.639438 | verified/high |
 | NVDA | `9dwPiStDBwJJqC3QzMnjpJP7xohZbMVmHELFx3uy3KRq` | 2442.045041 | $0.193226 | verified/low |
-| syrupUSDC | `AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj` | 0.146014 | $0.171513 | verified/medium |
+| syrupUSDC | `AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj` | 0.146014 | $0.171496 | verified/medium |
 | USDTet | `Dn4noZ5jgGfkntzcQSUZ8czkreiZ1ForXYoV2H8Dm7S1` | 0.18054 | $0.180291 | verified/low |
-| USDC | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | 2.360206 | $2.360017 | verified/high |
-| USDT | `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB` | 3.675214 | $3.672752 | verified/high |
-| MELANIA | `FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P` | 1.664863 | $0.133677 | verified/low |
+| USDC | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` | 2.360206 | $2.360020 | verified/high |
+| USDT | `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB` | 3.675214 | $3.672110 | verified/high |
+| MELANIA | `FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P` | 1.664863 | $0.133954 | verified/low |
 | BIG | `Foot4fxy8CHxM37W8BeHwK6aLd8VH2yHTFu43KCxbCqc` | 2111.52805 | $0.223159 | unverified/low |
-| TRX | `GbbesPbaYh5uiAZSYNXTc7w9jty1rpg3P9L4JeN4LkKc` | 0.567393 | $0.185514 | verified/low |
-| JitoSOL | `J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn` | 0.005016 | $0.492638 | verified/high |
-| Punch | `NV2RYH954cTJ3ckFUpvfqaQXU4ARqqDH3562nFSpump` | 16.957433 | $0.020849 | Token-2022 immutableOwner |
+| TRX | `GbbesPbaYh5uiAZSYNXTc7w9jty1rpg3P9L4JeN4LkKc` | 0.567393 | $0.185488 | verified/low |
+| JitoSOL | `J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn` | 0.005016 | $0.491540 | verified/high |
+| Punch | `NV2RYH954cTJ3ckFUpvfqaQXU4ARqqDH3562nFSpump` | 16.957433 | $0.020697 | Token-2022 immutableOwner |
 | 雪山救狐 | `ijq5Vaxog5xZvqbt9NfGpm7mndrwBGQaydXNNsmpump` | 138.380711 | $0.000445 | unverified; immutableOwner |
-| PUMP | `pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn` | 100.149013 | $0.193867 | immutableOwner + transferHookAccount |
-| PYUSD | `2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo` | 0.173242 | $0.173229 | transfer fee/hook; withheld 0 |
-| ANSEM | `9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump` | 0.867303 | $0.144529 | immutableOwner |
+| PUMP | `pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn` | 100.149013 | $0.192466 | immutableOwner + transferHookAccount |
+| PYUSD | `2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo` | 0.173242 | $0.173231 | transfer fee/hook; withheld 0 |
+| ANSEM | `9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump` | 0.867303 | $0.145532 | immutableOwner |
 | DURCOIN | `BKMp8wXfbsRjAQ65rpDgUPjL8s1xFDAtVWzw3eeQpump` | 777 | $0.003487 | unverified/low |
 
 Полный account-level ledger с ATA addresses, raw amounts, decimals, authorities и valuation — `artifacts/solana/ch-account-funds.csv`.
@@ -357,38 +360,46 @@ Relay binary SHA-256: `93a89aef6dd30e66f4cda6d3dafecddbfe58ecc98e5596dbc832feaf5
 
 | Branch | Transactions | Flow |
 |---|---:|---|
-| XPlace 2 `RepayByWorker` | 591 | `39,835.82 USDC` left XPlace 2 card PDAs; `39,766.58` reached CCTP bridge-owned recipient; `69.24` reached XPlace 2 Config |
-| XPlace 1 `BorrowByWorkerKamino` | 186 | `11,585.84 USDC` left Kamino market authority and reached linked XPlace 2 PDAs |
-| XPlace 1 `WithdrawKamino` | 103 | user signers received `2,225.571894 USDT`, `415.478032 USDC`, `0.32840818 ETH`, `0.29159757 cbBTC`; SOL/native destination attribution requires per-transaction wrapped-SOL handling |
-| XPlace 1 `WithdrawKamino` receipt burns | 103 | `4,165.831566 kUSDT`, `348.452920 kUSDC`, `124,116.845886 kSOL`, `32.178249 kETH`, `29.147360 kcbBTC` receipt units |
-| XPlace 1 `DepositKamino` | 120 attempts / 118 success | observed underlying deposits include USDT, USDC, SOL, ETH, cbBTC and JitoSOL; matching Kamino receipt mints and Farms updates are in the JSON artifact |
-| XPlace 2 `Withdraw` → Relay | 11 | `953.12 USDC` entered Relay `DepositToken` branches |
+| XPlace 2 `TopUp` | 939 / 837 success | net `278,214.221722 USDC` entered linked XPlace 2 card PDAs |
+| XPlace 2 `Withdraw` | 482 / 474 success | net `188,006.503712 USDC` left linked XPlace 2 card PDAs and continued into payout/repay/deposit/swap/bridge branches |
+| XPlace 2 `RepayByWorker` | 1,697 | `130,828.15 USDC` left XPlace 2 card PDAs; `130,647.95` reached the CCTP bridge-owned recipient; `180.20` reached XPlace 2 Config |
+| XPlace 1 `BorrowByWorkerKamino` | 559 | `33,384.16 USDC` left Kamino reserve-side accounts; `33,383.40` reached linked XPlace 2 PDAs |
+| XPlace 1 `RepayKamino` | 171 | `109,964.173647 USDC` entered Kamino reserve-side accounts from card-withdrawal bundles |
+| XPlace 1 `ReclaimByWorker` → `RepayByWorkerKamino` | 11 | `176.31 USDC` moved from XPlace 2 PDAs into Kamino repayment |
+| XPlace 1 `DepositKamino` | 306 / 302 success | reserve-side net inflow: `502.289788393 SOL`, `27,033.289991 USDC`, `17,414.767888 USDT`, `1.42992254 ETH`, `0.35712093 cbBTC`, `0.292545734 JitoSOL` |
+| XPlace 1 `WithdrawKamino` | 212 / 208 success | reserve-side underlying released: `188.779966172 SOL`, `8,635.661098 USDC`, `14,486.136557 USDT`, `0.50666065 ETH`, `0.33973854 cbBTC`, `0.14623785 JitoSOL` |
+| XPlace 1 `WithdrawKamino` receipt burns | 212 | `165,105.541975 kSOL`, `7,242.801343 kUSDC`, `12,326.912994 kUSDT`, `49.643946 kETH`, `33.959423 kcbBTC`, `146.090183 kJitoSOL` receipt units |
+| XPlace 1 `WithdrawAndSendKamino` | 39 | reserve-side underlying released and forwarded: `66.021304417 SOL` plus `1,976.873832 USDT` |
+| XPlace 1 `BorrowKamino` | 48 | `1,943.944674 USDC` released from Kamino; `1,893.954632` reached currently attributable user signers and `49.990042` reached other transaction recipients |
+| XPlace 1 `BorrowSyncKamino` / `RepaySyncKamino` | 4 / 2 | synchronized snapshot branches: `21.550578 USDC` borrow-side outflow; `43.212154 USDC` repay-side inflow |
+| XPlace 2 `Withdraw` → Relay | 29 | `2,528.469888 USDC` entered linked Relay `DepositToken` branches |
 
-Эти суммы — volume внутри 22.8-часового decoded window. Они не являются текущим балансом, all-time volume или средствами, принадлежащими CH.
+Эти суммы — net role deltas внутри 67.2-часового decoded window. Строки atomic bundles могут пересекаться, поэтому их нельзя складывать в один TVL. Это не текущий баланс, не all-time volume и не средства, автоматически принадлежащие CH.
 
 ## 9. Signer/capability lattice
 
 ### Подтверждённые CH-only execution branches
 
-- XPlace 2 `RepayByWorker`: 591 success;
-- XPlace 2 `ReclaimByWorker`: 3 success;
-- XPlace 2 `CreateAccount`: 13 success;
-- XPlace 2 `TopUp`: 353 success, 49 failed attempts;
-- XPlace 1 `BorrowByWorkerKamino`: 186 success;
-- XPlace 1 `RepayByWorkerKamino`: 3 success;
+- XPlace 2 `RepayByWorker`: 1,697 success;
+- XPlace 2 `ReclaimByWorker`: 11 success;
+- XPlace 2 `CreateAccount`: 34 success, 2 failed attempts;
+- XPlace 2 `TopUp`: 837 success, 102 failed attempts;
+- XPlace 1 `BorrowByWorkerKamino`: 559 success;
+- XPlace 1 `RepayByWorkerKamino`: 11 success;
 - XPlace 1 `BorrowByWorkerDrift`: 6 success в legacy sample;
-- XPlace 1 `UpdateTargetBorrowApyKamino`: 2 success;
+- XPlace 1 `UpdateTargetBorrowApyKamino`: 3 success;
 - часть lifecycle/deposit/snapshot flows: `CreateAccount`, `CreateAccountKamino`, `DepositKamino`, `UpdateLoanSnapshotKamino`.
 
 ### Подтверждённые CH + user branches
 
-- XPlace 2 `UpdateRepayLimit`: 9 attempts;
-- XPlace 2 `Withdraw`: 210 attempts;
-- XPlace 1 `WithdrawKamino`: 103 success;
-- XPlace 1 `WithdrawAndSendKamino`: 13 success;
-- XPlace 1 `BorrowKamino`: 22 success;
-- XPlace 1 `RepayKamino`: 75 success;
-- XPlace 1 `BorrowSyncKamino`: 2 success;
+- XPlace 2 `UpdateRepayLimit`: 31 attempts;
+- XPlace 2 `Withdraw`: 482 attempts;
+- XPlace 1 `WithdrawKamino`: 208 success, 4 failed attempts;
+- XPlace 1 `WithdrawAndSendKamino`: 39 success;
+- XPlace 1 `BorrowKamino`: 48 success;
+- XPlace 1 `RepayKamino`: 171 success;
+- XPlace 1 `BorrowSyncKamino`: 4 success;
+- XPlace 1 `RepaySyncKamino`: 2 success;
 - часть `CreateAccountKamino`, `DepositKamino`, `UpdateLoanSnapshotKamino`;
 - Jupiter routes, когда они продолжают user withdrawal.
 
@@ -410,7 +421,7 @@ Relay binary SHA-256: `93a89aef6dd30e66f4cda6d3dafecddbfe58ecc98e5596dbc832feaf5
 - complete at snapshot: `true`;
 - later chain activity может появиться после этого recorded newest signature.
 
-Сигнатурная полнота не подменяет instruction decoding: все `2,000` последних transactions декодированы глубоко, а full-history signatures сохранены как coverage proof. Solana отдельно поясняет, что standard RPC пригоден для verification, а большие historical instruction analytics обычно требуют indexing pipeline.
+Сигнатурная полнота не подменяет instruction decoding: все `5,226` последних transactions декодированы глубоко, а full-history signatures сохранены как coverage proof. Solana отдельно поясняет, что standard RPC пригоден для verification, а большие historical instruction analytics обычно требуют indexing pipeline.
 
 ## 11. Методика, ограничения и источники
 

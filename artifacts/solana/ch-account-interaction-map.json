@@ -1,6 +1,6 @@
 {
   "schemaVersion": 3,
-  "generatedAt": "2026-07-23T16:45:59.297Z",
+  "generatedAt": "2026-07-23T17:28:29.626Z",
   "chain": "solana",
   "network": "mainnet-beta",
   "account": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
@@ -49,140 +49,156 @@
     "snapshotSemantics": "Complete for this address as of newestSignature/toUtc; later transactions can naturally appear after the snapshot."
   },
   "decodedSample": {
-    "strategy": "latest 2,000 address-referencing transactions fully decoded with log-stack CPI frames",
-    "transactions": 2000,
-    "successfulTransactions": 1902,
-    "failedTransactions": 98,
-    "fromUtc": "2026-07-22T17:13:07.000Z",
-    "toUtc": "2026-07-23T16:01:45.000Z",
-    "programIdsObserved": 42,
-    "xplaceMethodsObserved": 18,
+    "strategy": "latest 5,226 address-referencing transactions fully decoded with log-stack CPI frames",
+    "transactions": 5226,
+    "successfulTransactions": 5014,
+    "failedTransactions": 212,
+    "fromUtc": "2026-07-20T21:00:23.000Z",
+    "toUtc": "2026-07-23T16:10:51.000Z",
+    "programIdsObserved": 46,
+    "xplaceMethodsObserved": 19,
     "caveat": "Counts and volumes describe this decoded window, not all 202,066 historical signatures. Failed transactions contribute method attempts but no finalized state transition.",
     "observedMethodSignerLayouts": {
       "XPlace Program 2:RepayByWorker": {
-        "transactions": 591,
-        "success": 591,
+        "transactions": 1697,
+        "success": 1697,
         "failed": 0,
         "signerLayouts": {
-          "1": 591
+          "1": 1697
         }
       },
       "XPlace Program 2:TopUp": {
-        "transactions": 402,
-        "success": 353,
-        "failed": 49,
+        "transactions": 939,
+        "success": 837,
+        "failed": 102,
         "signerLayouts": {
-          "1": 402
-        }
-      },
-      "XPlace Program 2:Withdraw": {
-        "transactions": 210,
-        "success": 202,
-        "failed": 8,
-        "signerLayouts": {
-          "2": 210
+          "1": 939
         }
       },
       "XPlace Program 1:BorrowByWorkerKamino": {
-        "transactions": 186,
-        "success": 186,
+        "transactions": 559,
+        "success": 559,
         "failed": 0,
         "signerLayouts": {
-          "1": 186
+          "1": 559
+        }
+      },
+      "XPlace Program 2:Withdraw": {
+        "transactions": 482,
+        "success": 474,
+        "failed": 8,
+        "signerLayouts": {
+          "2": 482
         }
       },
       "XPlace Program 1:DepositKamino": {
-        "transactions": 120,
-        "success": 118,
-        "failed": 2,
+        "transactions": 306,
+        "success": 302,
+        "failed": 4,
         "signerLayouts": {
-          "1": 60,
-          "2": 60
+          "1": 132,
+          "2": 174
         }
       },
       "XPlace Program 1:WithdrawKamino": {
-        "transactions": 103,
-        "success": 103,
-        "failed": 0,
+        "transactions": 212,
+        "success": 208,
+        "failed": 4,
         "signerLayouts": {
-          "2": 103
+          "2": 212
         }
       },
       "XPlace Program 1:CreateAccount": {
-        "transactions": 76,
-        "success": 43,
-        "failed": 33,
+        "transactions": 196,
+        "success": 112,
+        "failed": 84,
         "signerLayouts": {
-          "1": 76
+          "1": 196
         }
       },
       "XPlace Program 1:RepayKamino": {
-        "transactions": 75,
-        "success": 75,
+        "transactions": 171,
+        "success": 171,
         "failed": 0,
         "signerLayouts": {
-          "2": 75
+          "2": 171
         }
       },
       "XPlace Program 1:CreateAccountKamino": {
-        "transactions": 50,
-        "success": 50,
+        "transactions": 152,
+        "success": 152,
         "failed": 0,
         "signerLayouts": {
-          "1": 45,
-          "2": 5
+          "1": 124,
+          "2": 28
         }
       },
       "XPlace Program 1:BorrowKamino": {
-        "transactions": 22,
-        "success": 22,
+        "transactions": 48,
+        "success": 48,
         "failed": 0,
         "signerLayouts": {
-          "2": 22
+          "2": 48
         }
       },
       "XPlace Program 1:WithdrawAndSendKamino": {
-        "transactions": 13,
-        "success": 13,
+        "transactions": 39,
+        "success": 39,
         "failed": 0,
         "signerLayouts": {
-          "2": 13
+          "2": 39
         }
       },
       "XPlace Program 2:CreateAccount": {
-        "transactions": 13,
-        "success": 13,
-        "failed": 0,
+        "transactions": 36,
+        "success": 34,
+        "failed": 2,
         "signerLayouts": {
-          "1": 13
+          "1": 36
         }
       },
       "XPlace Program 2:UpdateRepayLimit": {
-        "transactions": 9,
-        "success": 8,
+        "transactions": 31,
+        "success": 30,
         "failed": 1,
         "signerLayouts": {
-          "2": 9
-        }
-      },
-      "XPlace Program 1:UpdateLoanSnapshotKamino": {
-        "transactions": 3,
-        "success": 3,
-        "failed": 0,
-        "signerLayouts": {
-          "1": 1,
-          "2": 2
+          "2": 31
         }
       },
       "XPlace Program 2:ReclaimByWorker": {
-        "transactions": 3,
-        "success": 3,
+        "transactions": 11,
+        "success": 11,
         "failed": 0,
         "signerLayouts": {
-          "1": 3
+          "1": 11
         }
       },
       "XPlace Program 1:RepayByWorkerKamino": {
+        "transactions": 11,
+        "success": 11,
+        "failed": 0,
+        "signerLayouts": {
+          "1": 11
+        }
+      },
+      "XPlace Program 1:UpdateLoanSnapshotKamino": {
+        "transactions": 7,
+        "success": 7,
+        "failed": 0,
+        "signerLayouts": {
+          "1": 1,
+          "2": 6
+        }
+      },
+      "XPlace Program 1:BorrowSyncKamino": {
+        "transactions": 4,
+        "success": 4,
+        "failed": 0,
+        "signerLayouts": {
+          "2": 4
+        }
+      },
+      "XPlace Program 1:UpdateTargetBorrowApyKamino": {
         "transactions": 3,
         "success": 3,
         "failed": 0,
@@ -190,20 +206,12 @@
           "1": 3
         }
       },
-      "XPlace Program 1:BorrowSyncKamino": {
+      "XPlace Program 1:RepaySyncKamino": {
         "transactions": 2,
         "success": 2,
         "failed": 0,
         "signerLayouts": {
           "2": 2
-        }
-      },
-      "XPlace Program 1:UpdateTargetBorrowApyKamino": {
-        "transactions": 2,
-        "success": 2,
-        "failed": 0,
-        "signerLayouts": {
-          "1": 2
         }
       }
     }
@@ -234,13 +242,13 @@
   },
   "funds": {
     "direct": {
-      "liquidSystemSol": 4.336825655,
-      "liquidSystemSolUsd": 330.75316678289124,
-      "directTokenUsdIndicative": 9.892555839000435,
+      "liquidSystemSol": 4.010657855,
+      "liquidSystemSolUsd": 304.39180885853,
+      "directTokenUsdIndicative": 9.885228368783,
       "tokenAccountRentSol": 0.0431868,
-      "tokenAccountRentUsdIndicative": 3.293692668219416,
-      "directLiquidUsdExcludingRent": 340.64572262189165,
-      "directControlledUsdIncludingRecoverableTokenAccountRent": 343.93941529011107
+      "tokenAccountRentUsdIndicative": 3.277693746532,
+      "directLiquidUsdExcludingRent": 314.277037227313,
+      "directControlledUsdIncludingRecoverableTokenAccountRent": 317.554730973845
     },
     "tokens": [
       {
@@ -261,9 +269,9 @@
         "isVerified": true,
         "organicScoreLabel": "high",
         "holderCount": 3820662,
-        "liquidityUsd": 658930441.272797,
-        "usdPrice": 76.2661893962835,
-        "priceBlockId": 434740515,
+        "liquidityUsd": 658132505.2428036,
+        "usdPrice": 75.8957307911597,
+        "priceBlockId": 434755959,
         "usdValue": 0,
         "isAssociatedTokenAccount": true,
         "mintAuthority": null,
@@ -286,11 +294,11 @@
         "symbol": "cbBTC",
         "isVerified": true,
         "organicScoreLabel": "high",
-        "holderCount": 70622,
-        "liquidityUsd": 22105712.055723447,
-        "usdPrice": 64895.98488153425,
-        "priceBlockId": 434740491,
-        "usdValue": 0.32447992440767126,
+        "holderCount": 70620,
+        "liquidityUsd": 22042082.730177965,
+        "usdPrice": 64699.83574636741,
+        "priceBlockId": 434755934,
+        "usdValue": 0.3234991787318371,
         "isAssociatedTokenAccount": true,
         "mintAuthority": "CTQE6PMesbH4szKR9Nk5moj9WWUr9MVGP734wYX9wy3p",
         "freezeAuthority": "DSFAkPhfrSR95J9oq9Sh8rUetbj5vgFmwiSuHw6rAVnz"
@@ -312,11 +320,11 @@
         "symbol": "RENDER",
         "isVerified": true,
         "organicScoreLabel": "medium",
-        "holderCount": 124397,
-        "liquidityUsd": 230085.50031089172,
-        "usdPrice": 1.4941650351973883,
-        "priceBlockId": 434740508,
-        "usdValue": 0.16260699245046137,
+        "holderCount": 124404,
+        "liquidityUsd": 222415.77753092226,
+        "usdPrice": 1.4826837098951748,
+        "priceBlockId": 434755925,
+        "usdValue": 0.1613575027804721,
         "isAssociatedTokenAccount": true,
         "mintAuthority": "CFyeujXVymxgP2YR9kLbPsaCv2rKrtXMWtJ3EbAN2pdc",
         "freezeAuthority": "3LNxAhNnQpbCPcvgiamZhUbBugZTzxbjhcMwJ5jE65r5"
@@ -338,11 +346,11 @@
         "symbol": "JLP",
         "isVerified": true,
         "organicScoreLabel": "high",
-        "holderCount": 90124,
-        "liquidityUsd": 5781425.184613655,
-        "usdPrice": 3.6366731490663473,
-        "priceBlockId": 434740436,
-        "usdValue": 0.35523750654709896,
+        "holderCount": 90122,
+        "liquidityUsd": 5682534.266860765,
+        "usdPrice": 3.6373586337578754,
+        "priceBlockId": 434755950,
+        "usdValue": 0.3553044660627368,
         "isAssociatedTokenAccount": true,
         "mintAuthority": "AVzP2GeRmqGphJsMxWoqjpUifPpCret7LqWhD8NWQK49",
         "freezeAuthority": "AVzP2GeRmqGphJsMxWoqjpUifPpCret7LqWhD8NWQK49"
@@ -364,11 +372,11 @@
         "symbol": "WBTC",
         "isVerified": true,
         "organicScoreLabel": "high",
-        "holderCount": 79883,
-        "liquidityUsd": 29663516.71664593,
-        "usdPrice": 64667.88317931491,
-        "priceBlockId": 434740467,
-        "usdValue": 0.2586715327172596,
+        "holderCount": 79889,
+        "liquidityUsd": 29635810.644467708,
+        "usdPrice": 64621.605916940185,
+        "priceBlockId": 434755868,
+        "usdValue": 0.25848642366776076,
         "isAssociatedTokenAccount": true,
         "mintAuthority": "BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7",
         "freezeAuthority": null
@@ -390,11 +398,11 @@
         "symbol": "ETH",
         "isVerified": true,
         "organicScoreLabel": "high",
-        "holderCount": 110738,
-        "liquidityUsd": 14164047.97744136,
-        "usdPrice": 1894.8923719902489,
-        "priceBlockId": 434740515,
-        "usdValue": 0.6423685141046944,
+        "holderCount": 110716,
+        "liquidityUsd": 14095317.707019985,
+        "usdPrice": 1886.2481420046286,
+        "priceBlockId": 434755949,
+        "usdValue": 0.6394381201395691,
         "isAssociatedTokenAccount": true,
         "mintAuthority": "BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7",
         "freezeAuthority": null
@@ -443,10 +451,10 @@
         "isVerified": true,
         "organicScoreLabel": "medium",
         "holderCount": 3729,
-        "liquidityUsd": 13188798.183241783,
-        "usdPrice": 1.1746337450705118,
-        "priceBlockId": 434738973,
-        "usdValue": 0.17151297165272572,
+        "liquidityUsd": 13177208.931298995,
+        "usdPrice": 1.1745167178187692,
+        "priceBlockId": 434755068,
+        "usdValue": 0.17149588403558977,
         "isAssociatedTokenAccount": true,
         "mintAuthority": "BL428ZGJqpmWRxJx8G3d52eEgTYyWyHj5suUZERdxk1w",
         "freezeAuthority": "GoFoFfEDgALWRTw5dSY3VZQSwbFpvBEhDv1sFAWzYpbf"
@@ -495,10 +503,10 @@
         "isVerified": true,
         "organicScoreLabel": "high",
         "holderCount": 5248202,
-        "liquidityUsd": 360497186.38011897,
-        "usdPrice": 0.9999198024532931,
-        "priceBlockId": 434740515,
-        "usdValue": 2.360016717269077,
+        "liquidityUsd": 361189691.01239496,
+        "usdPrice": 0.9999213308439848,
+        "priceBlockId": 434755959,
+        "usdValue": 2.3600203245859577,
         "isAssociatedTokenAccount": true,
         "mintAuthority": "BJE5MMbqXjVwjAF7oxwPYXnTXDyspzZyt4vwenNw5ruG",
         "freezeAuthority": "7dGbd2QZcCKcTndnHcTL8q7SMVXAkp688NTQYwrRCrar"
@@ -521,10 +529,10 @@
         "isVerified": true,
         "organicScoreLabel": "high",
         "holderCount": 2305507,
-        "liquidityUsd": 37862779.88706889,
-        "usdPrice": 0.9993300674924874,
-        "priceBlockId": 434740515,
-        "usdValue": 3.6727518546693347,
+        "liquidityUsd": 37731197.34962918,
+        "usdPrice": 0.9991553089112022,
+        "priceBlockId": 434755958,
+        "usdValue": 3.672109579484775,
         "isAssociatedTokenAccount": true,
         "mintAuthority": "Q6XprfkF8RQQKoQVG33xT88H7wi8Uk1B1CC7YAs69Gi",
         "freezeAuthority": "Q6XprfkF8RQQKoQVG33xT88H7wi8Uk1B1CC7YAs69Gi"
@@ -546,11 +554,11 @@
         "symbol": "MELANIA",
         "isVerified": true,
         "organicScoreLabel": "low",
-        "holderCount": 222955,
-        "liquidityUsd": 2131263.3314956035,
-        "usdPrice": 0.08029290414268053,
-        "priceBlockId": 434740078,
-        "usdValue": 0.13367668526969553,
+        "holderCount": 222951,
+        "liquidityUsd": 2126395.177246246,
+        "usdPrice": 0.08045932921559795,
+        "priceBlockId": 434752880,
+        "usdValue": 0.13395376021586805,
         "isAssociatedTokenAccount": true,
         "mintAuthority": null,
         "freezeAuthority": null
@@ -598,11 +606,11 @@
         "symbol": "TRX",
         "isVerified": true,
         "organicScoreLabel": "low",
-        "holderCount": 6649,
-        "liquidityUsd": 3709181.179225857,
-        "usdPrice": 0.3269582320178803,
-        "priceBlockId": 434739999,
-        "usdValue": 0.1855138121393212,
+        "holderCount": 6652,
+        "liquidityUsd": 3706334.416511059,
+        "usdPrice": 0.3269129899210227,
+        "priceBlockId": 434755195,
+        "usdValue": 0.18548814209025885,
         "isAssociatedTokenAccount": true,
         "mintAuthority": "2qzoaECQaWkGariCaJdTuwZP7WaNUNdykqGVx6K8SZLV",
         "freezeAuthority": null
@@ -624,11 +632,11 @@
         "symbol": "JitoSOL",
         "isVerified": true,
         "organicScoreLabel": "high",
-        "holderCount": 187310,
-        "liquidityUsd": 763661033.0544325,
-        "usdPrice": 98.21334025931347,
-        "priceBlockId": 434740494,
-        "usdValue": 0.49263811474071634,
+        "holderCount": 187303,
+        "liquidityUsd": 761960338.9274007,
+        "usdPrice": 97.99435067240924,
+        "priceBlockId": 434755958,
+        "usdValue": 0.4915396629728047,
         "isAssociatedTokenAccount": true,
         "mintAuthority": "6iQKfEyhr3bZMotVkW6beNZz5CPAkiwvgV2CTje9pVSS",
         "freezeAuthority": null
@@ -654,11 +662,11 @@
         "symbol": "Punch",
         "isVerified": true,
         "organicScoreLabel": "medium",
-        "holderCount": 24375,
-        "liquidityUsd": 122339.71386814366,
-        "usdPrice": 0.0012294714809557654,
-        "priceBlockId": 434740456,
-        "usdValue": 0.02084868026371817,
+        "holderCount": 24362,
+        "liquidityUsd": 121797.47874760213,
+        "usdPrice": 0.001220543551530382,
+        "priceBlockId": 434755844,
+        "usdValue": 0.020697285498658503,
         "isAssociatedTokenAccount": true,
         "mintAuthority": null,
         "freezeAuthority": null
@@ -720,11 +728,11 @@
         "symbol": "PUMP",
         "isVerified": true,
         "organicScoreLabel": "high",
-        "holderCount": 126485,
-        "liquidityUsd": 21701191.377826713,
-        "usdPrice": 0.0019357873257356628,
-        "priceBlockId": 434740495,
-        "usdValue": 0.19386719005033612,
+        "holderCount": 126494,
+        "liquidityUsd": 21558401.175460566,
+        "usdPrice": 0.0019217993058080324,
+        "priceBlockId": 434755949,
+        "usdValue": 0.19246630366075962,
         "isAssociatedTokenAccount": true,
         "mintAuthority": null,
         "freezeAuthority": null
@@ -762,11 +770,11 @@
         "symbol": "PYUSD",
         "isVerified": true,
         "organicScoreLabel": "high",
-        "holderCount": 55052,
-        "liquidityUsd": 33312763.939325776,
-        "usdPrice": 0.9999223725008494,
-        "priceBlockId": 434740472,
-        "usdValue": 0.17322855165679216,
+        "holderCount": 55090,
+        "liquidityUsd": 33815704.602930725,
+        "usdPrice": 0.9999388346490734,
+        "priceBlockId": 434755884,
+        "usdValue": 0.1732314035922748,
         "isAssociatedTokenAccount": true,
         "mintAuthority": "8Jornc27vtAYPkwDzsZVgLQchAYyC8nD7aCNPCDV8Qk2",
         "freezeAuthority": "2apBGMsS6ti9RyF5TwQTDswXBWskiJP2LD4cUEDqYJjk"
@@ -792,11 +800,11 @@
         "symbol": "ANSEM",
         "isVerified": true,
         "organicScoreLabel": "high",
-        "holderCount": 130767,
-        "liquidityUsd": 2301376.43515343,
-        "usdPrice": 0.16664163297196652,
-        "priceBlockId": 434740515,
-        "usdValue": 0.1445287882014855,
+        "holderCount": 130733,
+        "liquidityUsd": 2296908.3034759397,
+        "usdPrice": 0.16779871440985974,
+        "priceBlockId": 434755952,
+        "usdValue": 0.14553232840381458,
         "isAssociatedTokenAccount": true,
         "mintAuthority": null,
         "freezeAuthority": null
@@ -834,13 +842,13 @@
     ],
     "protocolAndProgram": {
       "systemProgram": {
-        "directSol": 4.336825655,
-        "usdIndicative": 330.75316678289124,
+        "directSol": 4.010657855,
+        "usdIndicative": 304.39180885853,
         "access": "direct CH signature"
       },
       "splTokenAndToken2022": {
         "tokenAccounts": 21,
-        "totalTokenUsdIndicative": 9.892555839000435,
+        "totalTokenUsdIndicative": 9.885228368783,
         "rentSolPotentiallyRecoverableAfterEmptyingAndClosing": 0.0431868,
         "access": "direct CH token-account owner; no current delegates"
       },
@@ -858,13 +866,13 @@
           }
         ],
         "configUsdc": 1431.4,
-        "configUsdcUsdIndicative": 1431.2852052316439,
+        "configUsdcUsdIndicative": 1431.28739297008,
         "allProgramOwnedAccountLamports": {
           "slot": 434740741,
           "accountCount": 3186,
           "lamports": "3748996345",
           "sol": 3.748996345,
-          "indicativeUsdAtSolPrice": 285.9216652937446,
+          "indicativeUsdAtSolPrice": 284.532817337162,
           "byDataSize": [
             {
               "space": 41,
@@ -909,7 +917,7 @@
           "accountCount": 10138,
           "lamports": "13136958242",
           "sol": 13.136958242,
-          "indicativeUsdAtSolPrice": 1001.9057453754394,
+          "indicativeUsdAtSolPrice": 997.039046149539,
           "byDataSize": [
             {
               "space": 96,
@@ -943,7 +951,8 @@
             }
           ]
         },
-        "access": "program-controlled; CH is embedded operational authority, not token-account owner and not upgrade authority"
+        "access": "program-controlled; CH is embedded operational authority, not token-account owner and not upgrade authority",
+        "configUsdcUsdIndicative": 0
       },
       "kamino": {
         "market": "7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF",
@@ -966,13 +975,13 @@
       },
       "jupiter": {
         "directJlpAmount": "0.097682",
-        "directJlpUsdIndicative": 0.35523750654709896,
+        "directJlpUsdIndicative": 0.355304466063,
         "otherPersistentPositionEvidence": false,
         "access": "direct JLP token holding plus observed route execution"
       },
       "jito": {
         "directJitoSolAmount": "0.005016",
-        "directJitoSolUsdIndicative": 0.49263811474071634,
+        "directJitoSolUsdIndicative": 0.491539662973,
         "access": "direct liquid-staking token holding"
       },
       "orcaRaydiumMeteora": {
@@ -984,6 +993,17 @@
         "stakeAccountsAsStakerOrWithdrawer": 0,
         "access": "none observed"
       }
+    },
+    "snapshot": {
+      "refreshedAt": "2026-07-23T17:28:29.626Z",
+      "systemAccountSlot": 434755930,
+      "legacyTokenAccountsSlot": 434755932,
+      "token2022AccountsSlot": 434755932,
+      "priceSnapshotAt": "2026-07-23T17:13:51.578Z",
+      "priceSource": "Jupiter Tokens V2 / Price V3",
+      "priceEndpoint": "https://lite-api.jup.ag",
+      "configVaultSnapshotAt": "2026-07-23T17:14:56.034Z",
+      "configVaultSlot": 434756091
     }
   },
   "programs": [
@@ -1110,51 +1130,51 @@
         },
         "observedRecentWindowSignerLayouts": {
           "RepayByWorker": {
-            "transactions": 591,
-            "success": 591,
+            "transactions": 1697,
+            "success": 1697,
             "failed": 0,
             "signerLayouts": {
-              "1": 591
+              "1": 1697
             }
           },
           "TopUp": {
-            "transactions": 402,
-            "success": 353,
-            "failed": 49,
+            "transactions": 939,
+            "success": 837,
+            "failed": 102,
             "signerLayouts": {
-              "1": 402
+              "1": 939
             }
           },
           "Withdraw": {
-            "transactions": 210,
-            "success": 202,
+            "transactions": 482,
+            "success": 474,
             "failed": 8,
             "signerLayouts": {
-              "2": 210
+              "2": 482
             }
           },
           "CreateAccount": {
-            "transactions": 13,
-            "success": 13,
-            "failed": 0,
+            "transactions": 36,
+            "success": 34,
+            "failed": 2,
             "signerLayouts": {
-              "1": 13
+              "1": 36
             }
           },
           "UpdateRepayLimit": {
-            "transactions": 9,
-            "success": 8,
+            "transactions": 31,
+            "success": 30,
             "failed": 1,
             "signerLayouts": {
-              "2": 9
+              "2": 31
             }
           },
           "ReclaimByWorker": {
-            "transactions": 3,
-            "success": 3,
+            "transactions": 11,
+            "success": 11,
             "failed": 0,
             "signerLayouts": {
-              "1": 3
+              "1": 11
             }
           }
         },
@@ -1328,81 +1348,97 @@
         },
         "observedRecentWindowSignerLayouts": {
           "BorrowByWorkerKamino": {
-            "transactions": 186,
-            "success": 186,
+            "transactions": 559,
+            "success": 559,
             "failed": 0,
             "signerLayouts": {
-              "1": 186
+              "1": 559
             }
           },
           "DepositKamino": {
-            "transactions": 120,
-            "success": 118,
-            "failed": 2,
+            "transactions": 306,
+            "success": 302,
+            "failed": 4,
             "signerLayouts": {
-              "1": 60,
-              "2": 60
+              "1": 132,
+              "2": 174
             }
           },
           "WithdrawKamino": {
-            "transactions": 103,
-            "success": 103,
-            "failed": 0,
+            "transactions": 212,
+            "success": 208,
+            "failed": 4,
             "signerLayouts": {
-              "2": 103
+              "2": 212
             }
           },
           "CreateAccount": {
-            "transactions": 76,
-            "success": 43,
-            "failed": 33,
+            "transactions": 196,
+            "success": 112,
+            "failed": 84,
             "signerLayouts": {
-              "1": 76
+              "1": 196
             }
           },
           "RepayKamino": {
-            "transactions": 75,
-            "success": 75,
+            "transactions": 171,
+            "success": 171,
             "failed": 0,
             "signerLayouts": {
-              "2": 75
+              "2": 171
             }
           },
           "CreateAccountKamino": {
-            "transactions": 50,
-            "success": 50,
+            "transactions": 152,
+            "success": 152,
             "failed": 0,
             "signerLayouts": {
-              "1": 45,
-              "2": 5
+              "1": 124,
+              "2": 28
             }
           },
           "BorrowKamino": {
-            "transactions": 22,
-            "success": 22,
+            "transactions": 48,
+            "success": 48,
             "failed": 0,
             "signerLayouts": {
-              "2": 22
+              "2": 48
             }
           },
           "WithdrawAndSendKamino": {
-            "transactions": 13,
-            "success": 13,
+            "transactions": 39,
+            "success": 39,
             "failed": 0,
             "signerLayouts": {
-              "2": 13
-            }
-          },
-          "UpdateLoanSnapshotKamino": {
-            "transactions": 3,
-            "success": 3,
-            "failed": 0,
-            "signerLayouts": {
-              "1": 1,
-              "2": 2
+              "2": 39
             }
           },
           "RepayByWorkerKamino": {
+            "transactions": 11,
+            "success": 11,
+            "failed": 0,
+            "signerLayouts": {
+              "1": 11
+            }
+          },
+          "UpdateLoanSnapshotKamino": {
+            "transactions": 7,
+            "success": 7,
+            "failed": 0,
+            "signerLayouts": {
+              "1": 1,
+              "2": 6
+            }
+          },
+          "BorrowSyncKamino": {
+            "transactions": 4,
+            "success": 4,
+            "failed": 0,
+            "signerLayouts": {
+              "2": 4
+            }
+          },
+          "UpdateTargetBorrowApyKamino": {
             "transactions": 3,
             "success": 3,
             "failed": 0,
@@ -1410,20 +1446,12 @@
               "1": 3
             }
           },
-          "BorrowSyncKamino": {
+          "RepaySyncKamino": {
             "transactions": 2,
             "success": 2,
             "failed": 0,
             "signerLayouts": {
               "2": 2
-            }
-          },
-          "UpdateTargetBorrowApyKamino": {
-            "transactions": 2,
-            "success": 2,
-            "failed": 0,
-            "signerLayouts": {
-              "1": 2
             }
           }
         },
@@ -1605,7 +1633,7 @@
     }
   },
   "limitations": [
-    "The full signature crawl is complete at signature level for the recorded snapshot, while instruction-level decoding is complete for the latest 2,000 transactions plus an earlier stratified sample.",
+    "The full signature crawl is complete at signature level for the recorded snapshot, while instruction-level decoding is complete for the latest 5,226 transactions plus an earlier stratified sample.",
     "Binary method presence is not access proof. Access claims require a successful observed signer layout and remain limited by account, whitelist, token, oracle, balance, limit, downstream-program and atomic-bundle checks.",
     "Routed DEX AddLiquidity/Deposit/Withdraw CPIs can be transient swap mechanics. They are not counted as persistent CH liquidity positions without a CH-owned position/share/NFT account.",
     "XPlace-managed user collateral, debt, card balances and all program-owned rent are not added to CH direct net worth.",
