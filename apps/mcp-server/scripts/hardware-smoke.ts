@@ -21,6 +21,7 @@ import packageInfo from "../package.json" with { type: "json" };
 const client = new Client({ name: "proxbot-hardware-smoke", version: packageInfo.version });
 let started = false;
 let connected = false;
+let upstream: ReturnType<typeof Bun.serve> | undefined;
 
 async function call(name: string, args: Record<string, unknown> = {}) {
   const result = await client.callTool({ name, arguments: args });
@@ -58,6 +59,81 @@ try {
   }
   if (requiredArtifacts.some((path) => !existsSync(path))) {
     throw new Error("Live capture artifacts were not created before the smoke deadline");
+  }
+
+  const endpointMatch = proxySource.detail.match(/(?:^|\s)(?:\d{1,3}\.){3}\d{1,3}:(\d{1,5})(?:\s|$)/);
+  const proxyPort = Number(endpointMatch?.[1]);
+  if (!Number.isInteger(proxyPort) || proxyPort < 1 || proxyPort > 65_535) {
+    throw new Error(`Deep capture returned an invalid proxy endpoint: ${proxySource.detail}`);
+  }
+  upstream = Bun.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    fetch: () =>
+      new Response("proxbot proxy hardware smoke", {
+        status: 200,
+        headers: { "content-type": "text/plain; charset=utf-8" },
+      }),
+  });
+  const curl = Bun.spawn(
+    [
+      "/usr/bin/curl",
+      "--silent",
+      "--show-error",
+      "--max-time",
+      "10",
+      "--noproxy",
+      "",
+      "--proxy",
+      `http://127.0.0.1:${proxyPort}`,
+      `http://localhost:${upstream.port}/proxbot-hardware-smoke`,
+    ],
+    { stdout: "pipe", stderr: "pipe" },
+  );
+  const [curlExitCode, curlStdout, curlStderr] = await Promise.all([
+    curl.exited,
+    new Response(curl.stdout).text(),
+    new Response(curl.stderr).text(),
+  ]);
+  if (curlExitCode !== 0 || curlStdout !== "proxbot proxy hardware smoke") {
+    throw new Error(
+      `Bundled proxy smoke failed (${curlExitCode}): ${curlStderr.trim()}`,
+    );
+  }
+
+  let proxyPage: { exchanges: Array<Record<string, any>>; total: number } = {
+    exchanges: [],
+    total: 0,
+  };
+  let proxyExchange: Record<string, any> | undefined;
+  const proxyDeadline = Date.now() + 10_000;
+  while (!proxyExchange && Date.now() < proxyDeadline) {
+    proxyPage = (await call("proxbot_query_exchanges", {
+      sessionId: capture.sessionId,
+      query: "localhost",
+      endpoint: null,
+      offset: 0,
+      limit: 10,
+    })) as typeof proxyPage;
+    proxyExchange = proxyPage.exchanges.find(
+      (exchange) => exchange.host === "localhost" && exchange.status === 200,
+    );
+    if (!proxyExchange) await Bun.sleep(100);
+  }
+  if (!proxyExchange?.requestId) {
+    throw new Error("Bundled proxy did not materialize the deterministic HTTP exchange");
+  }
+  const proxyRaw = await call("proxbot_get_exchange", {
+    sessionId: capture.sessionId,
+    requestId: proxyExchange.requestId,
+    maxRawBytes: 16_384,
+  });
+  if (
+    proxyRaw.host !== "localhost" ||
+    !proxyRaw.requestRaw?.content?.startsWith("GET /proxbot-hardware-smoke HTTP/") ||
+    !proxyRaw.responseRaw?.content?.startsWith("HTTP/1.1 200")
+  ) {
+    throw new Error("Bundled proxy exchange is missing paired RAW request/response evidence");
   }
 
   let realtimePage: { exchanges: Array<Record<string, any>>; total: number } = {
@@ -125,11 +201,20 @@ try {
         total: realtimePage.total,
         firstExchange: firstRealtimeExchange,
       },
+      proxySmoke: {
+        host: proxyRaw.host,
+        requestId: proxyRaw.requestId,
+        status: proxyRaw.status,
+        requestRawBytes: proxyRaw.requestRaw.outputBytes,
+        responseRawBytes: proxyRaw.responseRaw.outputBytes,
+        responseOutputTruncated: proxyRaw.responseRaw.outputTruncated,
+      },
       finalizedArtifacts,
     },
     marker: { id: marker.id, label: marker.label },
   }, null, 2)}\n`);
 } finally {
+  upstream?.stop(true);
   if (connected) {
     try {
       const deadline = Date.now() + 125_000;

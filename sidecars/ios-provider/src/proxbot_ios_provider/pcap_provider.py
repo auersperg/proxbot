@@ -21,9 +21,9 @@ def _ethernet_header_for(payload: bytes, template: bytes) -> bytes:
     return template[:12] + ether_type
 
 
-def packet_metadata(packet: Any) -> dict[str, Any]:
+def packet_metadata(packet: Any, frame: bytes | None = None) -> dict[str, Any]:
     """Extract bounded L3/L4 metadata without claiming HTTP/TLS plaintext."""
-    data = bytes(packet.data)
+    data = frame if frame is not None else bytes(packet.data)
     raw_pid = int(getattr(packet, "pid", 0))
     raw_direction = getattr(packet, "io", None)
     # Apple pcapd uses 1 for output. Depending on the capture service version,
@@ -213,7 +213,10 @@ async def capture_pcap(
     output: Path,
     udid: str | None = None,
     count: int = -1,
-    on_packet: Callable[[Any, dict[str, Any], dict[str, Any]], Any] | None = None,
+    on_packet: Callable[
+        [Any, dict[str, Any], dict[str, Any], bytes], Any
+    ]
+    | None = None,
     *,
     artifact_relative_path: str = "capture/device.pcapng",
 ) -> dict[str, Any]:
@@ -231,7 +234,15 @@ async def capture_pcap(
         nonlocal packet_count
         async for packet in iter_packet_records(service.service, count=count):
             packet_count += 1
-            metadata = packet_metadata(packet) if on_packet is not None else None
+            # Freeze the pcapd buffer exactly once. The same immutable bytes are
+            # parsed, hashed and enriched after the PCAPNG writer has committed
+            # the block, avoiding independent full-frame copies on the hot path.
+            packet_data = bytes(packet.data) if on_packet is not None else None
+            metadata = (
+                packet_metadata(packet, packet_data)
+                if packet_data is not None
+                else None
+            )
             block_start = stream.tell()
             # Hand the packet to the PCAPNG writer first. When the generator is
             # resumed, the complete block has already been written, so slower
@@ -246,14 +257,16 @@ async def capture_pcap(
                 # unnecessarily stall capture; finalization performs the
                 # durable sync below.
                 stream.flush()
-                packet_data = bytes(packet.data)
+                assert packet_data is not None
                 raw_ref = {
                     "relative_path": artifact_relative_path,
                     "offset": block_start + 28,
                     "length": len(packet_data),
                     "sha256": hashlib.sha256(packet_data).hexdigest(),
                 }
-                callback_result = on_packet(packet, metadata or {}, raw_ref)
+                callback_result = on_packet(
+                    packet, metadata or {}, raw_ref, packet_data
+                )
                 if asyncio.iscoroutine(callback_result):
                     await callback_result
 

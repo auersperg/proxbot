@@ -6,21 +6,21 @@ async fn fake_capture_persists_and_indexes_every_event() {
     let root = tempdir().unwrap();
     let provider =
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../sidecars/ios-provider");
-    let summary = run_fake_capture(root.path(), &provider, 9).await.unwrap();
+    let summary = run_fake_capture(root.path(), &provider, 512).await.unwrap();
 
-    assert_eq!(summary.event_count, 9);
-    assert_eq!(summary.indexed_count, 9);
+    assert_eq!(summary.event_count, 512);
+    assert_eq!(summary.indexed_count, 512);
     assert_eq!(summary.first_sequence, 0);
-    assert_eq!(summary.last_sequence, 8);
+    assert_eq!(summary.last_sequence, 511);
     assert!(summary.session_dir.join("manifest.json").exists());
     let lines = std::fs::read_to_string(summary.session_dir.join("events/provider-events.jsonl"))
         .unwrap()
         .lines()
         .count();
-    assert_eq!(lines, 9);
+    assert_eq!(lines, 512);
 
     let index = EventIndex::open(&summary.session_dir.join("database/session.sqlite")).unwrap();
-    assert_eq!(index.page(summary.session_id, 0, 50).unwrap().total, 9);
+    assert_eq!(index.page(summary.session_id, 0, 50).unwrap().total, 512);
 }
 
 #[tokio::test]

@@ -22,6 +22,15 @@ This record describes what `v0.2.0-rc.1` actually executes. A UI label, fixture,
       concurrent event producers serialize framed socket writes.
 - [x] Realtime UI refresh is single-flight/coalesced and cannot be starved by a
       continuous revision stream; late responses refresh selected RAW detail.
+- [x] Live provider events use a bounded 256-event/25 ms group commit: JSONL is
+      synced first, then one atomic SQLite transaction materializes the batch.
+      Stop and markers force an immediate checkpoint, and SQLite remains fully
+      rebuildable from the authoritative event stream after an interrupted write.
+- [x] Packet bytes are frozen once on the iOS provider hot path and reused for
+      metadata parsing, protocol enrichment, SHA-256, and exact PCAPNG references.
+- [x] Proxy request/response metrics distinguish captured RAW bytes, original
+      body bytes, body-budget drops, and header-budget drops without re-encoding
+      the bounded RAW record only to determine its size.
 - [x] Early/missing artifacts produce an explicit provider failure instead of a ready claim.
 - [x] Tauri and MCP use the same `LiveCaptureService` source of truth.
 - [x] `capture://status` publishes small monotonic snapshots; raw evidence remains paged.
@@ -29,7 +38,10 @@ This record describes what `v0.2.0-rc.1` actually executes. A UI label, fixture,
 - [x] Final session JSONL, PCAPNG, and syslog artifacts are owner-only and SHA-256 recorded.
 - [x] Manifest is written last and identifies every checksummed authoritative artifact.
 - [x] PCAPNG finalization validates block lengths, trims only an incomplete cancellation tail, and writes an explicit libpcap-compatible snaplen.
-- [x] Hardware smoke exercises agent → official MCP stdio → owner-only UDS → Tauri → bundled provider → USB iPhone → finalized session.
+- [x] Hardware smoke exercises agent → official MCP stdio → owner-only UDS →
+      Tauri → bundled providers → USB iPhone → finalized session, and routes a
+      deterministic local HTTP exchange through the advertised proxy before
+      verifying paired RAW request/response evidence through MCP.
 
 ## Evidence semantics
 

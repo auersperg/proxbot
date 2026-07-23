@@ -51,6 +51,7 @@ def test_live_capture_emits_truthful_contiguous_lifecycle(tmp_path, monkeypatch)
                     "length": 64,
                     "sha256": "0" * 64,
                 },
+                b"not-an-ethernet-frame",
             )
         await asyncio.Event().wait()
 

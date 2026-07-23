@@ -95,7 +95,11 @@ impl SessionStore {
     pub fn checkpoint(&mut self) -> anyhow::Result<()> {
         self.writer.flush()?;
         self.writer.get_ref().sync_all()?;
-        sync_directory(&self.session_dir.join("events"))?;
+        // The file and its directory entry are created and synced in `create`.
+        // Appending changes file contents/length but not the directory, so an
+        // additional directory fsync on every realtime batch adds latency
+        // without strengthening the durability boundary. Final rename still
+        // syncs the directory in `finalize`.
         Ok(())
     }
 

@@ -2,7 +2,7 @@ from queue import Queue
 from types import SimpleNamespace
 from pathlib import Path
 
-from proxbot_proxy_provider.addon import ProxyCaptureAddon
+from proxbot_proxy_provider.addon import MAX_RAW_HEADERS, ProxyCaptureAddon
 from proxbot_proxy_provider.artifacts import BodyArtifactStore
 from proxbot_proxy_provider.events import SinkCounters
 
@@ -70,9 +70,9 @@ def flow(method="POST", request_body=b"hello", response_body=b"world"):
     )
 
 
-def addon(tmp_path: Path, per_body=4):
+def addon(tmp_path: Path, per_body=4, total=32):
     sink = Sink()
-    store = BodyArtifactStore(tmp_path / "proxy", per_body_limit=per_body, total_limit=32)
+    store = BodyArtifactStore(tmp_path / "proxy", per_body_limit=per_body, total_limit=total)
     return ProxyCaptureAddon(sink, store, listen_host="127.0.0.1", listen_port=9090, health_interval=60), sink
 
 
@@ -104,12 +104,54 @@ def test_http2_request_response_are_compatible_network_events(tmp_path: Path):
     assert request["payload"]["truncated"] is True
     assert request["payload"]["raw"].endswith("\r\n\r\nhell")
     assert request["raw_ref"]["length"] == 4
+    assert request["payload"]["body_bytes"] == 5
+    assert request["payload"]["body_bytes_captured"] == 4
+    assert request["payload"]["body_bytes_dropped"] == 1
+    assert request["payload"]["request_bytes"] == len(
+        request["payload"]["raw"].encode("latin-1")
+    ) + 1
 
     assert response["kind"] == "network.response"
     assert response["payload"]["status"] == 200
     assert response["payload"]["duration_ms"] == 125
     assert response["payload"]["raw"].startswith("HTTP/2 200 OK")
     assert response["payload"]["truncated"] is True
+    assert response["payload"]["body_bytes"] == 5
+    assert response["payload"]["body_bytes_captured"] == 4
+    assert response["payload"]["body_bytes_dropped"] == 1
+    instance.done()
+
+
+def test_wire_size_accounts_for_bytes_dropped_by_total_budget(tmp_path: Path):
+    instance, sink = addon(tmp_path, per_body=64, total=2)
+    instance.request(flow(request_body=b"12345"))
+    request = sink.events[0]
+
+    assert request["raw_ref"]["length"] == 2
+    assert request["payload"]["body_bytes_dropped"] == 3
+    assert request["payload"]["request_bytes"] == len(
+        request["payload"]["raw"].encode("latin-1")
+    ) + 3
+    instance.done()
+
+
+def test_header_budget_reports_exact_truncation_without_hiding_original_size(
+    tmp_path: Path,
+):
+    instance, sink = addon(tmp_path, per_body=0)
+    captured = flow(request_body=b"")
+    captured.request.headers = Headers(
+        (b"x-large", b"x" * (MAX_RAW_HEADERS + 17))
+    )
+
+    instance.request(captured)
+    request = sink.events[0]["payload"]
+
+    assert request["header_bytes_dropped"] == len(b"x-large: ") + 17
+    assert request["truncated"] is True
+    assert request["request_bytes"] == (
+        request["captured_raw_bytes"] + request["header_bytes_dropped"]
+    )
     instance.done()
 
 

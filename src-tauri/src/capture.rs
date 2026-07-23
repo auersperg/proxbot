@@ -662,6 +662,9 @@ struct LiveWorker {
     session_id: Uuid,
 }
 
+const LIVE_BATCH_MAX_EVENTS: usize = 256;
+const LIVE_BATCH_INTERVAL: Duration = Duration::from_millis(25);
+
 async fn run_live_worker(worker: LiveWorker) -> anyhow::Result<CaptureSnapshot> {
     let LiveWorker {
         mut ios_provider,
@@ -684,6 +687,12 @@ async fn run_live_worker(worker: LiveWorker) -> anyhow::Result<CaptureSnapshot> 
     let mut terminal_error = None;
     let mut ios_done = false;
     let mut proxy_done = proxy_provider.is_none();
+    let mut pending = Vec::with_capacity(LIVE_BATCH_MAX_EVENTS);
+    let mut flush_interval = tokio::time::interval(LIVE_BATCH_INTERVAL);
+    flush_interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+    // Tokio intervals tick immediately once. Consume that tick so the first
+    // actual checkpoint occurs after the configured realtime batching window.
+    flush_interval.tick().await;
     loop {
         if ios_done && proxy_done {
             break;
@@ -693,6 +702,15 @@ async fn run_live_worker(worker: LiveWorker) -> anyhow::Result<CaptureSnapshot> 
                 Some(CaptureAction::Stop) if !stopping => {
                     stopping = true;
                     stop_deadline = Some(tokio::time::Instant::now() + Duration::from_secs(12));
+                    if let Err(error) = flush_pending_events(
+                        &mut pending,
+                        &mut store,
+                        &index,
+                        &snapshot,
+                        started,
+                    ) {
+                        terminal_error.get_or_insert_with(|| error.to_string());
+                    }
                     if let Err(error) = ios_provider.request_stop() {
                         terminal_error.get_or_insert_with(|| error.to_string());
                     }
@@ -706,10 +724,26 @@ async fn run_live_worker(worker: LiveWorker) -> anyhow::Result<CaptureSnapshot> 
                     let marker = CaptureMarker { id: Uuid::new_v4(), session_id, label, created_at_ms: now_ms() };
                     let event = marker_event(&marker, marker_sequence);
                     marker_sequence += 1;
-                    let result = persist_event(&mut store, &index, &event).map(|_| {
+                    let result = flush_pending_events(
+                        &mut pending,
+                        &mut store,
+                        &index,
+                        &snapshot,
+                        started,
+                    ).and_then(|_| persist_event(&mut store, &index, &event)).map(|_| {
                         update_snapshot(&snapshot, &event, started);
                         marker
                     });
+                    if let Err(error) = &result {
+                        fail_live_capture(
+                            error.to_string(),
+                            &mut ios_provider,
+                            proxy_provider.as_mut(),
+                            &mut stopping,
+                            &mut stop_deadline,
+                            &mut terminal_error,
+                        );
+                    }
                     let _ = reply.send(result);
                 }
                 _ => {}
@@ -722,23 +756,25 @@ async fn run_live_worker(worker: LiveWorker) -> anyhow::Result<CaptureSnapshot> 
                 }
             } => match event {
                 Ok(Some(event)) => {
-                    if let Err(error) = process_live_event(
-                        &event,
+                    if let Err(error) = ingest_live_event(
+                        event,
                         "ios-live",
                         session_id,
                         &mut next_sequences,
+                        &mut pending,
                         &mut store,
                         &index,
                         &snapshot,
                         started,
                     ) {
-                        terminal_error = Some(error.to_string());
-                        stopping = true;
-                        stop_deadline = Some(tokio::time::Instant::now() + Duration::from_secs(12));
-                        let _ = ios_provider.request_stop();
-                        if let Some(provider) = proxy_provider.as_mut() {
-                            let _ = provider.request_stop();
-                        }
+                        fail_live_capture(
+                            error.to_string(),
+                            &mut ios_provider,
+                            proxy_provider.as_mut(),
+                            &mut stopping,
+                            &mut stop_deadline,
+                            &mut terminal_error,
+                        );
                     }
                 }
                 Ok(None) => {
@@ -754,13 +790,14 @@ async fn run_live_worker(worker: LiveWorker) -> anyhow::Result<CaptureSnapshot> 
                 },
                 Err(error) => {
                     ios_done = true;
-                    terminal_error.get_or_insert_with(|| error.to_string());
-                    stopping = true;
-                    stop_deadline = Some(tokio::time::Instant::now() + Duration::from_secs(12));
-                    let _ = ios_provider.request_stop();
-                    if let Some(provider) = proxy_provider.as_mut() {
-                        let _ = provider.request_stop();
-                    }
+                    fail_live_capture(
+                        error.to_string(),
+                        &mut ios_provider,
+                        proxy_provider.as_mut(),
+                        &mut stopping,
+                        &mut stop_deadline,
+                        &mut terminal_error,
+                    );
                 }
             },
             event = async {
@@ -770,23 +807,25 @@ async fn run_live_worker(worker: LiveWorker) -> anyhow::Result<CaptureSnapshot> 
                 }
             } => match event {
                 Ok(Some(event)) => {
-                    if let Err(error) = process_live_event(
-                        &event,
+                    if let Err(error) = ingest_live_event(
+                        event,
                         "proxy-mitm",
                         session_id,
                         &mut next_sequences,
+                        &mut pending,
                         &mut store,
                         &index,
                         &snapshot,
                         started,
                     ) {
-                        terminal_error = Some(error.to_string());
-                        stopping = true;
-                        stop_deadline = Some(tokio::time::Instant::now() + Duration::from_secs(12));
-                        let _ = ios_provider.request_stop();
-                        if let Some(provider) = proxy_provider.as_mut() {
-                            let _ = provider.request_stop();
-                        }
+                        fail_live_capture(
+                            error.to_string(),
+                            &mut ios_provider,
+                            proxy_provider.as_mut(),
+                            &mut stopping,
+                            &mut stop_deadline,
+                            &mut terminal_error,
+                        );
                     }
                 }
                 Ok(None) => {
@@ -800,13 +839,32 @@ async fn run_live_worker(worker: LiveWorker) -> anyhow::Result<CaptureSnapshot> 
                 },
                 Err(error) => {
                     proxy_done = true;
-                    terminal_error.get_or_insert_with(|| error.to_string());
-                    stopping = true;
-                    stop_deadline = Some(tokio::time::Instant::now() + Duration::from_secs(12));
-                    let _ = ios_provider.request_stop();
-                    if let Some(provider) = proxy_provider.as_mut() {
-                        let _ = provider.request_stop();
-                    }
+                    fail_live_capture(
+                        error.to_string(),
+                        &mut ios_provider,
+                        proxy_provider.as_mut(),
+                        &mut stopping,
+                        &mut stop_deadline,
+                        &mut terminal_error,
+                    );
+                }
+            },
+            _ = flush_interval.tick(), if !pending.is_empty() => {
+                if let Err(error) = flush_pending_events(
+                    &mut pending,
+                    &mut store,
+                    &index,
+                    &snapshot,
+                    started,
+                ) {
+                    fail_live_capture(
+                        error.to_string(),
+                        &mut ios_provider,
+                        proxy_provider.as_mut(),
+                        &mut stopping,
+                        &mut stop_deadline,
+                        &mut terminal_error,
+                    );
                 }
             },
             _ = async {
@@ -821,6 +879,9 @@ async fn run_live_worker(worker: LiveWorker) -> anyhow::Result<CaptureSnapshot> 
                 break;
             }
         }
+    }
+    if let Err(error) = flush_pending_events(&mut pending, &mut store, &index, &snapshot, started) {
+        terminal_error.get_or_insert_with(|| error.to_string());
     }
     if let Err(error) = ios_provider.wait().await {
         terminal_error.get_or_insert_with(|| error.to_string());
@@ -854,24 +915,87 @@ async fn run_live_worker(worker: LiveWorker) -> anyhow::Result<CaptureSnapshot> 
 }
 
 #[allow(clippy::too_many_arguments)]
-fn process_live_event(
-    event: &ProviderEvent,
+fn ingest_live_event(
+    event: ProviderEvent,
     provider_id: &'static str,
     session_id: Uuid,
     next_sequences: &mut BTreeMap<&'static str, u64>,
+    pending: &mut Vec<ProviderEvent>,
     store: &mut SessionStore,
     index: &EventIndex,
     snapshot: &RwLock<CaptureSnapshot>,
     started: Instant,
 ) -> anyhow::Result<()> {
+    queue_live_event(event, provider_id, session_id, next_sequences, pending)?;
+    let depth = pending.len();
+    // The exact depth is operational telemetry, not evidence. Publishing the
+    // first event and cache-line-sized increments keeps it useful without a
+    // write lock on the UI snapshot for every captured packet.
+    if depth == 1 || depth.is_multiple_of(64) {
+        set_pending_depth(snapshot, depth);
+    }
+    if depth >= LIVE_BATCH_MAX_EVENTS {
+        flush_pending_events(pending, store, index, snapshot, started)?;
+    }
+    Ok(())
+}
+
+fn fail_live_capture(
+    error: String,
+    ios_provider: &mut LiveProvider,
+    proxy_provider: Option<&mut LiveProvider>,
+    stopping: &mut bool,
+    stop_deadline: &mut Option<tokio::time::Instant>,
+    terminal_error: &mut Option<String>,
+) {
+    terminal_error.get_or_insert(error);
+    *stopping = true;
+    *stop_deadline = Some(tokio::time::Instant::now() + Duration::from_secs(12));
+    let _ = ios_provider.request_stop();
+    if let Some(provider) = proxy_provider {
+        let _ = provider.request_stop();
+    }
+}
+
+fn queue_live_event(
+    event: ProviderEvent,
+    provider_id: &'static str,
+    session_id: Uuid,
+    next_sequences: &mut BTreeMap<&'static str, u64>,
+    pending: &mut Vec<ProviderEvent>,
+) -> anyhow::Result<()> {
     let expected = next_sequences
         .get_mut(provider_id)
         .ok_or_else(|| anyhow::anyhow!("unregistered live provider: {provider_id}"))?;
-    validate_live_event(event, session_id, provider_id, *expected)?;
-    persist_event(store, index, event)?;
+    validate_live_event(&event, session_id, provider_id, *expected)?;
     *expected += 1;
-    update_snapshot(snapshot, event, started);
+    pending.push(event);
     Ok(())
+}
+
+fn flush_pending_events(
+    pending: &mut Vec<ProviderEvent>,
+    store: &mut SessionStore,
+    index: &EventIndex,
+    snapshot: &RwLock<CaptureSnapshot>,
+    started: Instant,
+) -> anyhow::Result<()> {
+    if pending.is_empty() {
+        set_pending_depth(snapshot, 0);
+        return Ok(());
+    }
+    let events = std::mem::replace(pending, Vec::with_capacity(LIVE_BATCH_MAX_EVENTS));
+    persist_events(store, index, &events)?;
+    update_snapshot_batch(snapshot, &events, started);
+    Ok(())
+}
+
+fn set_pending_depth(snapshot: &RwLock<CaptureSnapshot>, depth: usize) {
+    snapshot
+        .write()
+        .expect("capture snapshot poisoned")
+        .metrics
+        .queue_depth = depth as u64;
 }
 
 fn persist_event(
@@ -879,9 +1003,19 @@ fn persist_event(
     index: &EventIndex,
     event: &ProviderEvent,
 ) -> anyhow::Result<()> {
-    store.append(event)?;
+    persist_events(store, index, std::slice::from_ref(event))
+}
+
+fn persist_events(
+    store: &mut SessionStore,
+    index: &EventIndex,
+    events: &[ProviderEvent],
+) -> anyhow::Result<()> {
+    for event in events {
+        store.append(event)?;
+    }
     store.checkpoint()?;
-    index.insert(event)?;
+    index.insert_batch(events)?;
     Ok(())
 }
 
@@ -917,16 +1051,59 @@ fn validate_live_event(
 }
 
 fn update_snapshot(snapshot: &RwLock<CaptureSnapshot>, event: &ProviderEvent, started: Instant) {
+    update_snapshot_batch(snapshot, std::slice::from_ref(event), started);
+}
+
+fn update_snapshot_batch(
+    snapshot: &RwLock<CaptureSnapshot>,
+    events: &[ProviderEvent],
+    started: Instant,
+) {
+    if events.is_empty() {
+        return;
+    }
     let mut snapshot = snapshot.write().expect("capture snapshot poisoned");
-    snapshot.revision += 1;
-    snapshot.metrics.received += 1;
-    snapshot.metrics.persisted += 1;
-    snapshot.metrics.malformed += u64::from(event.parse_status == ParseStatus::Malformed);
+    snapshot.revision += events.len() as u64;
+    snapshot.metrics.received += events.len() as u64;
+    snapshot.metrics.persisted += events.len() as u64;
+    snapshot.metrics.queue_depth = 0;
+    for event in events {
+        snapshot.metrics.malformed += u64::from(event.parse_status == ParseStatus::Malformed);
+        snapshot.metrics.drift_ms =
+            (event.host_time_ns - event.source_time_ns) as f64 / 1_000_000.0;
+        if event.kind == "provider.health" {
+            if let Some(dropped) = event
+                .payload
+                .get("dropped")
+                .and_then(|value| value.as_u64())
+            {
+                snapshot.metrics.dropped = snapshot.metrics.dropped.max(dropped);
+            }
+            if let Some(reconnects) = event
+                .payload
+                .get("reconnects")
+                .and_then(|value| value.as_u64())
+            {
+                snapshot.metrics.reconnects = snapshot.metrics.reconnects.max(reconnects);
+            }
+        }
+        update_source_from_event(&mut snapshot, event);
+        if event.kind == "provider.error" {
+            snapshot.status = CaptureStatus::Degraded;
+            snapshot.error = event
+                .payload
+                .get("message")
+                .and_then(|value| value.as_str())
+                .map(ToOwned::to_owned);
+        }
+    }
     snapshot.metrics.throughput_per_second =
         snapshot.metrics.received as f64 / started.elapsed().as_secs_f64().max(0.001);
-    snapshot.metrics.drift_ms = (event.host_time_ns - event.source_time_ns) as f64 / 1_000_000.0;
     snapshot.metrics.last_event_at_ms = Some(now_ms());
     snapshot.metrics.last_event_age_ms = Some(0);
+}
+
+fn update_source_from_event(snapshot: &mut CaptureSnapshot, event: &ProviderEvent) {
     if event.provider_id == "proxy-mitm" && event.kind == "network.request" {
         let https_plaintext =
             event.payload.get("scheme").and_then(|value| value.as_str()) == Some("https");
@@ -953,14 +1130,6 @@ fn update_snapshot(snapshot: &RwLock<CaptureSnapshot>, event: &ProviderEvent, st
                 }
             ));
         }
-    }
-    if event.kind == "provider.error" {
-        snapshot.status = CaptureStatus::Degraded;
-        snapshot.error = event
-            .payload
-            .get("message")
-            .and_then(|value| value.as_str())
-            .map(ToOwned::to_owned);
     }
 }
 
@@ -1068,9 +1237,7 @@ pub async fn run_fake_capture_with_runtime(
     }
     store.checkpoint()?;
 
-    for event in &events {
-        index.insert(event)?;
-    }
+    index.insert_batch(&events)?;
 
     coordinator.stop()?;
     coordinator.finalize()?;
@@ -1153,6 +1320,67 @@ mod tests {
         validate_live_event(&proxy, session_id, "proxy-mitm", 1).unwrap();
         assert!(validate_live_event(&proxy, session_id, "ios-live", 1).is_err());
         assert!(validate_live_event(&ios, session_id, "ios-live", 2).is_err());
+    }
+
+    #[test]
+    fn live_batch_is_durable_before_materialization_and_updates_metrics_once() {
+        let root = tempdir().unwrap();
+        let session_id = Uuid::new_v4();
+        let mut store = SessionStore::create(root.path(), session_id).unwrap();
+        let index = EventIndex::open(&store.session_dir().join("database/session.sqlite")).unwrap();
+        let snapshot = RwLock::new(CaptureSnapshot::default());
+        let started = Instant::now();
+        let mut next_sequences = BTreeMap::from([("ios-live", 1_u64), ("proxy-mitm", 1_u64)]);
+        let mut pending = Vec::with_capacity(LIVE_BATCH_MAX_EVENTS);
+
+        queue_live_event(
+            provider_event(session_id, "ios-live", 1),
+            "ios-live",
+            session_id,
+            &mut next_sequences,
+            &mut pending,
+        )
+        .unwrap();
+        queue_live_event(
+            provider_event(session_id, "proxy-mitm", 1),
+            "proxy-mitm",
+            session_id,
+            &mut next_sequences,
+            &mut pending,
+        )
+        .unwrap();
+        set_pending_depth(&snapshot, pending.len());
+
+        assert_eq!(pending.len(), 2);
+        assert_eq!(snapshot.read().unwrap().metrics.queue_depth, 2);
+        assert_eq!(index.page(session_id, 0, 10).unwrap().total, 0);
+
+        flush_pending_events(&mut pending, &mut store, &index, &snapshot, started).unwrap();
+
+        assert!(pending.is_empty());
+        assert_eq!(index.page(session_id, 0, 10).unwrap().total, 2);
+        let partial = std::fs::read_to_string(
+            store
+                .session_dir()
+                .join("events/provider-events.jsonl.partial"),
+        )
+        .unwrap();
+        let persisted: Vec<ProviderEvent> = partial
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect();
+        assert_eq!(
+            persisted
+                .iter()
+                .map(|event| event.provider_id.as_str())
+                .collect::<Vec<_>>(),
+            ["ios-live", "proxy-mitm"]
+        );
+        let snapshot = snapshot.read().unwrap();
+        assert_eq!(snapshot.revision, 2);
+        assert_eq!(snapshot.metrics.received, 2);
+        assert_eq!(snapshot.metrics.persisted, 2);
+        assert_eq!(snapshot.metrics.queue_depth, 0);
     }
 
     #[test]

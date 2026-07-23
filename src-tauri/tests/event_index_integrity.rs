@@ -64,6 +64,71 @@ fn paired_events(session_id: Uuid) -> (ProviderEvent, ProviderEvent) {
 }
 
 #[test]
+fn batch_insert_materializes_a_complete_exchange_atomically() {
+    let root = tempdir().unwrap();
+    let session_id = Uuid::new_v4();
+    let (request, response) = paired_events(session_id);
+    let index = EventIndex::open(&root.path().join("session.sqlite")).unwrap();
+
+    index.insert_batch(&[request, response]).unwrap();
+
+    assert_eq!(index.page(session_id, 0, 10).unwrap().total, 2);
+    let exchange = index
+        .get_exchange(session_id, "request-1")
+        .unwrap()
+        .unwrap();
+    assert_eq!(exchange.status, Some(200));
+    assert_eq!(exchange.warning, None);
+}
+
+#[test]
+fn batch_insert_rolls_back_every_row_when_one_event_is_invalid() {
+    let root = tempdir().unwrap();
+    let session_id = Uuid::new_v4();
+    let index = EventIndex::open(&root.path().join("session.sqlite")).unwrap();
+    let existing = event(session_id, 2, "fixture.existing", json!({}));
+    index.insert(&existing).unwrap();
+    let first = event(session_id, 1, "fixture.first", json!({}));
+
+    assert!(index.insert_batch(&[first, existing]).is_err());
+
+    let page = index.page(session_id, 0, 10).unwrap();
+    assert_eq!(page.total, 1);
+    assert_eq!(page.events[0].sequence, 2);
+}
+
+#[test]
+fn batch_insert_handles_sustained_packet_sized_bursts() {
+    let root = tempdir().unwrap();
+    let session_id = Uuid::new_v4();
+    let index = EventIndex::open(&root.path().join("session.sqlite")).unwrap();
+    let events: Vec<_> = (1..=1_024)
+        .map(|sequence| {
+            event(
+                session_id,
+                sequence,
+                "network.packet",
+                json!({
+                    "request_id": format!("packet-{sequence}"),
+                    "method": "OUT",
+                    "ip": "192.0.2.1",
+                    "protocol": "TCP",
+                    "request_bytes": 1_500,
+                    "warning": "packet_metadata"
+                }),
+            )
+        })
+        .collect();
+
+    index.insert_batch(&events).unwrap();
+
+    let page = index.page(session_id, 0, 25).unwrap();
+    assert_eq!(page.total, 1_024);
+    assert_eq!(page.events.len(), 25);
+    assert_eq!(page.events[0].sequence, 1);
+}
+
+#[test]
 fn reopen_repairs_same_cardinality_exchange_content_from_events() {
     let root = tempdir().unwrap();
     let database = root.path().join("session.sqlite");

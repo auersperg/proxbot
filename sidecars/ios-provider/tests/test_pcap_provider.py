@@ -227,8 +227,8 @@ def test_capture_callback_receives_exact_packet_range_in_pcapng(
     )
     observed = []
 
-    async def on_packet(_packet, metadata, raw_ref):
-        observed.append((metadata, raw_ref))
+    async def on_packet(_packet, metadata, raw_ref, frozen_packet_data):
+        observed.append((metadata, raw_ref, frozen_packet_data))
 
     capture = tmp_path / "device.pcapng"
     result = asyncio.run(
@@ -243,7 +243,8 @@ def test_capture_callback_receives_exact_packet_range_in_pcapng(
 
     assert result["packet_count"] == 1
     assert len(observed) == 1
-    metadata, raw_ref = observed[0]
+    metadata, raw_ref, frozen_packet_data = observed[0]
+    assert frozen_packet_data == packet_data
     assert metadata["destination_ip"] == "8.8.8.8"
     assert raw_ref == {
         "relative_path": "capture/device.pcapng",

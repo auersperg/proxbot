@@ -44,12 +44,16 @@ def _endpoint(flow: Any) -> tuple[str | None, int | None]:
     return None, None
 
 
-def _raw_message(start_line: str, headers: list[tuple[str, str]], body: bytes) -> tuple[str, bool]:
+def _raw_message(
+    start_line: str,
+    headers: list[tuple[str, str]],
+    body: bytes,
+) -> tuple[str, int, int]:
     header_block = "\r\n".join(f"{name}: {value}" for name, value in headers).encode("latin-1", "replace")
-    truncated_headers = len(header_block) > MAX_RAW_HEADERS
+    header_bytes_dropped = max(0, len(header_block) - MAX_RAW_HEADERS)
     header_block = header_block[:MAX_RAW_HEADERS]
     raw = start_line.encode("latin-1", "replace") + b"\r\n" + header_block + b"\r\n\r\n" + body
-    return raw.decode("latin-1", "replace"), truncated_headers
+    return raw.decode("latin-1", "replace"), header_bytes_dropped, len(raw)
 
 
 class ProxyCaptureAddon:
@@ -105,7 +109,9 @@ class ProxyCaptureAddon:
             path = _value(getattr(request, "path", None)) or "/"
             method = _value(getattr(request, "method", None)) or "UNKNOWN"
             captured = int(artifact.ref["length"]) if artifact.ref else 0
-            raw, headers_truncated = _raw_message(f"{method} {path} {version}", headers, body[:captured])
+            raw, header_bytes_dropped, captured_raw_bytes = _raw_message(
+                f"{method} {path} {version}", headers, body[:captured]
+            )
             ip, port = _endpoint(flow)
             self._active.add(request_id)
             self.received += 1
@@ -121,12 +127,17 @@ class ProxyCaptureAddon:
                     "path": path,
                     "protocol": version,
                     "headers": headers,
-                    "request_bytes": len(raw.encode("latin-1", "replace")) + max(0, len(body) - self.artifacts.per_body_limit),
+                    "request_bytes": captured_raw_bytes + artifact.dropped_bytes + header_bytes_dropped,
+                    "captured_raw_bytes": captured_raw_bytes,
+                    "body_bytes": len(body),
+                    "body_bytes_captured": captured,
+                    "body_bytes_dropped": artifact.dropped_bytes,
+                    "header_bytes_dropped": header_bytes_dropped,
                     "raw": raw,
                     "media_type": _value(getattr(request.headers, "get", lambda *_: None)("content-type")) or "application/octet-stream",
                     "tls": "intercepted" if _value(getattr(request, "scheme", None)) == "https" else "cleartext",
                     "reconstructed": True,
-                    "truncated": artifact.truncated or headers_truncated,
+                    "truncated": artifact.truncated or header_bytes_dropped > 0,
                     "masked": False,
                     "body_artifact_scope": "body",
                 },
@@ -163,7 +174,9 @@ class ProxyCaptureAddon:
             status = int(response.status_code)
             reason = _value(getattr(response, "reason", None)) or ""
             captured = int(artifact.ref["length"]) if artifact.ref else 0
-            raw, headers_truncated = _raw_message(f"{version} {status} {reason}".rstrip(), headers, body[:captured])
+            raw, header_bytes_dropped, captured_raw_bytes = _raw_message(
+                f"{version} {status} {reason}".rstrip(), headers, body[:captured]
+            )
             started = getattr(request, "timestamp_start", None)
             ended = getattr(response, "timestamp_end", None) or time.time()
             duration_ms = max(0, round((ended - started) * 1000)) if started is not None else None
@@ -177,11 +190,16 @@ class ProxyCaptureAddon:
                     "protocol": version,
                     "headers": headers,
                     "duration_ms": duration_ms,
-                    "response_bytes": len(raw.encode("latin-1", "replace")) + max(0, len(body) - self.artifacts.per_body_limit),
+                    "response_bytes": captured_raw_bytes + artifact.dropped_bytes + header_bytes_dropped,
+                    "captured_raw_bytes": captured_raw_bytes,
+                    "body_bytes": len(body),
+                    "body_bytes_captured": captured,
+                    "body_bytes_dropped": artifact.dropped_bytes,
+                    "header_bytes_dropped": header_bytes_dropped,
                     "raw": raw,
                     "media_type": _value(getattr(response.headers, "get", lambda *_: None)("content-type")) or "application/octet-stream",
                     "reconstructed": True,
-                    "truncated": artifact.truncated or headers_truncated,
+                    "truncated": artifact.truncated or header_bytes_dropped > 0,
                     "masked": False,
                     "body_artifact_scope": "body",
                 },

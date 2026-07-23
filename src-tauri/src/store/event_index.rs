@@ -94,6 +94,17 @@ impl EventIndex {
     }
 
     pub fn insert(&self, event: &ProviderEvent) -> anyhow::Result<()> {
+        self.insert_batch(std::slice::from_ref(event))
+    }
+
+    /// Materialize one durable JSONL batch in a single immediate transaction.
+    /// The capture worker checkpoints the authoritative event stream before
+    /// calling this method, so SQLite remains a rebuildable query index while
+    /// avoiding one transaction and metadata fsync per packet.
+    pub fn insert_batch(&self, events: &[ProviderEvent]) -> anyhow::Result<()> {
+        if events.is_empty() {
+            return Ok(());
+        }
         let mut connection = self.connection.lock().expect("event index lock poisoned");
         loop {
             repair_dirty_content(&mut connection, &self.database_path)?;
@@ -103,10 +114,17 @@ impl EventIndex {
                 transaction.rollback()?;
                 continue;
             }
-            let exchange_existed = exchange_exists(&transaction, event)?;
-            insert_event_row(&transaction, event)?;
-            materialize_event(&transaction, event)?;
-            advance_derived_metadata(&transaction, event, exchange_existed)?;
+            let mut network_event_delta = 0_i64;
+            let mut exchange_row_delta = 0_i64;
+            for event in events {
+                let exchange_existed = exchange_exists(&transaction, event)?;
+                insert_event_row(&transaction, event)?;
+                materialize_event(&transaction, event)?;
+                let (network, exchange) = derived_metadata_delta(event, exchange_existed);
+                network_event_delta += network;
+                exchange_row_delta += exchange;
+            }
+            advance_derived_metadata(&transaction, network_event_delta, exchange_row_delta)?;
             transaction.commit()?;
             return Ok(());
         }
@@ -225,26 +243,12 @@ fn refresh_derived_metadata(transaction: &Transaction<'_>) -> anyhow::Result<()>
 
 fn advance_derived_metadata(
     transaction: &Transaction<'_>,
-    event: &ProviderEvent,
-    exchange_existed: bool,
+    network_event_delta: i64,
+    exchange_row_delta: i64,
 ) -> anyhow::Result<()> {
-    let is_network = matches!(
-        event.kind.as_str(),
-        "network.request" | "network.response" | "network.packet"
-    );
-    let creates_exchange = is_network
-        && !exchange_existed
-        && event
-            .payload
-            .get("request_id")
-            .and_then(|value| value.as_str())
-            .is_some();
     for (key, delta) in [
-        ("materialized_network_event_count", i64::from(is_network)),
-        (
-            "materialized_exchange_row_count",
-            i64::from(creates_exchange),
-        ),
+        ("materialized_network_event_count", network_event_delta),
+        ("materialized_exchange_row_count", exchange_row_delta),
     ] {
         transaction.execute(
             "INSERT INTO index_metadata(key, value) VALUES (?1, ?2)
@@ -267,6 +271,21 @@ fn advance_derived_metadata(
         )?;
     }
     Ok(())
+}
+
+fn derived_metadata_delta(event: &ProviderEvent, exchange_existed: bool) -> (i64, i64) {
+    let is_network = matches!(
+        event.kind.as_str(),
+        "network.request" | "network.response" | "network.packet"
+    );
+    let creates_exchange = is_network
+        && !exchange_existed
+        && event
+            .payload
+            .get("request_id")
+            .and_then(|value| value.as_str())
+            .is_some();
+    (i64::from(is_network), i64::from(creates_exchange))
 }
 
 fn exchange_exists(transaction: &Transaction<'_>, event: &ProviderEvent) -> anyhow::Result<bool> {

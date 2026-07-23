@@ -264,6 +264,7 @@ async def run_live_capture(
                 packet: Any,
                 metadata: dict[str, Any],
                 raw_ref: dict[str, Any],
+                packet_data: bytes,
             ) -> None:
                 nonlocal packet_index
                 # pcapd can yield immediately.  Rust requires provider.ready to
@@ -280,7 +281,7 @@ async def run_live_capture(
                     if direction == "outbound"
                     else source if direction == "inbound" else None
                 )
-                enrichment = extract_protocol_enrichment(bytes(packet.data))
+                enrichment = extract_protocol_enrichment(packet_data)
                 observed_at = time.monotonic()
                 dns_cache.observe(enrichment, observed_at)
                 tls = enrichment.get("tls_client_hello")
