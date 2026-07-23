@@ -28,6 +28,7 @@
     "mcp:compile": "bun run --cwd apps/mcp-server compile:macos",
     "mcp:hardware-smoke": "bun run --cwd apps/mcp-server hardware-smoke",
     "hygiene": "bun scripts/repository-hygiene.mjs",
+    "research:verify": "bun scripts/research/verify-ch-capability-artifacts.mjs",
     "version:check": "bun scripts/verify-version-parity.mjs",
     "notices:generate": "python3 scripts/generate-third-party-notices.py",
     "tauri": "tauri",

@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 2,
-  "generatedAt": "2026-07-23T15:43:19Z",
+  "schemaVersion": 3,
+  "generatedAt": "2026-07-23T16:45:59.297Z",
   "chain": "solana",
   "network": "mainnet-beta",
   "account": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
@@ -37,180 +37,176 @@
     "priceFetchedAt": "2026-07-23T15:25:55.208Z"
   },
   "historyCoverage": {
-    "finalizedSignaturesEnumerated": 148000,
-    "fromUtc": "2026-03-14T16:28:40Z",
-    "toUtc": "2026-07-23T15:05:15Z",
-    "successfulSignatures": 143227,
-    "failedSignatures": 4773,
-    "complete": false,
-    "nextHistoricalCursor": "3aBZdBJBQnGTvQZi8GtRXAXfrHYXwRF54LGHG5LyvXmvwpHzZ93DmqzhfiFk97f8TsEyxS2ZvessTTqpWtXswyaX"
+    "finalizedSignaturesEnumerated": 202066,
+    "fromUtc": "2025-10-31T16:07:48.000Z",
+    "toUtc": "2026-07-23T16:10:51.000Z",
+    "successfulSignatures": 197047,
+    "failedSignatures": 5019,
+    "complete": true,
+    "paginationTerminatedWithEmptyPage": true,
+    "oldestSignature": "4GZXP5dgiB7J7pzkzFbLcCabYwo75gc9UVwK4fpRa75WSSHGdBzcenBhjgbFgizxQ76Wah428MZABMbHp1575qB6",
+    "newestSignature": "44JmyxHKxyHqARnVxb6eWoH8w4MJjwrsNbyBWku4vwgBk3CKdKDpWtbPYH2gk7766DmELFTh3mGMNXAhbVyvBVFE",
+    "snapshotSemantics": "Complete for this address as of newestSignature/toUtc; later transactions can naturally appear after the snapshot."
   },
   "decodedSample": {
-    "strategy": "temporal-stratified finalized transaction sample plus direct live-flow verification",
-    "transactions": 148,
-    "signerLayouts": {
-      "chOnly": 101,
-      "chPlusOne": 47
-    },
-    "chStaticAccountIndexZero": 148,
-    "successfulTransactions": 141,
-    "failedTransactions": 7,
-    "feesSol": 0.004263806,
-    "chNativeNetDeltaSol": 0.379687518,
-    "methodSignerLayouts": {
-      "BorrowByWorkerKamino": {
-        "oneSigner": 9,
-        "twoSigner": 0,
-        "other": 0,
-        "success": 9,
-        "failed": 0
+    "strategy": "latest 2,000 address-referencing transactions fully decoded with log-stack CPI frames",
+    "transactions": 2000,
+    "successfulTransactions": 1902,
+    "failedTransactions": 98,
+    "fromUtc": "2026-07-22T17:13:07.000Z",
+    "toUtc": "2026-07-23T16:01:45.000Z",
+    "programIdsObserved": 42,
+    "xplaceMethodsObserved": 18,
+    "caveat": "Counts and volumes describe this decoded window, not all 202,066 historical signatures. Failed transactions contribute method attempts but no finalized state transition.",
+    "observedMethodSignerLayouts": {
+      "XPlace Program 2:RepayByWorker": {
+        "transactions": 591,
+        "success": 591,
+        "failed": 0,
+        "signerLayouts": {
+          "1": 591
+        }
       },
-      "TopUp": {
-        "oneSigner": 23,
-        "twoSigner": 0,
-        "other": 0,
-        "success": 19,
-        "failed": 4
+      "XPlace Program 2:TopUp": {
+        "transactions": 402,
+        "success": 353,
+        "failed": 49,
+        "signerLayouts": {
+          "1": 402
+        }
       },
-      "RepayByWorker": {
-        "oneSigner": 51,
-        "twoSigner": 0,
-        "other": 0,
-        "success": 51,
-        "failed": 0
+      "XPlace Program 2:Withdraw": {
+        "transactions": 210,
+        "success": 202,
+        "failed": 8,
+        "signerLayouts": {
+          "2": 210
+        }
       },
-      "UpdateRepayLimit": {
-        "oneSigner": 0,
-        "twoSigner": 2,
-        "other": 0,
+      "XPlace Program 1:BorrowByWorkerKamino": {
+        "transactions": 186,
+        "success": 186,
+        "failed": 0,
+        "signerLayouts": {
+          "1": 186
+        }
+      },
+      "XPlace Program 1:DepositKamino": {
+        "transactions": 120,
+        "success": 118,
+        "failed": 2,
+        "signerLayouts": {
+          "1": 60,
+          "2": 60
+        }
+      },
+      "XPlace Program 1:WithdrawKamino": {
+        "transactions": 103,
+        "success": 103,
+        "failed": 0,
+        "signerLayouts": {
+          "2": 103
+        }
+      },
+      "XPlace Program 1:CreateAccount": {
+        "transactions": 76,
+        "success": 43,
+        "failed": 33,
+        "signerLayouts": {
+          "1": 76
+        }
+      },
+      "XPlace Program 1:RepayKamino": {
+        "transactions": 75,
+        "success": 75,
+        "failed": 0,
+        "signerLayouts": {
+          "2": 75
+        }
+      },
+      "XPlace Program 1:CreateAccountKamino": {
+        "transactions": 50,
+        "success": 50,
+        "failed": 0,
+        "signerLayouts": {
+          "1": 45,
+          "2": 5
+        }
+      },
+      "XPlace Program 1:BorrowKamino": {
+        "transactions": 22,
+        "success": 22,
+        "failed": 0,
+        "signerLayouts": {
+          "2": 22
+        }
+      },
+      "XPlace Program 1:WithdrawAndSendKamino": {
+        "transactions": 13,
+        "success": 13,
+        "failed": 0,
+        "signerLayouts": {
+          "2": 13
+        }
+      },
+      "XPlace Program 2:CreateAccount": {
+        "transactions": 13,
+        "success": 13,
+        "failed": 0,
+        "signerLayouts": {
+          "1": 13
+        }
+      },
+      "XPlace Program 2:UpdateRepayLimit": {
+        "transactions": 9,
+        "success": 8,
+        "failed": 1,
+        "signerLayouts": {
+          "2": 9
+        }
+      },
+      "XPlace Program 1:UpdateLoanSnapshotKamino": {
+        "transactions": 3,
+        "success": 3,
+        "failed": 0,
+        "signerLayouts": {
+          "1": 1,
+          "2": 2
+        }
+      },
+      "XPlace Program 2:ReclaimByWorker": {
+        "transactions": 3,
+        "success": 3,
+        "failed": 0,
+        "signerLayouts": {
+          "1": 3
+        }
+      },
+      "XPlace Program 1:RepayByWorkerKamino": {
+        "transactions": 3,
+        "success": 3,
+        "failed": 0,
+        "signerLayouts": {
+          "1": 3
+        }
+      },
+      "XPlace Program 1:BorrowSyncKamino": {
+        "transactions": 2,
         "success": 2,
-        "failed": 0
+        "failed": 0,
+        "signerLayouts": {
+          "2": 2
+        }
       },
-      "RouteV2": {
-        "oneSigner": 0,
-        "twoSigner": 2,
-        "other": 0,
+      "XPlace Program 1:UpdateTargetBorrowApyKamino": {
+        "transactions": 2,
         "success": 2,
-        "failed": 0
-      },
-      "Withdraw": {
-        "oneSigner": 0,
-        "twoSigner": 11,
-        "other": 0,
-        "success": 11,
-        "failed": 0
-      },
-      "SharedAccountsRouteV2": {
-        "oneSigner": 0,
-        "twoSigner": 5,
-        "other": 0,
-        "success": 5,
-        "failed": 0
-      },
-      "CreateAccount": {
-        "oneSigner": 9,
-        "twoSigner": 0,
-        "other": 0,
-        "success": 6,
-        "failed": 3
-      },
-      "DepositKamino": {
-        "oneSigner": 3,
-        "twoSigner": 3,
-        "other": 0,
-        "success": 6,
-        "failed": 0
-      },
-      "unknown": {
-        "oneSigner": 0,
-        "twoSigner": 6,
-        "other": 0,
-        "success": 6,
-        "failed": 0
-      },
-      "BorrowKamino": {
-        "oneSigner": 0,
-        "twoSigner": 2,
-        "other": 0,
-        "success": 2,
-        "failed": 0
-      },
-      "WithdrawAndSendKamino": {
-        "oneSigner": 0,
-        "twoSigner": 1,
-        "other": 0,
-        "success": 1,
-        "failed": 0
-      },
-      "GetAccountDataSize": {
-        "oneSigner": 0,
-        "twoSigner": 14,
-        "other": 0,
-        "success": 14,
-        "failed": 0
-      },
-      "CreateTokenAccount": {
-        "oneSigner": 0,
-        "twoSigner": 1,
-        "other": 0,
-        "success": 1,
-        "failed": 0
-      },
-      "BorrowByWorkerDrift": {
-        "oneSigner": 6,
-        "twoSigner": 0,
-        "other": 0,
-        "success": 6,
-        "failed": 0
+        "failed": 0,
+        "signerLayouts": {
+          "1": 2
+        }
       }
-    },
-    "selectedTokenFlows": [
-      {
-        "owner": "CH_DIRECT",
-        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        "netRaw": "190683",
-        "grossInRaw": "190683",
-        "grossOutRaw": "0",
-        "decimals": 6,
-        "txs": 1,
-        "methods": {
-          "Withdraw": 1
-        },
-        "net": 0.190683,
-        "grossIn": 0.190683,
-        "grossOut": 0
-      },
-      {
-        "owner": "XPLACE1_CONFIG",
-        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        "netRaw": "1344750",
-        "grossInRaw": "1344750",
-        "grossOutRaw": "0",
-        "decimals": 6,
-        "txs": 6,
-        "methods": {
-          "BorrowByWorkerDrift": 6
-        },
-        "net": 1.34475,
-        "grossIn": 1.34475,
-        "grossOut": 0
-      },
-      {
-        "owner": "XPLACE2_CONFIG",
-        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        "netRaw": "1320000",
-        "grossInRaw": "1320000",
-        "grossOutRaw": "0",
-        "decimals": 6,
-        "txs": 12,
-        "methods": {
-          "RepayByWorker": 12
-        },
-        "net": 1.32,
-        "grossIn": 1.32,
-        "grossOut": 0
-      }
-    ]
+    }
   },
   "authoritySurface": {
     "transactionSigner": true,
@@ -422,7 +418,7 @@
         "organicScoreLabel": "low",
         "holderCount": 5309,
         "liquidityUsd": 16109.454333069936,
-        "usdPrice": 7.912466997340891e-05,
+        "usdPrice": 0.00007912466997340891,
         "priceBlockId": 434732284,
         "usdValue": 0.19322600792932482,
         "isAssociatedTokenAccount": true,
@@ -690,7 +686,7 @@
         "organicScoreLabel": "low",
         "holderCount": 250,
         "liquidityUsd": 2934.191859618211,
-        "usdPrice": 3.2147216295374177e-06,
+        "usdPrice": 0.0000032147216295374177,
         "priceBlockId": 433438510,
         "usdValue": 0.00044485546476246644,
         "isAssociatedTokenAccount": true,
@@ -828,7 +824,7 @@
         "organicScoreLabel": "low",
         "holderCount": 6992,
         "liquidityUsd": 2512.2861396676353,
-        "usdPrice": 4.487959127141396e-06,
+        "usdPrice": 0.000004487959127141396,
         "priceBlockId": 434581509,
         "usdValue": 0.0034871442417888647,
         "isAssociatedTokenAccount": true,
@@ -1111,7 +1107,58 @@
             "success": 6,
             "failed": 3
           }
-        }
+        },
+        "observedRecentWindowSignerLayouts": {
+          "RepayByWorker": {
+            "transactions": 591,
+            "success": 591,
+            "failed": 0,
+            "signerLayouts": {
+              "1": 591
+            }
+          },
+          "TopUp": {
+            "transactions": 402,
+            "success": 353,
+            "failed": 49,
+            "signerLayouts": {
+              "1": 402
+            }
+          },
+          "Withdraw": {
+            "transactions": 210,
+            "success": 202,
+            "failed": 8,
+            "signerLayouts": {
+              "2": 210
+            }
+          },
+          "CreateAccount": {
+            "transactions": 13,
+            "success": 13,
+            "failed": 0,
+            "signerLayouts": {
+              "1": 13
+            }
+          },
+          "UpdateRepayLimit": {
+            "transactions": 9,
+            "success": 8,
+            "failed": 1,
+            "signerLayouts": {
+              "2": 9
+            }
+          },
+          "ReclaimByWorker": {
+            "transactions": 3,
+            "success": 3,
+            "failed": 0,
+            "signerLayouts": {
+              "1": 3
+            }
+          }
+        },
+        "capabilityMatrixArtifact": "artifacts/solana/ch-method-capabilities.csv"
       }
     },
     {
@@ -1278,7 +1325,109 @@
             "success": 6,
             "failed": 0
           }
-        }
+        },
+        "observedRecentWindowSignerLayouts": {
+          "BorrowByWorkerKamino": {
+            "transactions": 186,
+            "success": 186,
+            "failed": 0,
+            "signerLayouts": {
+              "1": 186
+            }
+          },
+          "DepositKamino": {
+            "transactions": 120,
+            "success": 118,
+            "failed": 2,
+            "signerLayouts": {
+              "1": 60,
+              "2": 60
+            }
+          },
+          "WithdrawKamino": {
+            "transactions": 103,
+            "success": 103,
+            "failed": 0,
+            "signerLayouts": {
+              "2": 103
+            }
+          },
+          "CreateAccount": {
+            "transactions": 76,
+            "success": 43,
+            "failed": 33,
+            "signerLayouts": {
+              "1": 76
+            }
+          },
+          "RepayKamino": {
+            "transactions": 75,
+            "success": 75,
+            "failed": 0,
+            "signerLayouts": {
+              "2": 75
+            }
+          },
+          "CreateAccountKamino": {
+            "transactions": 50,
+            "success": 50,
+            "failed": 0,
+            "signerLayouts": {
+              "1": 45,
+              "2": 5
+            }
+          },
+          "BorrowKamino": {
+            "transactions": 22,
+            "success": 22,
+            "failed": 0,
+            "signerLayouts": {
+              "2": 22
+            }
+          },
+          "WithdrawAndSendKamino": {
+            "transactions": 13,
+            "success": 13,
+            "failed": 0,
+            "signerLayouts": {
+              "2": 13
+            }
+          },
+          "UpdateLoanSnapshotKamino": {
+            "transactions": 3,
+            "success": 3,
+            "failed": 0,
+            "signerLayouts": {
+              "1": 1,
+              "2": 2
+            }
+          },
+          "RepayByWorkerKamino": {
+            "transactions": 3,
+            "success": 3,
+            "failed": 0,
+            "signerLayouts": {
+              "1": 3
+            }
+          },
+          "BorrowSyncKamino": {
+            "transactions": 2,
+            "success": 2,
+            "failed": 0,
+            "signerLayouts": {
+              "2": 2
+            }
+          },
+          "UpdateTargetBorrowApyKamino": {
+            "transactions": 2,
+            "success": 2,
+            "failed": 0,
+            "signerLayouts": {
+              "1": 2
+            }
+          }
+        },
+        "capabilityMatrixArtifact": "artifacts/solana/ch-method-capabilities.csv"
       }
     },
     {
@@ -1442,13 +1591,318 @@
       ],
       "note": "The no-key lite endpoint returned HTTP 200 for this captured snapshot; current official documentation uses api.jup.ag with an API key."
     },
-    "driftSdkMethod": "getUserAccountsAndAddressesForAuthority"
+    "driftSdkMethod": "getUserAccountsAndAddressesForAuthority",
+    "solanaOfficialDocumentation": {
+      "getSignaturesForAddress": "https://solana.com/docs/rpc/http/getsignaturesforaddress",
+      "getTransaction": "https://solana.com/docs/rpc/http/gettransaction",
+      "jsonStructures": "https://solana.com/docs/rpc/json-structures"
+    },
+    "currentOnChainBinaryHashes": {
+      "xplace1": "ff1c8445dc9c6ce287ccdaf5455654a87e0ce5dcde2984882bc119604aafaaa5",
+      "xplace2": "69e96442df0248956c564d3f2d0870596744da400f3c53d01c16573478de5259",
+      "cctpBridge": "4044c16d7ad4c06b6a41e80a736b1d9bc12236af589b39cf1799ba4f7d2e3315",
+      "relayBridge": "93a89aef6dd30e66f4cda6d3dafecddbfe58ecc98e5596dbc832feaf5eed9e91"
+    }
   },
   "limitations": [
-    "148,000 signatures are enumerated but the preserved cursor shows history is not yet complete.",
-    "Method frequencies and signer-layout evidence are from the 148-transaction temporal sample, not all 148,000 signatures.",
-    "XPlace config and program-owned balances are not direct CH wallet balances. CH operational authority is constrained by on-chain instruction validation and does not imply arbitrary transfer or program-upgrade control.",
-    "Program-owned account lamports are predominantly rent/account-state lamports across all users; they are not CH spendable SOL and are not included in direct CH net worth.",
-    "USD values are indicative price marks, not guaranteed liquidation value; this is especially material for low-organic-score and unverified tokens."
-  ]
+    "The full signature crawl is complete at signature level for the recorded snapshot, while instruction-level decoding is complete for the latest 2,000 transactions plus an earlier stratified sample.",
+    "Binary method presence is not access proof. Access claims require a successful observed signer layout and remain limited by account, whitelist, token, oracle, balance, limit, downstream-program and atomic-bundle checks.",
+    "Routed DEX AddLiquidity/Deposit/Withdraw CPIs can be transient swap mechanics. They are not counted as persistent CH liquidity positions without a CH-owned position/share/NFT account.",
+    "XPlace-managed user collateral, debt, card balances and all program-owned rent are not added to CH direct net worth.",
+    "Recent-window token deltas are flow volume, not current balances and not all-time volume."
+  ],
+  "legacyDecodedSample": {
+    "strategy": "temporal-stratified finalized transaction sample plus direct live-flow verification",
+    "transactions": 148,
+    "signerLayouts": {
+      "chOnly": 101,
+      "chPlusOne": 47
+    },
+    "chStaticAccountIndexZero": 148,
+    "successfulTransactions": 141,
+    "failedTransactions": 7,
+    "feesSol": 0.004263806,
+    "chNativeNetDeltaSol": 0.379687518,
+    "methodSignerLayouts": {
+      "BorrowByWorkerKamino": {
+        "oneSigner": 9,
+        "twoSigner": 0,
+        "other": 0,
+        "success": 9,
+        "failed": 0
+      },
+      "TopUp": {
+        "oneSigner": 23,
+        "twoSigner": 0,
+        "other": 0,
+        "success": 19,
+        "failed": 4
+      },
+      "RepayByWorker": {
+        "oneSigner": 51,
+        "twoSigner": 0,
+        "other": 0,
+        "success": 51,
+        "failed": 0
+      },
+      "UpdateRepayLimit": {
+        "oneSigner": 0,
+        "twoSigner": 2,
+        "other": 0,
+        "success": 2,
+        "failed": 0
+      },
+      "RouteV2": {
+        "oneSigner": 0,
+        "twoSigner": 2,
+        "other": 0,
+        "success": 2,
+        "failed": 0
+      },
+      "Withdraw": {
+        "oneSigner": 0,
+        "twoSigner": 11,
+        "other": 0,
+        "success": 11,
+        "failed": 0
+      },
+      "SharedAccountsRouteV2": {
+        "oneSigner": 0,
+        "twoSigner": 5,
+        "other": 0,
+        "success": 5,
+        "failed": 0
+      },
+      "CreateAccount": {
+        "oneSigner": 9,
+        "twoSigner": 0,
+        "other": 0,
+        "success": 6,
+        "failed": 3
+      },
+      "DepositKamino": {
+        "oneSigner": 3,
+        "twoSigner": 3,
+        "other": 0,
+        "success": 6,
+        "failed": 0
+      },
+      "unknown": {
+        "oneSigner": 0,
+        "twoSigner": 6,
+        "other": 0,
+        "success": 6,
+        "failed": 0
+      },
+      "BorrowKamino": {
+        "oneSigner": 0,
+        "twoSigner": 2,
+        "other": 0,
+        "success": 2,
+        "failed": 0
+      },
+      "WithdrawAndSendKamino": {
+        "oneSigner": 0,
+        "twoSigner": 1,
+        "other": 0,
+        "success": 1,
+        "failed": 0
+      },
+      "GetAccountDataSize": {
+        "oneSigner": 0,
+        "twoSigner": 14,
+        "other": 0,
+        "success": 14,
+        "failed": 0
+      },
+      "CreateTokenAccount": {
+        "oneSigner": 0,
+        "twoSigner": 1,
+        "other": 0,
+        "success": 1,
+        "failed": 0
+      },
+      "BorrowByWorkerDrift": {
+        "oneSigner": 6,
+        "twoSigner": 0,
+        "other": 0,
+        "success": 6,
+        "failed": 0
+      }
+    },
+    "selectedTokenFlows": [
+      {
+        "owner": "CH_DIRECT",
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "netRaw": "190683",
+        "grossInRaw": "190683",
+        "grossOutRaw": "0",
+        "decimals": 6,
+        "txs": 1,
+        "methods": {
+          "Withdraw": 1
+        },
+        "net": 0.190683,
+        "grossIn": 0.190683,
+        "grossOut": 0
+      },
+      {
+        "owner": "XPLACE1_CONFIG",
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "netRaw": "1344750",
+        "grossInRaw": "1344750",
+        "grossOutRaw": "0",
+        "decimals": 6,
+        "txs": 6,
+        "methods": {
+          "BorrowByWorkerDrift": 6
+        },
+        "net": 1.34475,
+        "grossIn": 1.34475,
+        "grossOut": 0
+      },
+      {
+        "owner": "XPLACE2_CONFIG",
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "netRaw": "1320000",
+        "grossInRaw": "1320000",
+        "grossOutRaw": "0",
+        "decimals": 6,
+        "txs": 12,
+        "methods": {
+          "RepayByWorker": 12
+        },
+        "net": 1.32,
+        "grossIn": 1.32,
+        "grossOut": 0
+      }
+    ]
+  },
+  "xplaceStateInventory": {
+    "xplace1": {
+      "programId": "CWhvrgNvYNdkT4gnjPcdVxaNB8HQkXgBTsJAwp3GaHop",
+      "decodedAccountTypes": {
+        "d3218810ba6ef27f": "UserAccount",
+        "29f2f170942f78f3": "UserId",
+        "3a78d6c70ad6eaf4": "LoanSnapshot",
+        "9a72675d4d3950e3": "UserCounter",
+        "ad536a8c02405d72": "RotationState",
+        "9b0caae01efacc82": "Config"
+      },
+      "userAccounts": 5066,
+      "uniqueUsers": 5066,
+      "rainCardLinksNonzero": 5066,
+      "rainCardLinksMatchingCurrentCardAccounts": 1886,
+      "dailyBorrowLimitRaw": {
+        "min": "10000000",
+        "p50": "10000000000000",
+        "p90": "10000000000000",
+        "p99": "10000000000000",
+        "max": "10000000000000"
+      },
+      "availableBorrowRaw": {
+        "min": "10000000",
+        "p50": "10000000000000",
+        "p90": "10000000000000",
+        "p99": "10000000000000",
+        "max": "10000000000000"
+      },
+      "zeroDailyBorrowLimit": 0,
+      "userCounter": 5066,
+      "types": {
+        "d3218810ba6ef27f": {
+          "count": 5066,
+          "space": 96,
+          "lamports": "8139747842"
+        },
+        "29f2f170942f78f3": {
+          "count": 5066,
+          "space": 13,
+          "lamports": "4971569760"
+        },
+        "3a78d6c70ad6eaf4": {
+          "count": 3,
+          "space": 34,
+          "lamports": "3382560"
+        },
+        "9a72675d4d3950e3": {
+          "count": 1,
+          "space": 12,
+          "lamports": "974400"
+        },
+        "ad536a8c02405d72": {
+          "count": 1,
+          "space": 81,
+          "lamports": "1454640"
+        },
+        "9b0caae01efacc82": {
+          "count": 1,
+          "space": 2721,
+          "lamports": "19829040"
+        }
+      },
+      "interpretation": "The 5,066 UserAccount records are per-user XPlace state. Their lamports and protocol positions are not direct CH funds. The 1,886 links matching current XPlace 2 CardAccount records are a snapshot join; unmatched links can reflect inactive/migrated/versioned card state."
+    },
+    "xplace2": {
+      "programId": "Ar2YWzaGxR55YKLx2jNdXuD6RrX9tbu3EsKvxgF7EZa7",
+      "decodedAccountTypes": {
+        "3df0d4155e7c77c4": "CardAccount",
+        "f94448f737cee05d": "SubscriptionStatus",
+        "ad536a8c02405d72": "RotationState",
+        "9b0caae01efacc82": "Config"
+      },
+      "cardAccounts": 3168,
+      "perTxRepayLimitRaw": {
+        "min": "1000",
+        "p50": "10000000000000",
+        "p90": "10000000000000",
+        "p99": "10000000000000",
+        "max": "10000000000000"
+      },
+      "dailyRepayLimitRaw": {
+        "min": "10000",
+        "p50": "10000000000000",
+        "p90": "10000000000000",
+        "p99": "10000000000000",
+        "max": "10000000000000"
+      },
+      "availableDailyRepayRaw": {
+        "min": "10000",
+        "p50": "10000000000000",
+        "p90": "10000000000000",
+        "p99": "10000000000000",
+        "max": "10000000000000"
+      },
+      "zeroPerTxLimit": 0,
+      "types": {
+        "3df0d4155e7c77c4": {
+          "count": 3168,
+          "space": 41,
+          "lamports": "3726404185"
+        },
+        "f94448f737cee05d": {
+          "count": 16,
+          "space": 30,
+          "lamports": "17594880"
+        },
+        "ad536a8c02405d72": {
+          "count": 1,
+          "space": 81,
+          "lamports": "1454640"
+        },
+        "9b0caae01efacc82": {
+          "count": 1,
+          "space": 381,
+          "lamports": "3542640"
+        }
+      },
+      "interpretation": "The 3,168 CardAccount records encode per-card limits/state and are not direct CH balances."
+    }
+  },
+  "deepAnalysisArtifacts": {
+    "cpiCapabilityMap": "artifacts/solana/ch-cpi-capability-map.json",
+    "methodCapabilityMatrix": "artifacts/solana/ch-method-capabilities.csv",
+    "atomicFlowCorrelations": "artifacts/solana/ch-atomic-flow-correlations.csv",
+    "directFundLedger": "artifacts/solana/ch-account-funds.csv"
+  }
 }
