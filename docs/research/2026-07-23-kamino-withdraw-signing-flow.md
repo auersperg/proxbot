@@ -9,6 +9,40 @@ transaction parsing, Ed25519 signature verification, and Solana mainnet RPC.
 **Solana transaction signature:**
 `4siQLsSYnHkzKh5QC8vWKChEpgRKL8mPAN1q1QovSF38bwcgVSBgCJ54inbTkx1DbpVY8kx5x44CiJEPfC9m3GvM`
 
+## Подтверждённый вывод
+
+Полная последовательность установлена однозначно:
+
+1. Приложение параллельно проверяет возможность вывода и доступный лимит
+   через `back.x.place`.
+2. `POST /api/v1/transactions/kamino/withdraw/` формирует Solana v0
+   transaction с двумя обязательными, но пока пустыми слотами подписи. Backend
+   также возвращает `recent_blockhash` и внутренний `transaction_id = 222891`.
+3. Приложение передаёт эту transaction в
+   `auth.privy.io/api/v1/wallets/[wallet_id]/rpc` с методом
+   `signTransaction`.
+4. Privy не меняет message, инструкции, accounts, lookup tables или
+   blockhash. Он заполняет только слот подписи 1.
+5. Подпись из слота 1 криптографически проверена по Ed25519 и принадлежит
+   `BcRLWYBos6tgYGujeJNPqwFHwhrhx7xbZHzkMQuEJJpi`.
+6. Приложение передаёт точный результат Privy в
+   `POST /api/v1/transactions/collateral/process/`. В этот момент слот подписи
+   0 ещё пуст.
+7. Backend либо связанный с ним signing service добавляет подпись
+   `CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE` в слот 0 и отправляет
+   полностью подписанную transaction в Solana.
+8. Возвращённая endpoint-подпись проверяется по Ed25519 для `CHvpg…`,
+   совпадает с первой подписью финальной on-chain transaction и является её
+   Solana transaction identifier.
+9. Solana mainnet подтвердил transaction как `finalized` в slot `434723923`
+   без execution error.
+
+Следовательно, обращение к Privy — это **подпись кошелька BcRL**, но не
+broadcast. Фактическая граница co-signing и broadcast находится после
+`transactions/collateral/process/`. Приватный ключ BcRL в перехваченном
+трафике не передаётся: приложение отправляет сериализованный message, а Privy
+возвращает готовую Ed25519-подпись внутри transaction.
+
 ## Conclusion
 
 The iPhone application does not construct the complete transaction, sign every
@@ -335,4 +369,3 @@ retains only:
 Bearer tokens, cookies, session identifiers, and Privy authorization material
 are omitted. They must remain redacted in exports, screenshots, issue reports,
 and MCP responses.
-
