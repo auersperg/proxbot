@@ -1,5 +1,5 @@
 use proxbot_lib::domain::{EvidenceClass, ParseStatus, ProviderEvent};
-use proxbot_lib::provider::read_frame;
+use proxbot_lib::provider::{FrameReader, read_frame};
 use serde_json::json;
 use tokio::io::{AsyncWriteExt, BufReader};
 use uuid::Uuid;
@@ -48,4 +48,24 @@ async fn rust_rejects_provider_frames_larger_than_sixteen_megabytes() {
 
     let error = read_frame(&mut BufReader::new(reader)).await.unwrap_err();
     assert!(error.to_string().contains("provider frame exceeds"));
+}
+
+#[tokio::test]
+async fn persistent_frame_reader_survives_cancellation_after_partial_frame() {
+    let original = event();
+    let payload = rmp_serde::to_vec_named(&original).unwrap();
+    let split = payload.len() / 2;
+    let (mut writer, reader) = tokio::io::duplex(4096);
+    writer.write_u32(payload.len() as u32).await.unwrap();
+    writer.write_all(&payload[..split]).await.unwrap();
+
+    let mut reader = FrameReader::new(reader);
+    let cancelled =
+        tokio::time::timeout(std::time::Duration::from_millis(10), reader.next_frame()).await;
+    assert!(cancelled.is_err(), "partial frame unexpectedly completed");
+
+    writer.write_all(&payload[split..]).await.unwrap();
+    drop(writer);
+    assert_eq!(reader.next_frame().await.unwrap(), Some(original));
+    assert_eq!(reader.next_frame().await.unwrap(), None);
 }

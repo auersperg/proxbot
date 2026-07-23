@@ -1,7 +1,7 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
 import type { ExchangeRow } from "../lib/contracts";
-import { formatBytes, formatObservedTime, responseLabel, statusTone, warningLabel } from "../lib/exchange";
+import { formatBytes, formatObservedTime, plaintextEvidenceLabel, responseLabel, statusTone, warningLabel } from "../lib/exchange";
 
 interface Props {
   exchanges: ExchangeRow[];
@@ -61,6 +61,8 @@ export default function RequestTable({ exchanges, total, offset, limit, selected
             const address = exchange.host ?? exchange.ip ?? "Unknown endpoint";
             const status = responseLabel(exchange.status);
             const duration = exchange.durationMs === null ? "not reported" : `${exchange.durationMs} ms`;
+            const plaintext = plaintextEvidenceLabel(exchange);
+            const process = exchange.processName ?? (exchange.processId === null ? null : `PID ${exchange.processId}`);
             const diagnosticLabel = [
               `Request ${exchange.requestSequence ?? exchange.responseSequence ?? "not reported"}`,
               `time ${formatObservedTime(exchange.startedNs)}`,
@@ -74,6 +76,10 @@ export default function RequestTable({ exchanges, total, offset, limit, selected
               `request size ${formatBytes(exchange.requestBytes)}`,
               `response size ${formatBytes(exchange.responseBytes)}`,
               `TLS ${exchange.tls ?? "not reported"}`,
+              `capture ${plaintext}`,
+              `provider ${exchange.providerId}`,
+              `process ${process ?? "not reported"}`,
+              `correlation ${exchange.correlationId ?? "not reported"}`,
               `evidence ${exchange.evidence}`,
             ].join("; ");
             return (
@@ -93,14 +99,14 @@ export default function RequestTable({ exchanges, total, offset, limit, selected
                 <span className="mono sequence">{exchange.requestSequence ?? exchange.responseSequence ?? "—"}</span>
                 <span className="mono subdued">{formatObservedTime(exchange.startedNs)}</span>
                 <span><b className={`method method-${(exchange.method ?? "unknown").toLowerCase()}`}>{exchange.method ?? "—"}</b></span>
-                <span className="endpoint-cell"><strong>{address}</strong><small>{exchange.ip && exchange.host ? exchange.ip : exchange.processName ?? ""}</small></span>
+                <span className="endpoint-cell"><strong>{address}</strong><small>{[exchange.ip && exchange.host ? exchange.ip : null, process].filter(Boolean).join(" · ")}</small></span>
                 <span className="path-cell mono">{exchange.path ?? "—"}</span>
                 <span className="status-stack" title={warning ? `${status} · ${warning}` : status}><b className={`status status-${statusTone(exchange.status)}`}>{status}</b>{warning && <em className="warning-label" title={warning}>{warning}</em>}</span>
                 <span className="mono subdued">{exchange.protocol ?? "—"}</span>
                 <span className="mono subdued">{exchange.durationMs === null ? "—" : duration}</span>
                 <span className="mono subdued">{formatBytes(exchange.requestBytes)}</span>
                 <span className="mono subdued">{formatBytes(exchange.responseBytes)}</span>
-                <span className="tls-state"><span>{exchange.tls ?? "—"}</span><em className="evidence-label">{exchange.evidence.toUpperCase()}</em></span>
+                <span className="tls-state" title={`${plaintext} · ${exchange.providerId}`}><span>{exchange.tls ?? "—"}<i className="evidence-class">{exchange.evidence.toUpperCase()}</i></span><em className={`evidence-label capture-${exchange.captureLayer}`}>{plaintext}</em></span>
               </button>
             );
           })}

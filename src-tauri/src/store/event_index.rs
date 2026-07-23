@@ -209,7 +209,7 @@ impl EventIndex {
     }
 }
 
-const EXCHANGE_MATERIALIZER_REVISION: &str = "5";
+const EXCHANGE_MATERIALIZER_REVISION: &str = "6";
 
 fn refresh_derived_metadata(transaction: &Transaction<'_>) -> anyhow::Result<()> {
     let network_events: i64 = transaction.query_row(
@@ -387,6 +387,12 @@ fn ensure_exchange_columns(connection: &Connection) -> anyhow::Result<()> {
         ("response_truncated_state", "INTEGER"),
         ("request_masked_state", "INTEGER"),
         ("response_masked_state", "INTEGER"),
+        ("provider_id", "TEXT"),
+        ("capture_layer", "TEXT"),
+        ("plaintext_state", "TEXT"),
+        ("correlation_id", "TEXT"),
+        ("host_source", "TEXT"),
+        ("process_id", "INTEGER"),
     ] {
         if !columns.contains(name) {
             connection.execute(

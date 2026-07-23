@@ -14,7 +14,7 @@ use std::os::unix::fs::PermissionsExt;
 use app_state::AppState;
 use commands::{
     add_capture_marker, device_preflight, frida_preflight, get_capture_status, get_exchange,
-    list_endpoints, page_exchanges, start_capture, stop_capture,
+    get_wireguard_setup, list_endpoints, page_exchanges, start_capture, stop_capture,
 };
 use provider::ProviderRuntime;
 use tauri::{Emitter, Manager};
@@ -77,6 +77,7 @@ pub fn run() {
             list_endpoints,
             page_exchanges,
             get_exchange,
+            get_wireguard_setup,
             frida_preflight,
             device_preflight,
             start_capture,

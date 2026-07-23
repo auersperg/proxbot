@@ -32,7 +32,7 @@ function snapshot(value: unknown): CaptureSnapshot {
         ((item as Record<string, unknown>).detail === null ||
           typeof (item as Record<string, unknown>).detail === "string"),
     ) ||
-    !(result.profile === null || result.profile === "deep" || result.profile === "passive") ||
+    !(result.profile === null || result.profile === "wireguard" || result.profile === "deep" || result.profile === "passive") ||
     !(result.error === null || typeof result.error === "string")
   ) {
     throw new ProxbotError("INTEGRITY_ERROR", "Control snapshot failed validation");
@@ -74,7 +74,7 @@ export class CliControlAdapter implements ControlAdapter {
   }
 
   async startCapture(input: {
-    profile: "deep" | "passive";
+    profile: "wireguard" | "deep" | "passive";
     deviceId?: string;
   }): Promise<CaptureSnapshot> {
     const arguments_ = ["start-capture", "--profile", input.profile, "--json"];
@@ -158,7 +158,7 @@ export class UnixSocketControlAdapter implements ControlAdapter {
   }
 
   async startCapture(input: {
-    profile: "deep" | "passive";
+    profile: "wireguard" | "deep" | "passive";
     deviceId?: string;
   }): Promise<CaptureSnapshot> {
     if (input.deviceId !== undefined) validateBoundedText(input.deviceId, "deviceId", 256, false);

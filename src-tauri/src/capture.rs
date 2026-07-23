@@ -207,8 +207,8 @@ impl LiveCaptureService {
         device_id: Option<String>,
     ) -> anyhow::Result<CaptureSnapshot> {
         anyhow::ensure!(
-            matches!(profile, "deep" | "passive"),
-            "capture profile must be deep or passive"
+            matches!(profile, "wireguard" | "deep" | "passive"),
+            "capture profile must be wireguard, deep, or passive"
         );
         let _ = self.reap_finished().await;
         {
@@ -256,7 +256,8 @@ impl LiveCaptureService {
         let session_id = Uuid::new_v4();
         let mut coordinator = SessionCoordinator::new(session_id);
         coordinator.register_provider("ios-live")?;
-        if profile == "deep" {
+        let proxy_enabled = matches!(profile, "wireguard" | "deep");
+        if proxy_enabled {
             coordinator.register_provider("proxy-mitm")?;
         }
         coordinator.prepare()?;
@@ -271,11 +272,7 @@ impl LiveCaptureService {
         ));
         let pcap = session_dir.join("capture/device.pcapng");
         let logs = session_dir.join("logs/device.jsonl");
-        let providers = if profile == "deep" {
-            "pcap,syslog"
-        } else {
-            "pcap"
-        };
+        let providers = if proxy_enabled { "pcap,syslog" } else { "pcap" };
         let mut ios_provider = ProviderSupervisor::start_live(
             &self.runtime,
             &socket_path,
@@ -301,7 +298,8 @@ impl LiveCaptureService {
 
         let mut proxy_provider = None;
         let mut proxy_endpoint = None;
-        if profile == "deep" {
+        let mut wireguard_client_config = None;
+        if proxy_enabled {
             let proxy_socket = std::env::temp_dir().join(format!(
                 "proxbot-proxy-{}.sock",
                 &session_id.simple().to_string()[..12]
@@ -313,16 +311,38 @@ impl LiveCaptureService {
                 .unwrap_or(&self.sessions_root)
                 .join("proxy-ca");
             create_owner_only_directory(&proxy_confdir)?;
-            let listen_port = available_proxy_port()?;
+            let wireguard = profile == "wireguard";
+            let listen_port = if wireguard {
+                available_wireguard_port()?
+            } else {
+                available_proxy_port()?
+            };
             let listen_host = advertised_lan_address();
+            let wireguard_root = self
+                .sessions_root
+                .parent()
+                .unwrap_or(&self.sessions_root)
+                .join("wireguard");
+            let wireguard_state = wireguard.then(|| wireguard_root.join("server.json"));
+            let client_config = wireguard.then(|| wireguard_root.join("proxbot.conf"));
+            if wireguard {
+                create_owner_only_directory(&wireguard_root)?;
+            }
+            let advertised_host = wireguard.then(|| listen_host.to_string());
             let started = ProviderSupervisor::start_proxy(
                 &self.proxy_runtime,
-                &proxy_socket,
-                session_id,
-                &proxy_artifacts,
-                &proxy_confdir,
-                "0.0.0.0",
-                listen_port,
+                crate::provider::ProxyStartOptions {
+                    socket_path: &proxy_socket,
+                    session_id,
+                    artifact_root: &proxy_artifacts,
+                    confdir: &proxy_confdir,
+                    listen_host: "0.0.0.0",
+                    listen_port,
+                    mode: if wireguard { "wireguard" } else { "regular" },
+                    advertised_host: advertised_host.as_deref(),
+                    wireguard_state: wireguard_state.as_deref(),
+                    wireguard_client_config: client_config.as_deref(),
+                },
             )
             .await;
             let mut started = match started {
@@ -364,6 +384,7 @@ impl LiveCaptureService {
             );
             persist_event(&mut store, &index, &proxy_ready)?;
             proxy_endpoint = Some(format!("{listen_host}:{listen_port}"));
+            wireguard_client_config = client_config;
             proxy_provider = Some(started);
         }
 
@@ -381,7 +402,11 @@ impl LiveCaptureService {
                 last_event_at_ms: Some(now_ms()),
                 ..CaptureMetrics::default()
             },
-            sources: capture_sources(profile, proxy_endpoint.as_deref()),
+            sources: capture_sources(
+                profile,
+                proxy_endpoint.as_deref(),
+                wireguard_client_config.as_deref(),
+            ),
             error: None,
         };
         let shared_snapshot = Arc::new(RwLock::new(snapshot.clone()));
@@ -588,14 +613,18 @@ impl Drop for StartupSessionGuard {
     }
 }
 
-fn capture_sources(profile: &str, proxy_endpoint: Option<&str>) -> Vec<CaptureSource> {
+fn capture_sources(
+    profile: &str,
+    proxy_endpoint: Option<&str>,
+    wireguard_client_config: Option<&Path>,
+) -> Vec<CaptureSource> {
     let mut sources = vec![CaptureSource {
         id: "pcap".into(),
         label: "Encrypted network packets".into(),
         status: "active".into(),
         detail: Some("USB pcapd / PCAPNG".into()),
     }];
-    if profile == "deep" {
+    if matches!(profile, "wireguard" | "deep") {
         sources.push(CaptureSource {
             id: "syslog".into(),
             label: "Device syslog".into(),
@@ -604,12 +633,26 @@ fn capture_sources(profile: &str, proxy_endpoint: Option<&str>) -> Vec<CaptureSo
         });
         sources.push(CaptureSource {
             id: "proxy-mitm".into(),
-            label: "HTTP(S) proxy".into(),
+            label: if profile == "wireguard" {
+                "WireGuard HTTP(S) inspection".into()
+            } else {
+                "HTTP(S) proxy".into()
+            },
             status: "active".into(),
-            detail: Some(format!(
-                "{} · iPhone Wi-Fi proxy · CA http://mitm.it",
-                proxy_endpoint.unwrap_or("listener active")
-            )),
+            detail: Some(if profile == "wireguard" {
+                format!(
+                    "{} · WireGuard full tunnel · profile {} · CA http://mitm.it",
+                    proxy_endpoint.unwrap_or("listener active"),
+                    wireguard_client_config
+                        .map(|path| path.display().to_string())
+                        .unwrap_or_else(|| "initializing".into())
+                )
+            } else {
+                format!(
+                    "{} · iPhone Wi-Fi proxy · CA http://mitm.it",
+                    proxy_endpoint.unwrap_or("listener active")
+                )
+            }),
         });
     }
     sources
@@ -627,6 +670,20 @@ fn available_proxy_port() -> anyhow::Result<u16> {
         }
     }
     anyhow::bail!("no free HTTPS proxy port in range 9090-9190")
+}
+
+fn available_wireguard_port() -> anyhow::Result<u16> {
+    for port in 51820..=51920 {
+        match UdpSocket::bind((Ipv4Addr::UNSPECIFIED, port)) {
+            Ok(socket) => {
+                drop(socket);
+                return Ok(port);
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::AddrInUse => continue,
+            Err(error) => return Err(error.into()),
+        }
+    }
+    anyhow::bail!("no free WireGuard UDP port in range 51820-51920")
 }
 
 fn advertised_lan_address() -> IpAddr {
@@ -1387,7 +1444,7 @@ mod tests {
     fn proxy_source_reports_observed_plaintext_without_claiming_ca_trust_early() {
         let session_id = Uuid::new_v4();
         let mut snapshot = CaptureSnapshot {
-            sources: capture_sources("deep", Some("192.168.1.31:9091")),
+            sources: capture_sources("deep", Some("192.168.1.31:9091"), None),
             ..CaptureSnapshot::default()
         };
         let mut event = provider_event(session_id, "proxy-mitm", 1);
@@ -1423,6 +1480,26 @@ mod tests {
                 .unwrap()
                 .contains("HTTPS plaintext observed")
         );
+    }
+
+    #[test]
+    fn wireguard_source_exposes_route_and_owner_local_import_path_without_secrets() {
+        let sources = capture_sources(
+            "wireguard",
+            Some("192.168.1.23:51820"),
+            Some(Path::new("/private/proxbot.conf")),
+        );
+        let proxy = sources
+            .iter()
+            .find(|source| source.id == "proxy-mitm")
+            .unwrap();
+        assert_eq!(proxy.label, "WireGuard HTTP(S) inspection");
+        let detail = proxy.detail.as_deref().unwrap();
+        assert!(detail.contains("192.168.1.23:51820"));
+        assert!(detail.contains("WireGuard full tunnel"));
+        assert!(detail.contains("/private/proxbot.conf"));
+        assert!(detail.contains("CA http://mitm.it"));
+        assert!(!detail.contains("PrivateKey"));
     }
 
     #[test]

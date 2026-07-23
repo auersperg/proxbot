@@ -9,6 +9,7 @@ import type {
   ExchangeRow,
   DevicePreflight,
   StartCaptureRequest,
+  WireGuardSetup,
 } from "./contracts";
 
 export type Invoke = <T>(
@@ -27,6 +28,7 @@ export function createApi(invoke: Invoke = tauriInvoke, listen: Listen = listenP
       invoke<CaptureSnapshot>("start_capture", { profile: request.profile, deviceId: request.deviceId }),
     stopCapture: () => invoke<CaptureSnapshot>("stop_capture"),
     getCaptureStatus: () => invoke<CaptureSnapshot>("get_capture_status"),
+    getWireGuardSetup: () => invoke<WireGuardSetup>("get_wireguard_setup"),
     addMarker: (label: string | null = null) =>
       invoke<CaptureMarker>("add_capture_marker", { label }),
     subscribeCaptureStatus: (handler: (snapshot: CaptureSnapshot) => void) =>

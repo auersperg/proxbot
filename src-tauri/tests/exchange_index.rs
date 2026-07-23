@@ -1,6 +1,6 @@
 use proxbot_lib::{
     domain::{EvidenceClass, ParseStatus, ProviderEvent, RawArtifactRef},
-    store::{EndpointFilter, EndpointKind, EventIndex},
+    store::{CaptureLayer, EndpointFilter, EndpointKind, EventIndex, PlaintextState},
 };
 use serde_json::json;
 use tempfile::tempdir;
@@ -127,6 +127,9 @@ fn materializes_live_packet_metadata_as_a_realtime_ip_row() {
     assert_eq!(packet.protocol.as_deref(), Some("TCP"));
     assert_eq!(packet.request_bytes, Some(54));
     assert_eq!(packet.warning.as_deref(), Some("packet_metadata"));
+    assert_eq!(packet.provider_id, "fake");
+    assert_eq!(packet.capture_layer, CaptureLayer::Usb);
+    assert_eq!(packet.plaintext_state, PlaintextState::NotObserved);
     assert!(
         index
             .list_endpoints(session, "", 20)
@@ -134,6 +137,155 @@ fn materializes_live_packet_metadata_as_a_realtime_ip_row() {
             .iter()
             .any(|endpoint| { endpoint.kind == EndpointKind::Ip && endpoint.value == "8.8.8.8" })
     );
+}
+
+#[test]
+fn materializes_explicit_observed_in_process_plaintext_with_provenance_and_correlation() {
+    let dir = tempdir().unwrap();
+    let index = EventIndex::open(&dir.path().join("session.sqlite")).unwrap();
+    let session = Uuid::new_v4();
+    let mut request = event(
+        session,
+        1,
+        "network.request",
+        json!({
+            "request_id": "process-request-1",
+            "correlation_id": "urlsession-task-73",
+            "capture_layer": "process",
+            "plaintext_state": "observed",
+            "host_source": "process.url",
+            "scheme": "https",
+            "host": "auth.example.test",
+            "method": "POST",
+            "path": "/rpc",
+            "protocol": "HTTP/2",
+            "request_bytes": 55,
+            "raw": "POST /rpc HTTP/2\r\nHost: auth.example.test\r\n\r\n{}",
+            "media_type": "application/http",
+            "reconstructed": false,
+            "truncated": false,
+            "masked": false
+        }),
+    );
+    request.provider_id = "ios-process-observer".into();
+    request.process_id = Some(731);
+    request.process_name = Some("WalletApp".into());
+    index.insert(&request).unwrap();
+
+    let mut response = event(
+        session,
+        2,
+        "network.response",
+        json!({
+            "request_id": "process-request-1",
+            "correlation_id": "urlsession-task-73",
+            "capture_layer": "process",
+            "plaintext_state": "observed",
+            "status": 200,
+            "protocol": "HTTP/2",
+            "response_bytes": 19,
+            "raw": "HTTP/2 200 OK\r\n\r\n{}",
+            "media_type": "application/http",
+            "reconstructed": false,
+            "truncated": false,
+            "masked": false
+        }),
+    );
+    response.provider_id = "ios-process-observer".into();
+    response.process_id = Some(731);
+    response.process_name = Some("WalletApp".into());
+    index.insert(&response).unwrap();
+
+    let page = index.page_exchanges(session, "", None, 0, 50).unwrap();
+    let row = &page.exchanges[0];
+    assert_eq!(row.capture_layer, CaptureLayer::Process);
+    assert_eq!(row.plaintext_state, PlaintextState::Observed);
+    assert_eq!(row.provider_id, "ios-process-observer");
+    assert_eq!(row.correlation_id.as_deref(), Some("urlsession-task-73"));
+    assert_eq!(row.host_source.as_deref(), Some("process.url"));
+    assert_eq!(row.process_id, Some(731));
+    assert_eq!(row.process_name.as_deref(), Some("WalletApp"));
+    assert_eq!(row.host.as_deref(), Some("auth.example.test"));
+
+    let correlated = index
+        .page_exchanges(session, "urlsession-task-73", None, 0, 50)
+        .unwrap();
+    assert_eq!(correlated.total, 1);
+    let process_filtered = index
+        .page_exchanges(session, "WalletApp", None, 0, 50)
+        .unwrap();
+    assert_eq!(process_filtered.total, 1);
+
+    let detail = index
+        .get_exchange(session, "process-request-1")
+        .unwrap()
+        .unwrap();
+    assert!(detail.request_raw.unwrap().content.starts_with("POST /rpc"));
+    assert!(
+        detail
+            .response_raw
+            .unwrap()
+            .content
+            .starts_with("HTTP/2 200")
+    );
+}
+
+#[test]
+fn does_not_promote_an_unobserved_process_claim_to_plaintext_evidence() {
+    let dir = tempdir().unwrap();
+    let index = EventIndex::open(&dir.path().join("session.sqlite")).unwrap();
+    let session = Uuid::new_v4();
+    let request = event(
+        session,
+        1,
+        "network.request",
+        json!({
+            "request_id": "process-request-without-raw",
+            "capture_layer": "process",
+            "plaintext_state": "observed",
+            "host": "api.example.test"
+        }),
+    );
+    index.insert(&request).unwrap();
+
+    let row = index
+        .page_exchanges(session, "", None, 0, 50)
+        .unwrap()
+        .exchanges
+        .remove(0);
+    assert_eq!(row.capture_layer, CaptureLayer::Process);
+    assert_eq!(row.plaintext_state, PlaintextState::Unknown);
+}
+
+#[test]
+fn derives_proxy_decryption_without_conflating_it_with_process_observation() {
+    let dir = tempdir().unwrap();
+    let index = EventIndex::open(&dir.path().join("session.sqlite")).unwrap();
+    let session = Uuid::new_v4();
+    let mut request = event(
+        session,
+        1,
+        "network.request",
+        json!({
+            "request_id": "proxy-request",
+            "host": "api.example.test",
+            "tls": "intercepted",
+            "raw": "GET / HTTP/1.1\r\nHost: api.example.test\r\n\r\n"
+        }),
+    );
+    request.provider_id = "proxy-mitm".into();
+    request.process_id = None;
+    request.process_name = None;
+    index.insert(&request).unwrap();
+
+    let row = index
+        .page_exchanges(session, "", None, 0, 50)
+        .unwrap()
+        .exchanges
+        .remove(0);
+    assert_eq!(row.capture_layer, CaptureLayer::Proxy);
+    assert_eq!(row.plaintext_state, PlaintextState::Decrypted);
+    assert_eq!(row.process_id, None);
 }
 
 #[test]

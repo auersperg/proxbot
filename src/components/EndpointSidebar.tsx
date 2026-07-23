@@ -1,6 +1,8 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { memo, useMemo, useRef } from "react";
-import type { EndpointFilter, EndpointSummary, EvidenceSource } from "../lib/contracts";
+import QRCode from "qrcode";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { proxyRuntimeState } from "../lib/capture-diagnostics";
+import type { EndpointFilter, EndpointSummary, EvidenceSource, WireGuardSetup } from "../lib/contracts";
 
 interface DeviceSummary { name: string; id: string; available: boolean }
 interface Props {
@@ -10,6 +12,7 @@ interface Props {
   selected: EndpointFilter | null;
   onSelect: (filter: EndpointFilter | null) => void;
   sources: EvidenceSource[];
+  wireguardSetup?: WireGuardSetup | null;
 }
 
 type TreeEntry =
@@ -26,7 +29,28 @@ function isHttpProxy(source: EvidenceSource) {
   return identity.includes("proxy") && (identity.includes("http") || identity.includes("mitm"));
 }
 
-function EndpointSidebar({ device, endpoints, total, selected, onSelect, sources }: Props) {
+function EndpointSidebar({ device, endpoints, total, selected, onSelect, sources, wireguardSetup = null }: Props) {
+  const proxyState = useMemo(() => proxyRuntimeState(sources), [sources]);
+  const [wireguardQr, setWireguardQr] = useState<string | null>(null);
+  useEffect(() => {
+    let disposed = false;
+    if (!wireguardSetup) {
+      setWireguardQr(null);
+      return;
+    }
+    QRCode.toString(wireguardSetup.clientConfig, {
+      type: "svg",
+      errorCorrectionLevel: "M",
+      margin: 2,
+      width: 280,
+      color: { dark: "#05070a", light: "#ffffff" },
+    }).then((svg) => {
+      if (!disposed) setWireguardQr(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`);
+    }).catch(() => {
+      if (!disposed) setWireguardQr(null);
+    });
+    return () => { disposed = true; };
+  }, [wireguardSetup]);
   const entries = useMemo<TreeEntry[]>(() => {
     const domains = endpoints.filter((item) => item.kind === "domain");
     const ips = endpoints.filter((item) => item.kind === "ip");
@@ -119,13 +143,25 @@ function EndpointSidebar({ device, endpoints, total, selected, onSelect, sources
         <h2>Evidence sources</h2>
         {sources.map((source) => {
           const proxy = isHttpProxy(source);
+          const wireguard = proxy && /wireguard/i.test(`${source.label} ${source.detail ?? ""}`);
           const detail = source.detail ?? source.status;
           return <section className={`source-entry${proxy ? " proxy-source-entry" : ""}`} key={source.id} aria-label={`${source.label}: ${source.status}`}>
             <div className="source-row"><i className={`state-dot ${source.status}`} /><span className="source-label">{proxy ? "HTTP(S) proxy" : source.label}</span><span className="source-detail" title={detail}>{detail}</span></div>
-            {proxy && <details className="proxy-setup-help">
-              <summary><span>CA setup</span><code>http://mitm.it</code></summary>
+            {proxy && <details className="proxy-setup-help" open={wireguard && wireguardSetup !== null}>
+              <summary><span>{wireguard ? "WireGuard + CA setup" : "CA setup"}</span><code>http://mitm.it</code></summary>
               <div role="note">
-                <p>Set the iPhone Wi-Fi proxy to the endpoint above, then open this address on the iPhone to install the CA.</p>
+                <div className="proxy-runtime-diagnostics" aria-label="HTTP(S) runtime diagnostics">
+                  <span className={proxyState.routeObserved ? "diagnostic-observed" : "diagnostic-unresolved"} title={proxyState.routeObserved ? "At least one client request reached this proxy." : "The listener is active, but no client request has reached it yet."}>Route {proxyState.routeObserved ? "observed" : "not observed"}</span>
+                  <span className={proxyState.httpsPlaintextObserved ? "diagnostic-observed" : "diagnostic-unresolved"} title={proxyState.httpsPlaintextObserved ? "At least one accepted HTTPS request supplied application plaintext." : "CONNECT or listener readiness does not establish CA trust or distinguish certificate pinning."}>HTTPS {proxyState.httpsPlaintextObserved ? "observed" : "unresolved"}</span>
+                  <span className={proxyState.inProcessAvailable ? "diagnostic-observed" : "diagnostic-unavailable"} title={proxyState.inProcessAvailable ? "An active in-process instrumentation source is present." : "No active in-process TLS instrumentation source is present."}>Hooks {proxyState.inProcessAvailable ? "active" : "unavailable"}</span>
+                </div>
+                {wireguard ? <>
+                  {wireguardQr
+                    ? <img className="wireguard-qr" src={wireguardQr} alt="WireGuard client configuration QR code" />
+                    : <p>Preparing the WireGuard QR code…</p>}
+                  <p>In WireGuard on the iPhone, add a tunnel by scanning this QR code, enable the tunnel, then open <code>http://mitm.it</code> in Safari to install the CA.</p>
+                  {wireguardSetup && <p className="wireguard-config-path" title={wireguardSetup.clientConfigPath}>Owner-only client profile: <code>{wireguardSetup.clientConfigPath}</code></p>}
+                </> : <p>Set the iPhone Wi-Fi proxy to the endpoint above, then open this address on the iPhone to install the CA.</p>}
                 <p><strong>Listening does not prove CA trust.</strong> HTTPS raw data appears only after an accepted intercepted request. Certificate-pinned apps may remain encrypted.</p>
               </div>
             </details>}

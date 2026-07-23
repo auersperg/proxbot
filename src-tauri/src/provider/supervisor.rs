@@ -1,7 +1,7 @@
 use std::{path::Path, process::Stdio, time::Duration};
 
 use tokio::{
-    io::{AsyncRead, AsyncReadExt, BufReader},
+    io::{AsyncRead, AsyncReadExt},
     net::{UnixListener, UnixStream},
     process::{Child, Command},
     task::JoinHandle,
@@ -11,21 +11,34 @@ use uuid::Uuid;
 
 use crate::{
     domain::ProviderEvent,
-    provider::{ProviderRuntime, read_frame},
+    provider::{FrameReader, ProviderRuntime},
 };
 
 pub struct ProviderSupervisor;
 
+pub struct ProxyStartOptions<'a> {
+    pub socket_path: &'a Path,
+    pub session_id: Uuid,
+    pub artifact_root: &'a Path,
+    pub confdir: &'a Path,
+    pub listen_host: &'a str,
+    pub listen_port: u16,
+    pub mode: &'a str,
+    pub advertised_host: Option<&'a str>,
+    pub wireguard_state: Option<&'a Path>,
+    pub wireguard_client_config: Option<&'a Path>,
+}
+
 pub struct LiveProvider {
     child: Child,
-    reader: BufReader<UnixStream>,
+    reader: FrameReader<UnixStream>,
     stderr: JoinHandle<Vec<u8>>,
     _socket: SocketCleanup,
 }
 
 impl LiveProvider {
     pub async fn next_event(&mut self) -> anyhow::Result<Option<ProviderEvent>> {
-        read_frame(&mut self.reader).await
+        self.reader.next_frame().await
     }
 
     pub fn request_stop(&mut self) -> anyhow::Result<()> {
@@ -125,7 +138,7 @@ impl ProviderSupervisor {
         drop(listener);
         Ok(LiveProvider {
             child,
-            reader: BufReader::new(stream),
+            reader: FrameReader::new(stream),
             stderr,
             _socket: cleanup,
         })
@@ -133,13 +146,20 @@ impl ProviderSupervisor {
 
     pub async fn start_proxy(
         runtime: &ProviderRuntime,
-        socket_path: &Path,
-        session_id: Uuid,
-        artifact_root: &Path,
-        confdir: &Path,
-        listen_host: &str,
-        listen_port: u16,
+        options: ProxyStartOptions<'_>,
     ) -> anyhow::Result<LiveProvider> {
+        let ProxyStartOptions {
+            socket_path,
+            session_id,
+            artifact_root,
+            confdir,
+            listen_host,
+            listen_port,
+            mode,
+            advertised_host,
+            wireguard_state,
+            wireguard_client_config,
+        } = options;
         if socket_path.exists() {
             std::fs::remove_file(socket_path)?;
         }
@@ -151,24 +171,47 @@ impl ProviderSupervisor {
         let artifacts = artifact_root.display().to_string();
         let confdir = confdir.display().to_string();
         let port = listen_port.to_string();
-        let invocation = runtime.invocation(
-            "start",
-            &[
-                "--socket",
-                &socket,
-                "--session-id",
-                &session,
-                "--artifact-root",
-                &artifacts,
-                "--confdir",
-                &confdir,
-                "--listen-host",
-                listen_host,
-                "--listen-port",
-                &port,
-                "--allow-remote",
-            ],
-        );
+        let mut arguments = vec![
+            "--socket",
+            &socket,
+            "--session-id",
+            &session,
+            "--artifact-root",
+            &artifacts,
+            "--confdir",
+            &confdir,
+            "--listen-host",
+            listen_host,
+            "--listen-port",
+            &port,
+            "--mode",
+            mode,
+            "--allow-remote",
+        ];
+        let advertised;
+        let state;
+        let client;
+        if mode == "wireguard" {
+            advertised = advertised_host
+                .ok_or_else(|| anyhow::anyhow!("WireGuard advertised host is required"))?;
+            state = wireguard_state
+                .ok_or_else(|| anyhow::anyhow!("WireGuard state path is required"))?
+                .display()
+                .to_string();
+            client = wireguard_client_config
+                .ok_or_else(|| anyhow::anyhow!("WireGuard client config path is required"))?
+                .display()
+                .to_string();
+            arguments.extend([
+                "--advertise-host",
+                advertised,
+                "--wireguard-state",
+                &state,
+                "--wireguard-client-config",
+                &client,
+            ]);
+        }
+        let invocation = runtime.invocation("start", &arguments);
         let mut child = Command::new(invocation.program)
             .args(invocation.arguments)
             .stdin(Stdio::null())
@@ -197,7 +240,7 @@ impl ProviderSupervisor {
         drop(listener);
         Ok(LiveProvider {
             child,
-            reader: BufReader::new(stream),
+            reader: FrameReader::new(stream),
             stderr,
             _socket: cleanup,
         })
@@ -240,9 +283,9 @@ impl ProviderSupervisor {
         let (stream, _) = timeout(Duration::from_secs(15), listener.accept())
             .await
             .map_err(|_| anyhow::anyhow!("provider did not connect within 15 seconds"))??;
-        let mut reader = BufReader::new(stream);
+        let mut reader = FrameReader::new(stream);
         let mut events = Vec::with_capacity(count as usize);
-        while let Some(event) = read_frame(&mut reader).await? {
+        while let Some(event) = reader.next_frame().await? {
             events.push(event);
         }
 

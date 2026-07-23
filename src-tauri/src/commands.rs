@@ -1,5 +1,8 @@
 use std::{path::Path, process::Stdio, sync::Arc};
 
+#[cfg(unix)]
+use std::os::unix::fs::{MetadataExt, PermissionsExt};
+
 use serde::Serialize;
 use serde_json::Value;
 use tauri::{AppHandle, Emitter, State};
@@ -12,8 +15,8 @@ use crate::{
     domain::{EvidenceClass, RawArtifactRef},
     provider::ProviderRuntime,
     store::{
-        EndpointFilter, EndpointKind, EndpointSummary, EventIndex, ExchangeRow, RawView,
-        hydrate_packet_raw,
+        CaptureLayer, EndpointFilter, EndpointKind, EndpointSummary, EventIndex, ExchangeRow,
+        PlaintextState, RawView, hydrate_packet_raw,
     },
 };
 
@@ -95,6 +98,12 @@ pub struct ExchangeRowDto {
     pub path: Option<String>,
     pub status: Option<u16>,
     pub protocol: Option<String>,
+    pub provider_id: String,
+    pub capture_layer: CaptureLayer,
+    pub plaintext_state: PlaintextState,
+    pub correlation_id: Option<String>,
+    pub host_source: Option<String>,
+    pub process_id: Option<u32>,
     pub process_name: Option<String>,
     pub duration_ms: Option<u64>,
     pub request_bytes: Option<u64>,
@@ -120,6 +129,12 @@ impl From<ExchangeRow> for ExchangeRowDto {
             path: value.path,
             status: value.status,
             protocol: value.protocol,
+            provider_id: value.provider_id,
+            capture_layer: value.capture_layer,
+            plaintext_state: value.plaintext_state,
+            correlation_id: value.correlation_id,
+            host_source: value.host_source,
+            process_id: value.process_id,
             process_name: value.process_name,
             duration_ms: value.duration_ms,
             request_bytes: value.request_bytes,
@@ -138,6 +153,13 @@ impl From<ExchangeRow> for ExchangeRowDto {
 pub struct ExchangePageDto {
     pub exchanges: Vec<ExchangeRowDto>,
     pub total: u64,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WireGuardSetupDto {
+    pub client_config: String,
+    pub client_config_path: String,
 }
 
 pub fn validate_capture_count(count: u64) -> anyhow::Result<u64> {
@@ -244,7 +266,7 @@ pub async fn run_frida_preflight(provider_project: &Path) -> anyhow::Result<Valu
 }
 
 pub async fn run_frida_preflight_with_runtime(runtime: &ProviderRuntime) -> anyhow::Result<Value> {
-    let invocation = runtime.invocation("device-preflight", &[]);
+    let invocation = runtime.invocation("frida-preflight", &[]);
     let output = Command::new(invocation.program)
         .args(invocation.arguments)
         .stdin(Stdio::null())
@@ -339,6 +361,52 @@ pub async fn frida_preflight(state: State<'_, AppState>) -> Result<Value, String
         .map_err(|error| error.to_string())
 }
 
+#[tauri::command]
+pub async fn get_wireguard_setup(state: State<'_, AppState>) -> Result<WireGuardSetupDto, String> {
+    let snapshot = state.live_capture.status().await;
+    if snapshot.profile.as_deref() != Some("wireguard")
+        || !matches!(
+            snapshot.status,
+            crate::capture::CaptureStatus::Capturing | crate::capture::CaptureStatus::Degraded
+        )
+    {
+        return Err("WireGuard setup is available only during an active WireGuard capture".into());
+    }
+    let path = state
+        .sessions_root
+        .parent()
+        .unwrap_or(&state.sessions_root)
+        .join("wireguard/proxbot.conf");
+    let metadata = std::fs::symlink_metadata(&path).map_err(|error| error.to_string())?;
+    if !metadata.file_type().is_file() || metadata.file_type().is_symlink() {
+        return Err("WireGuard client configuration is not a regular file".into());
+    }
+    #[cfg(unix)]
+    {
+        if metadata.uid() != unsafe { libc::geteuid() } {
+            return Err("WireGuard client configuration is not owned by this user".into());
+        }
+        if metadata.permissions().mode() & 0o077 != 0 {
+            return Err("WireGuard client configuration permissions are not owner-only".into());
+        }
+    }
+    if metadata.len() == 0 || metadata.len() > 16 * 1024 {
+        return Err("WireGuard client configuration size is invalid".into());
+    }
+    let client_config = std::fs::read_to_string(&path).map_err(|error| error.to_string())?;
+    if !client_config.contains("[Interface]")
+        || !client_config.contains("[Peer]")
+        || !client_config.contains("PrivateKey = ")
+        || !client_config.contains("Endpoint = ")
+    {
+        return Err("WireGuard client configuration failed validation".into());
+    }
+    Ok(WireGuardSetupDto {
+        client_config,
+        client_config_path: path.display().to_string(),
+    })
+}
+
 fn emit_capture_status(app: &AppHandle, snapshot: &CaptureSnapshot) {
     let _ = app.emit("capture://status", snapshot);
 }
@@ -431,6 +499,12 @@ mod packet_hydration_tests {
             path: Some("192.168.1.2:50000 -> 192.0.2.1:443".into()),
             status: None,
             protocol: Some("TCP".into()),
+            provider_id: "ios-live".into(),
+            capture_layer: CaptureLayer::Usb,
+            plaintext_state: PlaintextState::NotObserved,
+            correlation_id: None,
+            host_source: None,
+            process_id: None,
             process_name: None,
             duration_ms: None,
             request_bytes: Some(4),

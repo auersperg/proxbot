@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 import os
 import threading
 import time
@@ -28,13 +29,35 @@ def _header_lines(headers: Any) -> list[tuple[str, str]]:
     return [(_value(name) or "", _value(value) or "") for name, value in items]
 
 
-def _body(message: Any) -> bytes:
-    content = getattr(message, "raw_content", None)
-    if content is None:
-        content = getattr(message, "content", None)
-    if content is None:
-        return b""
-    return bytes(content)
+def _body(message: Any) -> tuple[bytes, bytes, str | None]:
+    """Return exact wire bytes, a decoded display body, and applied encoding.
+
+    mitmproxy's ``raw_content`` preserves the content-encoded wire entity,
+    while ``content`` applies Content-Encoding decoding. Keep the former for
+    the append-only evidence artifact and use the latter only for a bounded,
+    explicitly marked analyst view.
+    """
+
+    wire = getattr(message, "raw_content", None)
+    if wire is None:
+        wire = getattr(message, "content", None)
+    wire_bytes = bytes(wire) if wire is not None else b""
+    headers = getattr(message, "headers", None)
+    encoding = _value(
+        getattr(headers, "get", lambda *_: None)("content-encoding")
+    )
+    if not encoding:
+        return wire_bytes, wire_bytes, None
+    try:
+        decoded = getattr(message, "content", None)
+    except (ValueError, TypeError):
+        decoded = None
+    if decoded is None:
+        return wire_bytes, wire_bytes, None
+    decoded_bytes = bytes(decoded)
+    if decoded_bytes == wire_bytes:
+        return wire_bytes, wire_bytes, None
+    return wire_bytes, decoded_bytes, encoding
 
 
 def _endpoint(flow: Any) -> tuple[str | None, int | None]:
@@ -42,6 +65,63 @@ def _endpoint(flow: Any) -> tuple[str | None, int | None]:
     if isinstance(address, tuple) and address:
         return _value(address[0]), int(address[1]) if len(address) > 1 else None
     return None, None
+
+
+def _is_ip_address(value: str | None) -> bool:
+    if not value:
+        return False
+    try:
+        ipaddress.ip_address(value)
+    except ValueError:
+        return False
+    return True
+
+
+def _request_identity(flow: Any) -> tuple[str | None, str | None, list[str]]:
+    """Resolve the HTTP destination without discarding transparent-proxy SNI.
+
+    In WireGuard mode the HTTP request target is frequently represented by the
+    upstream IP address even though mitmproxy observed the original hostname in
+    the TLS connection. Prefer that per-flow SNI and preserve the HTTP host as a
+    candidate instead of forcing the UI to display only CDN addresses.
+    """
+
+    request = getattr(flow, "request", None)
+    http_host = _value(
+        getattr(request, "pretty_host", None) or getattr(request, "host", None)
+    )
+    server_sni = _value(
+        getattr(getattr(flow, "server_conn", None), "sni", None)
+    )
+    client_sni = _value(
+        getattr(getattr(flow, "client_conn", None), "sni", None)
+    )
+    candidates: list[str] = []
+    for candidate in (client_sni, server_sni, http_host):
+        if candidate and candidate not in candidates:
+            candidates.append(candidate)
+
+    sni = client_sni or server_sni
+    if sni:
+        return sni, "tls.sni", candidates
+    if http_host:
+        return (
+            http_host,
+            "destination.ip" if _is_ip_address(http_host) else "http.host",
+            candidates,
+        )
+    return None, None, candidates
+
+
+def _media_type(message: Any, decoded_encoding: str | None) -> str:
+    content_type = _value(
+        getattr(getattr(message, "headers", None), "get", lambda *_: None)(
+            "content-type"
+        )
+    ) or "application/octet-stream"
+    if decoded_encoding:
+        return f"{content_type}; content-decoded={decoded_encoding}"
+    return content_type
 
 
 def _raw_message(
@@ -64,6 +144,9 @@ class ProxyCaptureAddon:
         *,
         listen_host: str,
         listen_port: int,
+        transport: str = "regular",
+        client_config_path: str | None = None,
+        advertised_host: str | None = None,
         health_interval: float = 1.0,
     ):
         if health_interval <= 0:
@@ -72,6 +155,9 @@ class ProxyCaptureAddon:
         self.artifacts = artifacts
         self.listen_host = listen_host
         self.listen_port = listen_port
+        self.transport = transport
+        self.client_config_path = client_config_path
+        self.advertised_host = advertised_host
         self.health_interval = health_interval
         self.received = 0
         self.malformed = 0
@@ -88,8 +174,31 @@ class ProxyCaptureAddon:
                 "provider": "proxy-mitm",
                 "listen_host": self.listen_host,
                 "listen_port": self.listen_port,
-                "capabilities": ["http_connect", "http_1_1", "http_2", "websocket", "tls_metadata", "bounded_body_artifacts"],
-                "coverage": ["configured_proxy_traffic", "http_metadata", "bounded_application_plaintext"],
+                "transport": self.transport,
+                "advertised_host": self.advertised_host,
+                "client_config_path": self.client_config_path,
+                "capabilities": [
+                    "http_connect",
+                    "http_1_1",
+                    "http_2",
+                    "websocket",
+                    "tls_metadata",
+                    "bounded_body_artifacts",
+                    *(
+                        ["wireguard_server", "transparent_external_device_capture"]
+                        if self.transport == "wireguard"
+                        else []
+                    ),
+                ],
+                "coverage": [
+                    (
+                        "wireguard_routed_traffic"
+                        if self.transport == "wireguard"
+                        else "configured_proxy_traffic"
+                    ),
+                    "http_metadata",
+                    "bounded_application_plaintext",
+                ],
                 "tls_interception": "requires trusted proxbot CA and compatible client trust policy",
                 "certificate_pinning_bypass": False,
             },
@@ -101,16 +210,24 @@ class ProxyCaptureAddon:
         try:
             request = flow.request
             request_id = str(flow.id)
-            body = _body(request)
-            artifact = self.artifacts.append("request", body)
+            wire_body, display_body, decoded_encoding = _body(request)
+            artifact = self.artifacts.append("request", wire_body)
             self.body_bytes_dropped += artifact.dropped_bytes
             headers = _header_lines(request.headers)
             version = _value(getattr(request, "http_version", None)) or "HTTP/1.1"
             path = _value(getattr(request, "path", None)) or "/"
             method = _value(getattr(request, "method", None)) or "UNKNOWN"
-            captured = int(artifact.ref["length"]) if artifact.ref else 0
+            wire_captured = int(artifact.ref["length"]) if artifact.ref else 0
+            display_captured = (
+                min(len(display_body), self.artifacts.per_body_limit)
+                if decoded_encoding
+                else wire_captured
+            )
+            host, host_source, domain_candidates = _request_identity(flow)
             raw, header_bytes_dropped, captured_raw_bytes = _raw_message(
-                f"{method} {path} {version}", headers, body[:captured]
+                f"{method} {path} {version}",
+                headers,
+                display_body[:display_captured],
             )
             ip, port = _endpoint(flow)
             self._active.add(request_id)
@@ -121,23 +238,38 @@ class ProxyCaptureAddon:
                     "request_id": request_id,
                     "method": method,
                     "scheme": _value(getattr(request, "scheme", None)),
-                    "host": _value(getattr(request, "host", None)),
+                    "host": host,
+                    "host_source": host_source,
+                    "domain_candidates": domain_candidates,
                     "port": int(getattr(request, "port", 0)) or port,
                     "ip": ip,
                     "path": path,
                     "protocol": version,
                     "headers": headers,
-                    "request_bytes": captured_raw_bytes + artifact.dropped_bytes + header_bytes_dropped,
+                    "request_bytes": (
+                        captured_raw_bytes
+                        - display_captured
+                        + len(wire_body)
+                        + header_bytes_dropped
+                    ),
                     "captured_raw_bytes": captured_raw_bytes,
-                    "body_bytes": len(body),
-                    "body_bytes_captured": captured,
+                    "body_bytes": len(wire_body),
+                    "body_bytes_captured": wire_captured,
                     "body_bytes_dropped": artifact.dropped_bytes,
+                    "display_body_bytes": len(display_body),
+                    "display_body_bytes_captured": display_captured,
+                    "content_decoded": decoded_encoding is not None,
+                    "content_encoding": decoded_encoding,
                     "header_bytes_dropped": header_bytes_dropped,
                     "raw": raw,
-                    "media_type": _value(getattr(request.headers, "get", lambda *_: None)("content-type")) or "application/octet-stream",
+                    "media_type": _media_type(request, decoded_encoding),
                     "tls": "intercepted" if _value(getattr(request, "scheme", None)) == "https" else "cleartext",
                     "reconstructed": True,
-                    "truncated": artifact.truncated or header_bytes_dropped > 0,
+                    "truncated": (
+                        artifact.truncated
+                        or display_captured < len(display_body)
+                        or header_bytes_dropped > 0
+                    ),
                     "masked": False,
                     "body_artifact_scope": "body",
                 },
@@ -166,16 +298,23 @@ class ProxyCaptureAddon:
             response = flow.response
             request = flow.request
             request_id = str(flow.id)
-            body = _body(response)
-            artifact = self.artifacts.append("response", body)
+            wire_body, display_body, decoded_encoding = _body(response)
+            artifact = self.artifacts.append("response", wire_body)
             self.body_bytes_dropped += artifact.dropped_bytes
             headers = _header_lines(response.headers)
             version = _value(getattr(response, "http_version", None)) or _value(getattr(request, "http_version", None)) or "HTTP/1.1"
             status = int(response.status_code)
             reason = _value(getattr(response, "reason", None)) or ""
-            captured = int(artifact.ref["length"]) if artifact.ref else 0
+            wire_captured = int(artifact.ref["length"]) if artifact.ref else 0
+            display_captured = (
+                min(len(display_body), self.artifacts.per_body_limit)
+                if decoded_encoding
+                else wire_captured
+            )
             raw, header_bytes_dropped, captured_raw_bytes = _raw_message(
-                f"{version} {status} {reason}".rstrip(), headers, body[:captured]
+                f"{version} {status} {reason}".rstrip(),
+                headers,
+                display_body[:display_captured],
             )
             started = getattr(request, "timestamp_start", None)
             ended = getattr(response, "timestamp_end", None) or time.time()
@@ -190,16 +329,29 @@ class ProxyCaptureAddon:
                     "protocol": version,
                     "headers": headers,
                     "duration_ms": duration_ms,
-                    "response_bytes": captured_raw_bytes + artifact.dropped_bytes + header_bytes_dropped,
+                    "response_bytes": (
+                        captured_raw_bytes
+                        - display_captured
+                        + len(wire_body)
+                        + header_bytes_dropped
+                    ),
                     "captured_raw_bytes": captured_raw_bytes,
-                    "body_bytes": len(body),
-                    "body_bytes_captured": captured,
+                    "body_bytes": len(wire_body),
+                    "body_bytes_captured": wire_captured,
                     "body_bytes_dropped": artifact.dropped_bytes,
+                    "display_body_bytes": len(display_body),
+                    "display_body_bytes_captured": display_captured,
+                    "content_decoded": decoded_encoding is not None,
+                    "content_encoding": decoded_encoding,
                     "header_bytes_dropped": header_bytes_dropped,
                     "raw": raw,
-                    "media_type": _value(getattr(response.headers, "get", lambda *_: None)("content-type")) or "application/octet-stream",
+                    "media_type": _media_type(response, decoded_encoding),
                     "reconstructed": True,
-                    "truncated": artifact.truncated or header_bytes_dropped > 0,
+                    "truncated": (
+                        artifact.truncated
+                        or display_captured < len(display_body)
+                        or header_bytes_dropped > 0
+                    ),
                     "masked": False,
                     "body_artifact_scope": "body",
                 },
@@ -272,6 +424,7 @@ class ProxyCaptureAddon:
             "artifact_bytes": self.artifacts.written,
             "body_bytes_dropped": self.body_bytes_dropped,
             "certificate_pinning_bypass": False,
+            "transport": self.transport,
         }
 
     def done(self) -> None:
@@ -297,5 +450,10 @@ def addon_from_environment() -> ProxyCaptureAddon:
         ),
         listen_host=os.environ.get("PROXBOT_PROXY_LISTEN_HOST", "127.0.0.1"),
         listen_port=int(os.environ.get("PROXBOT_PROXY_LISTEN_PORT", "9090")),
+        transport=os.environ.get("PROXBOT_PROXY_MODE", "regular"),
+        client_config_path=(
+            os.environ.get("PROXBOT_PROXY_WIREGUARD_CLIENT_CONFIG") or None
+        ),
+        advertised_host=os.environ.get("PROXBOT_PROXY_ADVERTISE_HOST") or None,
         health_interval=float(os.environ.get("PROXBOT_PROXY_HEALTH_INTERVAL", "1.0")),
     )

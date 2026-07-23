@@ -14,6 +14,7 @@ from typing import Any
 
 from . import __version__
 from .secure_output import ensure_owner_directory, validate_owner_directory
+from .wireguard import prepare_wireguard
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -31,7 +32,10 @@ def build_parser() -> argparse.ArgumentParser:
     start.add_argument("--confdir", type=Path, required=True)
     start.add_argument("--listen-host", default="127.0.0.1")
     start.add_argument("--listen-port", type=int, default=9090)
-    start.add_argument("--mode", choices=("regular", "transparent", "socks5"), default="regular")
+    start.add_argument("--mode", choices=("regular", "wireguard", "transparent", "socks5"), default="regular")
+    start.add_argument("--advertise-host")
+    start.add_argument("--wireguard-state", type=Path)
+    start.add_argument("--wireguard-client-config", type=Path)
     start.add_argument("--body-limit", type=int, default=1024 * 1024)
     start.add_argument("--total-body-limit", type=int, default=512 * 1024 * 1024)
     start.add_argument("--queue-size", type=int, default=4096)
@@ -55,7 +59,16 @@ def probe() -> dict[str, Any]:
         "mitmproxy_version": mitmproxy.version.VERSION,
         "mitmdump": executable or "embedded",
         "schema_version": 1,
-        "capabilities": ["http_connect", "http_1_1", "http_2", "websocket", "tls_metadata", "bounded_body_artifacts"],
+        "capabilities": [
+            "http_connect",
+            "http_1_1",
+            "http_2",
+            "websocket",
+            "tls_metadata",
+            "bounded_body_artifacts",
+            "wireguard_server",
+            "transparent_external_device_capture",
+        ],
         "certificate_pinning_bypass": False,
     }
 
@@ -108,12 +121,27 @@ def validate_start(arguments: argparse.Namespace) -> None:
         raise SystemExit(f"--socket parent is not owner-only: {error}") from error
     if arguments.listen_host not in {"127.0.0.1", "::1", "localhost"} and not arguments.allow_remote:
         raise SystemExit("non-loopback listeners require --allow-remote")
+    if arguments.mode == "wireguard":
+        if arguments.wireguard_state is None:
+            raise SystemExit("--wireguard-state is required in wireguard mode")
+        if arguments.wireguard_client_config is None:
+            raise SystemExit("--wireguard-client-config is required in wireguard mode")
+        if not arguments.advertise_host:
+            raise SystemExit("--advertise-host is required in wireguard mode")
 
 
 def start(arguments: argparse.Namespace) -> None:
     validate_start(arguments)
     ensure_owner_directory(arguments.artifact_root)
     ensure_owner_directory(arguments.confdir)
+    wireguard = None
+    if arguments.mode == "wireguard":
+        wireguard = prepare_wireguard(
+            arguments.wireguard_state,
+            arguments.wireguard_client_config,
+            arguments.advertise_host,
+            arguments.listen_port,
+        )
     addon = Path(__file__).with_name("mitm_addon.py")
     environment = os.environ.copy()
     environment.update(
@@ -127,16 +155,34 @@ def start(arguments: argparse.Namespace) -> None:
             "PROXBOT_PROXY_TOTAL_BODY_LIMIT": str(arguments.total_body_limit),
             "PROXBOT_PROXY_QUEUE_SIZE": str(arguments.queue_size),
             "PROXBOT_PROXY_HEALTH_INTERVAL": str(arguments.health_interval),
+            "PROXBOT_PROXY_MODE": arguments.mode,
+            "PROXBOT_PROXY_WIREGUARD_CLIENT_CONFIG": (
+                str(arguments.wireguard_client_config)
+                if arguments.wireguard_client_config is not None
+                else ""
+            ),
+            "PROXBOT_PROXY_ADVERTISE_HOST": arguments.advertise_host or "",
         }
     )
+    mode = arguments.mode
+    if wireguard is not None:
+        mode = (
+            f"wireguard:{arguments.wireguard_state}"
+            f"@{arguments.listen_host}:{arguments.listen_port}"
+        )
     command = [
-        "--listen-host", arguments.listen_host,
-        "--listen-port", str(arguments.listen_port),
-        "--mode", arguments.mode,
+        "--mode", mode,
         "--set", f"confdir={arguments.confdir}",
         "--set", "termlog_verbosity=error",
         "-s", str(addon),
     ]
+    if wireguard is None:
+        command[0:0] = [
+            "--listen-host",
+            arguments.listen_host,
+            "--listen-port",
+            str(arguments.listen_port),
+        ]
     # Keep the proxy runnable both from a uv checkout and from the bundled
     # PyInstaller sidecar.  The console-script executable is not present inside
     # a one-file bundle, while mitmproxy's supported Python entry point is.

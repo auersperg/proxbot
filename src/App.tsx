@@ -5,7 +5,7 @@ import RawInspector from "./components/RawInspector";
 import RequestTable from "./components/RequestTable";
 import Toolbar from "./components/Toolbar";
 import { api, type ApiClient } from "./lib/api";
-import type { CaptureMetrics, CaptureProfile, CaptureSnapshot, CaptureStatus, DevicePreflight, EndpointFilter, EndpointSummary, EvidenceSource, ExchangePage } from "./lib/contracts";
+import type { CaptureMetrics, CaptureProfile, CaptureSnapshot, CaptureStatus, DevicePreflight, EndpointFilter, EndpointSummary, EvidenceSource, ExchangePage, WireGuardSetup } from "./lib/contracts";
 import "./styles.css";
 
 const PAGE_LIMIT = 200;
@@ -33,6 +33,7 @@ interface WorkspaceState {
   sessionDir: string | null;
   metrics: CaptureMetrics;
   sources: EvidenceSource[];
+  wireguardSetup: WireGuardSetup | null;
   endpoints: EndpointSummary[];
   page: ExchangePage;
   deviceTotal: number;
@@ -73,12 +74,13 @@ function initialState(): WorkspaceState {
     operations: [],
     revision: -1,
     status: "idle",
-    profile: "deep",
+    profile: "wireguard",
     device: null,
     sessionId: null,
     sessionDir: null,
     metrics: EMPTY_METRICS,
     sources: [],
+    wireguardSetup: null,
     endpoints: [],
     page: { exchanges: [], total: 0 },
     deviceTotal: 0,
@@ -113,6 +115,7 @@ function reducer(state: WorkspaceState, action: WorkspaceAction): WorkspaceState
         sessionDir: snapshot.sessionDir,
         metrics: snapshot.metrics,
         sources: snapshot.sources,
+        wireguardSetup: snapshot.profile === "wireguard" ? state.wireguardSetup : null,
         ...(newSession ? {
           endpoints: [], page: { exchanges: [], total: 0 }, deviceTotal: 0,
           selectedId: null, selectedDetail: null, endpoint: null, offset: 0,
@@ -322,6 +325,7 @@ export default function App({ client = api }: { client?: ApiClient }) {
         sessionDir: null,
         metrics: EMPTY_METRICS,
         sources: [],
+        wireguardSetup: null,
         endpoints: [],
         page: { exchanges: [], total: 0 },
         deviceTotal: 0,
@@ -446,6 +450,25 @@ export default function App({ client = api }: { client?: ApiClient }) {
   }, [client, selectedDetailVersion, state.selectedId, state.sessionId]);
 
   useEffect(() => {
+    const active = state.status === "capturing" || state.status === "degraded";
+    if (state.profile !== "wireguard" || !active || !state.sessionId) {
+      if (state.wireguardSetup !== null) {
+        dispatch({ type: "patch", value: { wireguardSetup: null } });
+      }
+      return;
+    }
+    let disposed = false;
+    client.getWireGuardSetup()
+      .then((wireguardSetup) => {
+        if (!disposed) dispatch({ type: "patch", value: { wireguardSetup } });
+      })
+      .catch((reason) => {
+        if (!disposed) dispatch({ type: "error-set", lane: "capture", value: errorText(reason) });
+      });
+    return () => { disposed = true; };
+  }, [client, state.profile, state.sessionId, state.status]);
+
+  useEffect(() => {
     let disposed = false;
     let unlisten: (() => void) | null = null;
     let eventRefreshTimer: number | null = null;
@@ -541,11 +564,11 @@ export default function App({ client = api }: { client?: ApiClient }) {
       />
       {error && <div className="error-banner" role="alert"><strong>Capture warning</strong><span>{error}</span><button type="button" aria-label="Dismiss warning" onClick={() => dispatch({ type: "errors-cleared" })}>×</button></div>}
       <div className={`workspace${error ? " has-error" : ""}`} style={workspaceStyle}>
-        <EndpointSidebar device={fallbackDevice} endpoints={state.endpoints} total={state.deviceTotal} selected={state.endpoint} sources={state.sources} onSelect={selectEndpoint} />
+        <EndpointSidebar device={fallbackDevice} endpoints={state.endpoints} total={state.deviceTotal} selected={state.endpoint} sources={state.sources} wireguardSetup={state.wireguardSetup} onSelect={selectEndpoint} />
         <WorkspaceSplitter orientation="vertical" label="Resize endpoint sidebar" value={state.sidebarWidth} minimum={SIDEBAR_MIN} maximum={SIDEBAR_MAX} onResize={(value) => dispatch({ type: "sidebar-resized", value })} />
         <RequestTable exchanges={state.page.exchanges} total={state.page.total} offset={state.offset} limit={PAGE_LIMIT} selectedId={state.selectedId} busy={busy} onSelect={(selectedId) => dispatch({ type: "patch", value: { selectedId } })} onPage={changePage} />
         <WorkspaceSplitter orientation="horizontal" label="Resize raw inspector" value={inspectorHeight} minimum={INSPECTOR_MIN} maximum={inspectorMaximum} onResize={(value) => dispatch({ type: "inspector-resized", value: Math.min(inspectorMaximum, value) })} />
-        <RawInspector exchange={state.selectedDetail} />
+        <RawInspector exchange={state.selectedDetail} sources={state.sources} />
       </div>
       <HealthStrip
         status={state.status}

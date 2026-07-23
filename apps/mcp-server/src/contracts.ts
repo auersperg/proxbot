@@ -70,7 +70,7 @@ export interface CaptureSnapshot {
   status: string;
   sessionId: string | null;
   sessionDir: string | null;
-  profile: "deep" | "passive" | null;
+  profile: "wireguard" | "deep" | "passive" | null;
   device: Record<string, unknown> | null;
   metrics: Record<string, unknown>;
   sources: Array<{
@@ -92,7 +92,7 @@ export interface CaptureMarker {
 export interface ControlAdapter {
   readonly available: boolean;
   startCapture(input: {
-    profile: "deep" | "passive";
+    profile: "wireguard" | "deep" | "passive";
     deviceId?: string;
   }): Promise<CaptureSnapshot>;
   stopCapture(): Promise<CaptureSnapshot>;

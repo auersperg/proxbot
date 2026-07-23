@@ -960,7 +960,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "frida", specifier = ">=17.8,<18" },
+    { name = "frida", specifier = "==17.16.4" },
     { name = "msgpack", specifier = ">=1.1,<2" },
     { name = "pyinstaller", marker = "extra == 'build'", specifier = "==6.21.0" },
     { name = "pymobiledevice3", specifier = "==9.12.0" },

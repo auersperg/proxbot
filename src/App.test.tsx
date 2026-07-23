@@ -30,6 +30,10 @@ function client(overrides: Partial<ApiClient> = {}): ApiClient {
     startCapture: vi.fn().mockResolvedValue(liveSnapshot),
     stopCapture: vi.fn().mockResolvedValue(snapshot({ ...liveSnapshot, revision: 2, status: "ready" })),
     getCaptureStatus: vi.fn().mockResolvedValue(idleSnapshot),
+    getWireGuardSetup: vi.fn().mockResolvedValue({
+      clientConfig: "[Interface]\nPrivateKey = fixture\n\n[Peer]\nEndpoint = 192.168.1.23:51820\n",
+      clientConfigPath: "/tmp/proxbot.conf",
+    }),
     addMarker: vi.fn().mockResolvedValue({ id: "marker-1", sessionId: "fixture-session", createdAtMs: 1_000, label: "Marker" }),
     subscribeCaptureStatus: vi.fn().mockResolvedValue(vi.fn()),
     devicePreflight: vi.fn().mockResolvedValue({ available: true, paired: true, trusted: true, id: "fixture-device", name: "Lab iPhone", type: "usb", productVersion: "18.5" }),

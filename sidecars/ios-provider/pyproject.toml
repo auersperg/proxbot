@@ -4,7 +4,7 @@ version = "0.2.0rc1"
 description = "proxbot iOS and Frida provider"
 requires-python = ">=3.12"
 dependencies = [
-  "frida>=17.8,<18",
+  "frida==17.16.4",
   "msgpack>=1.1,<2",
   "pymobiledevice3==9.12.0",
 ]

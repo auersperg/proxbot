@@ -22,7 +22,7 @@ export interface DevicePreflight {
 }
 
 export type CaptureStatus = "idle" | "starting" | "capturing" | "stopping" | "ready" | "degraded" | "error";
-export type CaptureProfile = "deep" | "passive";
+export type CaptureProfile = "wireguard" | "deep" | "passive";
 export type EvidenceSourceStatus = "active" | "idle" | "unavailable" | "error";
 
 export interface CaptureMetrics {
@@ -61,6 +61,11 @@ export interface StartCaptureRequest {
   deviceId: string | null;
 }
 
+export interface WireGuardSetup {
+  clientConfig: string;
+  clientConfigPath: string;
+}
+
 export interface CaptureMarker {
   id: string;
   sessionId: string;
@@ -86,6 +91,9 @@ export interface RawView {
   artifact: RawArtifactRef | null;
 }
 
+export type CaptureLayer = "usb" | "proxy" | "process" | "provider";
+export type PlaintextState = "observed" | "decrypted" | "not_observed" | "unknown";
+
 export interface ExchangeRow {
   requestId: string;
   requestSequence: number | null;
@@ -98,6 +106,12 @@ export interface ExchangeRow {
   path: string | null;
   status: number | null;
   protocol: string | null;
+  providerId: string;
+  captureLayer: CaptureLayer;
+  plaintextState: PlaintextState;
+  correlationId: string | null;
+  hostSource: string | null;
+  processId: number | null;
   processName: string | null;
   durationMs: number | null;
   requestBytes: number | null;

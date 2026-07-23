@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS exchanges (
   status INTEGER,
   protocol TEXT,
   process_name TEXT,
+  process_id INTEGER,
   duration_ms INTEGER,
   request_bytes INTEGER,
   response_bytes INTEGER,
@@ -38,6 +39,11 @@ CREATE TABLE IF NOT EXISTS exchanges (
   response_masked_state INTEGER,
   request_artifact_json TEXT,
   response_artifact_json TEXT,
+  provider_id TEXT,
+  capture_layer TEXT,
+  plaintext_state TEXT,
+  correlation_id TEXT,
+  host_source TEXT,
   PRIMARY KEY (session_id, request_id)
 );
 

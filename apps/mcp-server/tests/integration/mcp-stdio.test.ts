@@ -40,7 +40,8 @@ describe("proxbot MCP stdio server", () => {
       expect(names).toContain("proxbot_get_exchange");
       const startTool = listed.tools.find((tool) => tool.name === "proxbot_start_capture");
       expect(startTool?.description).toContain("http://mitm.it");
-      expect(startTool?.description).toContain("certificate pinning is not bypassed");
+      expect(startTool?.description).toContain("certificate pinning is reported rather than bypassed");
+      expect(startTool?.description).toContain("WireGuard");
       const queryTool = listed.tools.find((tool) => tool.name === "proxbot_query_exchanges");
       expect(queryTool?.annotations?.readOnlyHint).toBe(true);
       expect(queryTool?.outputSchema).toBeDefined();

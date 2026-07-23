@@ -8,7 +8,7 @@ from pathlib import Path
 import frida
 
 from .fake import fake_events
-from .frida_provider import usb_preflight
+from .frida_provider import runtime_probe, target_preflight, usb_preflight
 from .log_provider import capture_logs
 from .live_provider import run_live_capture
 from .device_provider import device_preflight
@@ -24,7 +24,14 @@ def build_parser() -> argparse.ArgumentParser:
     fake.add_argument("--session-id", required=True)
     fake.add_argument("--count", type=int, default=30)
 
+    subcommands.add_parser("probe", help="Report bundled provider capabilities")
     subcommands.add_parser("frida-preflight")
+    frida_target = subcommands.add_parser(
+        "frida-target-preflight",
+        help="Test whether a running iOS application can be attached",
+    )
+    frida_target.add_argument("--bundle-id", required=True)
+    frida_target.add_argument("--device-id")
 
     device = subcommands.add_parser("device-preflight")
     device.add_argument("--udid")
@@ -52,8 +59,21 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     arguments = build_parser().parse_args()
+    if arguments.command == "probe":
+        print(json.dumps(runtime_probe(frida), separators=(",", ":")))
+        return
+
     if arguments.command == "frida-preflight":
         print(json.dumps(usb_preflight(frida), separators=(",", ":")))
+        return
+
+    if arguments.command == "frida-target-preflight":
+        print(
+            json.dumps(
+                target_preflight(frida, arguments.bundle_id, arguments.device_id),
+                separators=(",", ":"),
+            )
+        )
         return
 
     if arguments.command == "device-preflight":

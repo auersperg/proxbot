@@ -4,6 +4,7 @@ version = "0.2.0rc1"
 description = "Optional high-fidelity mitmproxy provider for proxbot"
 requires-python = ">=3.12"
 dependencies = [
+  "cryptography==48.0.1",
   "mitmproxy==12.2.3",
   "msgpack>=1.1,<2",
 ]

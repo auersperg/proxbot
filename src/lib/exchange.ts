@@ -1,3 +1,23 @@
+import type { CaptureLayer, PlaintextState } from "./contracts";
+
+export function plaintextEvidenceLabel(value: { captureLayer: CaptureLayer; plaintextState: PlaintextState }): string {
+  if (value.captureLayer === "process" && value.plaintextState === "observed") {
+    return "PLAINTEXT OBSERVED IN PROCESS";
+  }
+  if (value.captureLayer === "proxy" && value.plaintextState === "decrypted") {
+    return "PLAINTEXT DECRYPTED BY PROXY";
+  }
+  if (value.captureLayer === "proxy" && value.plaintextState === "observed") {
+    return "PLAINTEXT OBSERVED BY PROXY";
+  }
+  if (value.captureLayer === "usb" && value.plaintextState === "not_observed") {
+    return "USB PACKET · APP PLAINTEXT NOT OBSERVED";
+  }
+  if (value.captureLayer === "process") return "PROCESS EVIDENCE · PLAINTEXT UNVERIFIED";
+  if (value.captureLayer === "proxy") return "PROXY EVIDENCE · PLAINTEXT UNVERIFIED";
+  return "PROVIDER EVIDENCE · PLAINTEXT UNVERIFIED";
+}
+
 export function formatObservedTime(nanoseconds: string): string {
   const milliseconds = Number(BigInt(nanoseconds) / 1_000_000n);
   return new Date(milliseconds).toISOString().slice(11, 23);

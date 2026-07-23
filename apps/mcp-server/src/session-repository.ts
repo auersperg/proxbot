@@ -13,6 +13,7 @@ import {
   writeSync,
 } from "node:fs";
 import { basename, join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 import type {
   EndpointFilter,
@@ -462,7 +463,19 @@ export class SessionRepository {
   }
 
   private openDatabase(path: string, requireClean: boolean): Database {
-    const db = new Database(path, { readonly: true, strict: true });
+    // A clean, finalized SQLite database may retain WAL journal mode while no
+    // -wal/-shm sidecars exist. SQLite's ordinary read-only mode then attempts
+    // to open the missing shared-memory file and fails with SQLITE_CANTOPEN.
+    // Immutable mode is the correct read-only representation for that sealed
+    // state. Live sessions keep their WAL sidecars and must remain ordinary
+    // read-only connections so newly committed capture rows stay visible.
+    let source = path;
+    if (!existsSync(`${path}-wal`) && !existsSync(`${path}-shm`)) {
+      const immutable = pathToFileURL(path);
+      immutable.searchParams.set("immutable", "1");
+      source = immutable.href;
+    }
+    const db = new Database(source, { readonly: true, strict: true });
     db.run("PRAGMA query_only = ON");
     db.run("PRAGMA trusted_schema = OFF");
     if (requireClean) {

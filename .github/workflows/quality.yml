@@ -42,7 +42,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        provider: [ios-provider, proxy-provider]
+        include:
+          - provider: ios-provider
+            executable: proxbot-ios-provider
+          - provider: proxy-provider
+            executable: proxbot-proxy-provider
     steps:
       - name: Check out repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -59,6 +63,10 @@ jobs:
         run: >-
           uv run --project sidecars/${{ matrix.provider }} --extra test --locked
           pytest -q sidecars/${{ matrix.provider }}/tests
+      - name: Probe provider runtime contract
+        run: >-
+          uv run --project sidecars/${{ matrix.provider }} --locked
+          ${{ matrix.executable }} probe
       - name: Compile provider sources
         run: >-
           uv run --project sidecars/${{ matrix.provider }} --locked

@@ -8,7 +8,7 @@ use proxbot_lib::{
     },
     domain::EvidenceClass,
     provider::ProviderRuntime,
-    store::{ExchangeRow, RawView},
+    store::{CaptureLayer, ExchangeRow, PlaintextState, RawView},
 };
 
 #[test]
@@ -64,6 +64,12 @@ fn exchange_command_contract_is_bounded_and_preserves_absent_response() {
         path: Some("/rpc".into()),
         status: None,
         protocol: Some("HTTP/2".into()),
+        provider_id: "process-observer".into(),
+        capture_layer: CaptureLayer::Process,
+        plaintext_state: PlaintextState::Observed,
+        correlation_id: Some("task-42".into()),
+        host_source: Some("process.url".into()),
+        process_id: Some(42),
         process_name: Some("FixtureApp".into()),
         duration_ms: None,
         request_bytes: Some(42),
@@ -86,6 +92,11 @@ fn exchange_command_contract_is_bounded_and_preserves_absent_response() {
     assert_eq!(value["startedNs"], "1800000000000000001");
     assert!(value["responseRaw"].is_null());
     assert_eq!(value["requestRaw"]["reconstructed"], true);
+    assert_eq!(value["captureLayer"], "process");
+    assert_eq!(value["plaintextState"], "observed");
+    assert_eq!(value["providerId"], "process-observer");
+    assert_eq!(value["correlationId"], "task-42");
+    assert_eq!(value["processId"], 42);
 }
 
 #[test]
@@ -102,6 +113,12 @@ fn exchange_page_rows_serialize_without_raw_detail() {
         path: Some("/".into()),
         status: Some(200),
         protocol: Some("HTTP/2".into()),
+        provider_id: "proxy-mitm".into(),
+        capture_layer: CaptureLayer::Proxy,
+        plaintext_state: PlaintextState::Decrypted,
+        correlation_id: None,
+        host_source: Some("proxy.request.host".into()),
+        process_id: None,
         process_name: Some("FixtureApp".into()),
         duration_ms: Some(20),
         request_bytes: Some(30),

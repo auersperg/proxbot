@@ -181,15 +181,15 @@ export function createProxbotServer(
     {
       title: "Start capture",
       description:
-        "Start capture on the selected or active USB iPhone. passive records USB packet evidence only. deep adds synchronized device logs and a local HTTP(S) proxy listener; the iPhone must be explicitly routed to the returned proxy endpoint and accept the CA from http://mitm.it before HTTPS raw data can appear. An active listener does not prove CA trust, and certificate pinning is not bypassed. Returns the authoritative capture snapshot.",
+        "Start capture on the selected or active USB iPhone. passive records USB packet evidence only. deep adds synchronized device logs and a regular HTTP(S) proxy. wireguard adds synchronized logs and a full-tunnel WireGuard HTTP(S) inspector for apps that bypass the system proxy; its owner-only client profile is shown only in the local proxbot UI and is never returned through MCP. The iPhone must accept the CA from http://mitm.it before HTTPS raw data can appear. Listener or tunnel readiness does not prove CA trust, and certificate pinning is reported rather than bypassed. Returns the authoritative capture snapshot.",
       inputSchema: z.object({
-        profile: z.enum(["deep", "passive"]).default("deep"),
+        profile: z.enum(["wireguard", "deep", "passive"]).default("wireguard"),
         deviceId: z.string().min(1).max(256).optional(),
       }),
       outputSchema: Envelope,
       annotations: mutating,
     },
-    guarded((input: { profile: "deep" | "passive"; deviceId?: string | undefined }) =>
+    guarded((input: { profile: "wireguard" | "deep" | "passive"; deviceId?: string | undefined }) =>
       control.startCapture({
         profile: input.profile,
         ...(input.deviceId === undefined ? {} : { deviceId: input.deviceId }),

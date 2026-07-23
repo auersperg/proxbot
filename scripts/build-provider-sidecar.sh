@@ -23,5 +23,19 @@ uv run --project "$PROJECT" --extra build --locked \
 
 cp "$BUILD_ROOT/dist/proxbot-ios-provider" "$DESTINATION"
 chmod 0755 "$DESTINATION"
-"$DESTINATION" --help >/dev/null
+
+PROBE="$("$DESTINATION" probe)"
+python3 - "$PROBE" <<'PY'
+import json
+import sys
+
+probe = json.loads(sys.argv[1])
+if probe.get("available") is not True or probe.get("provider") != "ios-live":
+    raise SystemExit(f"invalid bundled iOS provider probe: {probe!r}")
+if probe.get("frida_version") != "17.16.4":
+    raise SystemExit(f"unexpected bundled Frida runtime: {probe!r}")
+if probe.get("generic_app_store_process_injection") is not False:
+    raise SystemExit(f"bundled probe overstates stock iOS capabilities: {probe!r}")
+PY
+
 shasum -a 256 "$DESTINATION"

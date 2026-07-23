@@ -12,14 +12,16 @@ describe("proxbot command client", () => {
     await api.startCapture({ profile: "deep", deviceId: "usb-1" });
     await api.stopCapture();
     await api.getCaptureStatus();
+    await api.getWireGuardSetup();
     await api.addMarker("before signing");
     await api.devicePreflight("usb-1");
 
     expect(invoke).toHaveBeenNthCalledWith(1, "start_capture", { profile: "deep", deviceId: "usb-1" });
     expect(invoke).toHaveBeenNthCalledWith(2, "stop_capture");
     expect(invoke).toHaveBeenNthCalledWith(3, "get_capture_status");
-    expect(invoke).toHaveBeenNthCalledWith(4, "add_capture_marker", { label: "before signing" });
-    expect(invoke).toHaveBeenNthCalledWith(5, "device_preflight", { deviceId: "usb-1" });
+    expect(invoke).toHaveBeenNthCalledWith(4, "get_wireguard_setup");
+    expect(invoke).toHaveBeenNthCalledWith(5, "add_capture_marker", { label: "before signing" });
+    expect(invoke).toHaveBeenNthCalledWith(6, "device_preflight", { deviceId: "usb-1" });
   });
 
   it("subscribes to the production capture status event", async () => {

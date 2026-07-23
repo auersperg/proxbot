@@ -718,6 +718,7 @@ name = "proxbot-proxy-provider"
 version = "0.2.0rc1"
 source = { editable = "." }
 dependencies = [
+    { name = "cryptography" },
     { name = "mitmproxy" },
     { name = "msgpack" },
 ]
@@ -732,6 +733,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "cryptography", specifier = "==48.0.1" },
     { name = "mitmproxy", specifier = "==12.2.3" },
     { name = "msgpack", specifier = ">=1.1,<2" },
     { name = "pyinstaller", marker = "extra == 'build'", specifier = "==6.21.0" },

@@ -13,6 +13,24 @@ pub enum EndpointKind {
     Ip,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CaptureLayer {
+    Usb,
+    Proxy,
+    Process,
+    Provider,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PlaintextState {
+    Observed,
+    Decrypted,
+    NotObserved,
+    Unknown,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EndpointFilter {
     pub kind: EndpointKind,
@@ -50,6 +68,12 @@ pub struct ExchangeRow {
     pub path: Option<String>,
     pub status: Option<u16>,
     pub protocol: Option<String>,
+    pub provider_id: String,
+    pub capture_layer: CaptureLayer,
+    pub plaintext_state: PlaintextState,
+    pub correlation_id: Option<String>,
+    pub host_source: Option<String>,
+    pub process_id: Option<u32>,
     pub process_name: Option<String>,
     pub duration_ms: Option<u64>,
     pub request_bytes: Option<u64>,
@@ -77,6 +101,83 @@ fn unsigned(event: &ProviderEvent, key: &str) -> Option<u64> {
 
 fn flag(event: &ProviderEvent, key: &str) -> Option<bool> {
     event.payload.get(key).and_then(|value| value.as_bool())
+}
+
+fn bounded_text(
+    event: &ProviderEvent,
+    key: &str,
+    maximum: usize,
+) -> anyhow::Result<Option<String>> {
+    let Some(value) = text(event, key) else {
+        return Ok(None);
+    };
+    anyhow::ensure!(
+        !value.trim().is_empty() && value.len() <= maximum,
+        "network event {key} must contain 1..={maximum} bytes"
+    );
+    Ok(Some(value))
+}
+
+fn capture_semantics(
+    event: &ProviderEvent,
+    has_raw_plaintext: bool,
+) -> (CaptureLayer, PlaintextState) {
+    if event.kind == "network.packet" {
+        return (CaptureLayer::Usb, PlaintextState::NotObserved);
+    }
+
+    let requested_layer = text(event, "capture_layer");
+    let requested_state = text(event, "plaintext_state");
+    if requested_layer.as_deref() == Some("process") {
+        let observed = requested_state.as_deref() == Some("observed")
+            && event.evidence == EvidenceClass::Observed
+            && has_raw_plaintext;
+        return (
+            CaptureLayer::Process,
+            if observed {
+                PlaintextState::Observed
+            } else {
+                PlaintextState::Unknown
+            },
+        );
+    }
+
+    if event.provider_id == "proxy-mitm" || requested_layer.as_deref() == Some("proxy") {
+        let state = if !has_raw_plaintext {
+            PlaintextState::Unknown
+        } else if text(event, "tls").as_deref() == Some("intercepted")
+            || requested_state.as_deref() == Some("decrypted")
+        {
+            PlaintextState::Decrypted
+        } else if text(event, "tls").as_deref() == Some("cleartext")
+            || requested_state.as_deref() == Some("observed")
+        {
+            PlaintextState::Observed
+        } else {
+            PlaintextState::Unknown
+        };
+        return (CaptureLayer::Proxy, state);
+    }
+
+    (CaptureLayer::Provider, PlaintextState::Unknown)
+}
+
+fn capture_layer_text(value: CaptureLayer) -> &'static str {
+    match value {
+        CaptureLayer::Usb => "usb",
+        CaptureLayer::Proxy => "proxy",
+        CaptureLayer::Process => "process",
+        CaptureLayer::Provider => "provider",
+    }
+}
+
+fn plaintext_state_text(value: PlaintextState) -> &'static str {
+    match value {
+        PlaintextState::Observed => "observed",
+        PlaintextState::Decrypted => "decrypted",
+        PlaintextState::NotObserved => "not_observed",
+        PlaintextState::Unknown => "unknown",
+    }
 }
 
 fn sqlite_i64(value: u64, field: &str) -> anyhow::Result<i64> {
@@ -121,6 +222,10 @@ pub(super) fn materialize_event(
         .map(serde_json::to_string)
         .transpose()?;
     let event_evidence = evidence_text(event.evidence);
+    let (capture_layer, plaintext_state) = capture_semantics(event, raw.is_some());
+    let correlation_id = bounded_text(event, "correlation_id", 512)?;
+    let host_source = bounded_text(event, "host_source", 128)?;
+    let process_id = event.process_id.map(i64::from);
 
     if event.kind == "network.request" || event.kind == "network.packet" {
         transaction.execute(
@@ -128,9 +233,11 @@ pub(super) fn materialize_event(
                 session_id, request_id, request_sequence, started_ns, method, scheme, host, ip,
                 path, protocol, process_name, request_bytes, tls, evidence, request_evidence,
                 warning, request_raw, request_media_type, request_reconstructed_state,
-                request_truncated_state, request_masked_state, request_artifact_json
+                request_truncated_state, request_masked_state, request_artifact_json,
+                provider_id, capture_layer, plaintext_state, correlation_id, host_source, process_id
              ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14,
-                       ?14, 'response_missing', ?15, ?16, ?17, ?18, ?19, ?20)
+                       ?14, 'response_missing', ?15, ?16, ?17, ?18, ?19, ?20,
+                       ?21, ?22, ?23, ?24, ?25, ?26)
              ON CONFLICT(session_id, request_id) DO UPDATE SET
                 request_sequence=excluded.request_sequence, started_ns=excluded.started_ns,
                 method=excluded.method, scheme=excluded.scheme, host=excluded.host, ip=excluded.ip,
@@ -147,6 +254,12 @@ pub(super) fn materialize_event(
                 request_truncated_state=excluded.request_truncated_state,
                 request_masked_state=excluded.request_masked_state,
                 request_artifact_json=excluded.request_artifact_json,
+                provider_id=excluded.provider_id,
+                capture_layer=excluded.capture_layer,
+                plaintext_state=excluded.plaintext_state,
+                correlation_id=excluded.correlation_id,
+                host_source=excluded.host_source,
+                process_id=excluded.process_id,
                 warning=CASE
                     WHEN exchanges.response_sequence IS NULL THEN 'response_missing'
                     WHEN exchanges.warning LIKE '%invalid_status%' THEN 'invalid_status'
@@ -173,6 +286,12 @@ pub(super) fn materialize_event(
                 flag(event, "truncated"),
                 flag(event, "masked"),
                 artifact,
+                event.provider_id,
+                capture_layer_text(capture_layer),
+                plaintext_state_text(plaintext_state),
+                correlation_id,
+                host_source,
+                process_id,
             ],
         )?;
         if event.kind == "network.packet" {
@@ -199,9 +318,10 @@ pub(super) fn materialize_event(
                 process_name, duration_ms, response_bytes, evidence, response_evidence, warning,
                 response_raw, response_media_type, response_reconstructed_state,
                 response_truncated_state, response_masked_state, response_artifact_json,
-                request_raw, request_media_type
+                request_raw, request_media_type, provider_id, capture_layer, plaintext_state,
+                correlation_id, host_source, process_id
              ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?10, ?11, ?12,
-                       ?13, ?14, ?15, ?16, ?17, NULL, NULL)
+                       ?13, ?14, ?15, ?16, ?17, NULL, NULL, ?18, ?19, ?20, ?21, ?22, ?23)
              ON CONFLICT(session_id, request_id) DO UPDATE SET
                 response_sequence=excluded.response_sequence, status=excluded.status,
                 protocol=COALESCE(exchanges.protocol, excluded.protocol),
@@ -217,7 +337,14 @@ pub(super) fn materialize_event(
                 response_truncated_state=excluded.response_truncated_state,
                 response_masked_state=excluded.response_masked_state,
                 response_artifact_json=excluded.response_artifact_json,
-                warning=CASE WHEN exchanges.request_sequence IS NULL THEN excluded.warning ELSE ?18 END",
+                provider_id=COALESCE(exchanges.provider_id, excluded.provider_id),
+                capture_layer=CASE WHEN exchanges.request_sequence IS NULL THEN excluded.capture_layer ELSE exchanges.capture_layer END,
+                plaintext_state=CASE WHEN exchanges.request_sequence IS NULL THEN excluded.plaintext_state ELSE exchanges.plaintext_state END,
+                correlation_id=COALESCE(exchanges.correlation_id, excluded.correlation_id),
+                host_source=COALESCE(exchanges.host_source, excluded.host_source),
+                process_id=COALESCE(exchanges.process_id, excluded.process_id),
+                process_name=COALESCE(exchanges.process_name, excluded.process_name),
+                warning=CASE WHEN exchanges.request_sequence IS NULL THEN excluded.warning ELSE ?24 END",
             params![
                 event.session_id.to_string(),
                 request_id,
@@ -236,6 +363,12 @@ pub(super) fn materialize_event(
                 flag(event, "truncated"),
                 flag(event, "masked"),
                 artifact,
+                event.provider_id,
+                capture_layer_text(capture_layer),
+                plaintext_state_text(plaintext_state),
+                correlation_id,
+                host_source,
+                process_id,
                 paired_warning,
             ],
         )?;
@@ -312,6 +445,52 @@ fn optional_u64(
             })
         })
         .transpose()
+}
+
+fn optional_u32(
+    row: &rusqlite::Row<'_>,
+    index: usize,
+    field: &str,
+) -> rusqlite::Result<Option<u32>> {
+    row.get::<_, Option<i64>>(index)?
+        .map(|value| {
+            u32::try_from(value).map_err(|_| {
+                conversion_error(
+                    index,
+                    rusqlite::types::Type::Integer,
+                    format!("{field} must be a non-negative 32-bit value; found {value}"),
+                )
+            })
+        })
+        .transpose()
+}
+
+fn capture_layer(value: Option<String>, index: usize) -> rusqlite::Result<CaptureLayer> {
+    match value.as_deref() {
+        Some("usb") => Ok(CaptureLayer::Usb),
+        Some("proxy") => Ok(CaptureLayer::Proxy),
+        Some("process") => Ok(CaptureLayer::Process),
+        Some("provider") | None => Ok(CaptureLayer::Provider),
+        Some(value) => Err(conversion_error(
+            index,
+            rusqlite::types::Type::Text,
+            format!("unsupported capture layer {value}"),
+        )),
+    }
+}
+
+fn plaintext_state(value: Option<String>, index: usize) -> rusqlite::Result<PlaintextState> {
+    match value.as_deref() {
+        Some("observed") => Ok(PlaintextState::Observed),
+        Some("decrypted") => Ok(PlaintextState::Decrypted),
+        Some("not_observed") => Ok(PlaintextState::NotObserved),
+        Some("unknown") | None => Ok(PlaintextState::Unknown),
+        Some(value) => Err(conversion_error(
+            index,
+            rusqlite::types::Type::Text,
+            format!("unsupported plaintext state {value}"),
+        )),
+    }
 }
 
 fn optional_status(row: &rusqlite::Row<'_>, index: usize) -> rusqlite::Result<Option<u16>> {
@@ -416,6 +595,14 @@ fn exchange_detail_from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Exchang
         path: row.get(8)?,
         status: optional_status(row, 9)?,
         protocol: row.get(10)?,
+        provider_id: row
+            .get::<_, Option<String>>(32)?
+            .unwrap_or_else(|| "unknown".into()),
+        capture_layer: capture_layer(row.get(33)?, 33)?,
+        plaintext_state: plaintext_state(row.get(34)?, 34)?,
+        correlation_id: row.get(35)?,
+        host_source: row.get(36)?,
+        process_id: optional_u32(row, 37, "process_id")?,
         process_name: row.get(11)?,
         duration_ms: optional_u64(row, 12, "duration_ms")?,
         request_bytes: optional_u64(row, 13, "request_bytes")?,
@@ -448,7 +635,7 @@ pub(super) fn page_exchanges(
     if !query.trim().is_empty() {
         values.push(SqlValue::Text(escaped_like(query.trim())));
         let n = values.len();
-        where_sql.push_str(&format!(" AND (COALESCE(method,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(host,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(ip,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(path,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(protocol,'') LIKE ?{n} ESCAPE '\\')"));
+        where_sql.push_str(&format!(" AND (COALESCE(method,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(host,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(ip,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(path,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(protocol,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(process_name,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(provider_id,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(correlation_id,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(host_source,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(capture_layer,'') LIKE ?{n} ESCAPE '\\' OR COALESCE(plaintext_state,'') LIKE ?{n} ESCAPE '\\')"));
     }
     if let Some(endpoint) = endpoint {
         values.push(SqlValue::Text(endpoint.value.clone()));
@@ -472,7 +659,8 @@ pub(super) fn page_exchanges(
     let mut statement = transaction.prepare(&format!(
         "SELECT request_id, request_sequence, response_sequence, started_ns, method, scheme,
                 host, ip, path, status, protocol, process_name, duration_ms, request_bytes,
-                response_bytes, tls, evidence, warning
+                response_bytes, tls, evidence, warning, provider_id, capture_layer,
+                plaintext_state, correlation_id, host_source, process_id
          FROM exchanges WHERE {where_sql}
          ORDER BY started_ns DESC, request_id DESC LIMIT ?{limit_parameter} OFFSET ?{offset_parameter}"
     ))?;
@@ -489,6 +677,14 @@ pub(super) fn page_exchanges(
             path: row.get(8)?,
             status: optional_status(row, 9)?,
             protocol: row.get(10)?,
+            provider_id: row
+                .get::<_, Option<String>>(18)?
+                .unwrap_or_else(|| "unknown".into()),
+            capture_layer: capture_layer(row.get(19)?, 19)?,
+            plaintext_state: plaintext_state(row.get(20)?, 20)?,
+            correlation_id: row.get(21)?,
+            host_source: row.get(22)?,
+            process_id: optional_u32(row, 23, "process_id")?,
             process_name: row.get(11)?,
             duration_ms: optional_u64(row, 12, "duration_ms")?,
             request_bytes: optional_u64(row, 13, "request_bytes")?,
@@ -520,7 +716,8 @@ pub(super) fn get_exchange(
                 request_reconstructed_state, response_reconstructed_state,
                 request_truncated_state, response_truncated_state,
                 request_masked_state, response_masked_state,
-                request_artifact_json, response_artifact_json
+                request_artifact_json, response_artifact_json,
+                provider_id, capture_layer, plaintext_state, correlation_id, host_source, process_id
          FROM exchanges WHERE session_id = ?1 AND request_id = ?2",
     )?;
     Ok(statement
@@ -550,7 +747,13 @@ pub(super) fn list_endpoints(
                     OR COALESCE(host,'') LIKE ?2 ESCAPE '\\'
                     OR COALESCE(ip,'') LIKE ?2 ESCAPE '\\'
                     OR COALESCE(path,'') LIKE ?2 ESCAPE '\\'
-                    OR COALESCE(protocol,'') LIKE ?2 ESCAPE '\\')
+                    OR COALESCE(protocol,'') LIKE ?2 ESCAPE '\\'
+                    OR COALESCE(process_name,'') LIKE ?2 ESCAPE '\\'
+                    OR COALESCE(provider_id,'') LIKE ?2 ESCAPE '\\'
+                    OR COALESCE(correlation_id,'') LIKE ?2 ESCAPE '\\'
+                    OR COALESCE(host_source,'') LIKE ?2 ESCAPE '\\'
+                    OR COALESCE(capture_layer,'') LIKE ?2 ESCAPE '\\'
+                    OR COALESCE(plaintext_state,'') LIKE ?2 ESCAPE '\\')
              GROUP BY {column} ORDER BY COUNT(*) DESC, {column} LIMIT ?3"
         );
         let mut statement = connection.prepare(&sql)?;

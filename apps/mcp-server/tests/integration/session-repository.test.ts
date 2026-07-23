@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 import { afterEach, describe, expect, test } from "bun:test";
-import { chmodSync, lstatSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
+import { chmodSync, existsSync, lstatSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -97,6 +97,23 @@ describe("SessionRepository", () => {
         limit: 1,
       }),
     ).toThrow("dirty");
+  });
+
+  test("opens a finalized WAL-mode index after SQLite removes its sidecars", () => {
+    const sessions = join(root(), "sessions");
+    const session = createSessionFixture(sessions);
+    const databasePath = join(session, "database/session.sqlite");
+    const db = new Database(databasePath);
+    db.run("PRAGMA journal_mode = WAL");
+    db.run("PRAGMA wal_checkpoint(TRUNCATE)");
+    db.close();
+    rmSync(`${databasePath}-wal`, { force: true });
+    rmSync(`${databasePath}-shm`, { force: true });
+    expect(existsSync(`${databasePath}-wal`)).toBe(false);
+    expect(existsSync(`${databasePath}-shm`)).toBe(false);
+
+    const repository = new SessionRepository(sessions, 65_536);
+    expect(repository.analyze(SESSION_ID).total).toBe(1);
   });
 
   test("refuses symlink session roots and traversal-shaped IDs", () => {

@@ -35,9 +35,53 @@ describe("EndpointSidebar", () => {
     expect(screen.getByLabelText("HTTP proxy: active")).toBeVisible();
     expect(screen.queryByText(/Listening does not prove CA trust/)).not.toBeVisible();
     await userEvent.click(screen.getByText("CA setup"));
+    expect(screen.getByText("Route not observed")).toBeVisible();
+    expect(screen.getByText("HTTPS unresolved")).toBeVisible();
+    expect(screen.getByText("Hooks unavailable")).toBeVisible();
     expect(screen.getByText(/Set the iPhone Wi-Fi proxy/)).toBeVisible();
     expect(screen.getByText(/Listening does not prove CA trust/)).toBeVisible();
     expect(screen.getByText(/Certificate-pinned apps may remain encrypted/)).toBeVisible();
+  });
+
+  it("shows observed proxy routing separately from unresolved HTTPS trust", async () => {
+    const routedSources = [{
+      ...sources[0]!,
+      detail: "192.168.1.31:9090 · client traffic observed",
+    }];
+    render(<EndpointSidebar device={{ name: "Lab iPhone", id: "fixture-device", available: true }} endpoints={endpoints} total={19} selected={null} sources={routedSources} onSelect={vi.fn()} />);
+
+    await userEvent.click(screen.getByText("CA setup"));
+    expect(screen.getByText("Route observed")).toBeVisible();
+    expect(screen.getByText("HTTPS unresolved")).toBeVisible();
+    expect(screen.queryByText("HTTPS observed")).not.toBeInTheDocument();
+  });
+
+  it("renders a scannable WireGuard profile without exposing the private key as text", async () => {
+    const wireguardSources = [{
+      id: "proxy-mitm",
+      label: "WireGuard HTTP(S) inspection",
+      status: "active" as const,
+      detail: "192.168.1.23:51820 · WireGuard full tunnel · profile /private/proxbot.conf · CA http://mitm.it",
+    }];
+    render(
+      <EndpointSidebar
+        device={{ name: "Lab iPhone", id: "fixture-device", available: true }}
+        endpoints={endpoints}
+        total={19}
+        selected={null}
+        sources={wireguardSources}
+        wireguardSetup={{
+          clientConfig: "[Interface]\nPrivateKey = fixture\n\n[Peer]\nEndpoint = 192.168.1.23:51820\n",
+          clientConfigPath: "/private/proxbot.conf",
+        }}
+        onSelect={vi.fn()}
+      />,
+    );
+
+    expect(await screen.findByRole("img", { name: "WireGuard client configuration QR code" })).toHaveAttribute("src", expect.stringMatching(/^data:image\/svg\+xml/));
+    expect(screen.getByText(/add a tunnel by scanning this QR code/)).toBeVisible();
+    expect(screen.getByText("/private/proxbot.conf")).toBeVisible();
+    expect(screen.queryByText(/PrivateKey = fixture/)).not.toBeInTheDocument();
   });
 
   it("keeps a large endpoint inventory bounded in the DOM", () => {
