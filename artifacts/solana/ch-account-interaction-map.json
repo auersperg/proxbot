@@ -1,5 +1,6 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-23T15:43:19Z",
   "chain": "solana",
   "network": "mainnet-beta",
   "account": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
@@ -9,7 +10,31 @@
     "executable": false,
     "dataBytes": 0,
     "lamports": "4336825655",
-    "sol": "4.336825655"
+    "sol": "4.336825655",
+    "tokenAccountContextSlot": 434738817,
+    "priceBlockRange": [
+      433438510,
+      433747952,
+      434581509,
+      434730545,
+      434732284,
+      434738973,
+      434739999,
+      434740078,
+      434740436,
+      434740456,
+      434740467,
+      434740472,
+      434740491,
+      434740494,
+      434740495,
+      434740508,
+      434740515
+    ],
+    "solUsdPrice": 76.2661893962835,
+    "usdcUsdPrice": 0.9999198024532931,
+    "valuationPolicy": "Indicative Jupiter Price API V3 values at the recorded block IDs; not executable quotes. Low-liquidity and unverified token values are not treated as guaranteed realizable proceeds.",
+    "priceFetchedAt": "2026-07-23T15:25:55.208Z"
   },
   "historyCoverage": {
     "finalizedSignaturesEnumerated": 148000,
@@ -27,94 +52,1396 @@
       "chOnly": 101,
       "chPlusOne": 47
     },
-    "chStaticAccountIndexZero": 148
+    "chStaticAccountIndexZero": 148,
+    "successfulTransactions": 141,
+    "failedTransactions": 7,
+    "feesSol": 0.004263806,
+    "chNativeNetDeltaSol": 0.379687518,
+    "methodSignerLayouts": {
+      "BorrowByWorkerKamino": {
+        "oneSigner": 9,
+        "twoSigner": 0,
+        "other": 0,
+        "success": 9,
+        "failed": 0
+      },
+      "TopUp": {
+        "oneSigner": 23,
+        "twoSigner": 0,
+        "other": 0,
+        "success": 19,
+        "failed": 4
+      },
+      "RepayByWorker": {
+        "oneSigner": 51,
+        "twoSigner": 0,
+        "other": 0,
+        "success": 51,
+        "failed": 0
+      },
+      "UpdateRepayLimit": {
+        "oneSigner": 0,
+        "twoSigner": 2,
+        "other": 0,
+        "success": 2,
+        "failed": 0
+      },
+      "RouteV2": {
+        "oneSigner": 0,
+        "twoSigner": 2,
+        "other": 0,
+        "success": 2,
+        "failed": 0
+      },
+      "Withdraw": {
+        "oneSigner": 0,
+        "twoSigner": 11,
+        "other": 0,
+        "success": 11,
+        "failed": 0
+      },
+      "SharedAccountsRouteV2": {
+        "oneSigner": 0,
+        "twoSigner": 5,
+        "other": 0,
+        "success": 5,
+        "failed": 0
+      },
+      "CreateAccount": {
+        "oneSigner": 9,
+        "twoSigner": 0,
+        "other": 0,
+        "success": 6,
+        "failed": 3
+      },
+      "DepositKamino": {
+        "oneSigner": 3,
+        "twoSigner": 3,
+        "other": 0,
+        "success": 6,
+        "failed": 0
+      },
+      "unknown": {
+        "oneSigner": 0,
+        "twoSigner": 6,
+        "other": 0,
+        "success": 6,
+        "failed": 0
+      },
+      "BorrowKamino": {
+        "oneSigner": 0,
+        "twoSigner": 2,
+        "other": 0,
+        "success": 2,
+        "failed": 0
+      },
+      "WithdrawAndSendKamino": {
+        "oneSigner": 0,
+        "twoSigner": 1,
+        "other": 0,
+        "success": 1,
+        "failed": 0
+      },
+      "GetAccountDataSize": {
+        "oneSigner": 0,
+        "twoSigner": 14,
+        "other": 0,
+        "success": 14,
+        "failed": 0
+      },
+      "CreateTokenAccount": {
+        "oneSigner": 0,
+        "twoSigner": 1,
+        "other": 0,
+        "success": 1,
+        "failed": 0
+      },
+      "BorrowByWorkerDrift": {
+        "oneSigner": 6,
+        "twoSigner": 0,
+        "other": 0,
+        "success": 6,
+        "failed": 0
+      }
+    },
+    "selectedTokenFlows": [
+      {
+        "owner": "CH_DIRECT",
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "netRaw": "190683",
+        "grossInRaw": "190683",
+        "grossOutRaw": "0",
+        "decimals": 6,
+        "txs": 1,
+        "methods": {
+          "Withdraw": 1
+        },
+        "net": 0.190683,
+        "grossIn": 0.190683,
+        "grossOut": 0
+      },
+      {
+        "owner": "XPLACE1_CONFIG",
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "netRaw": "1344750",
+        "grossInRaw": "1344750",
+        "grossOutRaw": "0",
+        "decimals": 6,
+        "txs": 6,
+        "methods": {
+          "BorrowByWorkerDrift": 6
+        },
+        "net": 1.34475,
+        "grossIn": 1.34475,
+        "grossOut": 0
+      },
+      {
+        "owner": "XPLACE2_CONFIG",
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "netRaw": "1320000",
+        "grossInRaw": "1320000",
+        "grossOutRaw": "0",
+        "decimals": 6,
+        "txs": 12,
+        "methods": {
+          "RepayByWorker": 12
+        },
+        "net": 1.32,
+        "grossIn": 1.32,
+        "grossOut": 0
+      }
+    ]
   },
-  "permissions": {
+  "authoritySurface": {
     "transactionSigner": true,
     "observedFeePayer": true,
+    "xplaceConfigOperationalAuthorityAtOffset40": true,
+    "xplaceConfigMatches": {
+      "scannedProgramAccounts": 13324,
+      "xplace2Matches": 1,
+      "xplace1Matches": 1
+    },
     "directTokenAccountOwner": true,
-    "observedProgramUpgradeAuthority": false,
-    "currentTokenDelegates": 0
+    "directTokenAccountCount": 21,
+    "associatedTokenAccountCount": 21,
+    "currentTokenDelegates": 0,
+    "tokenMintAuthorityMatches": 0,
+    "tokenFreezeAuthorityMatches": 0,
+    "stakeAuthorityMatches": 0,
+    "addressLookupTablesInspected": 26,
+    "addressLookupTableAuthorityMatches": 0,
+    "driftDirectUserAccounts": 0,
+    "kaminoDirectObligations": 0,
+    "kaminoDirectVaultPositions": 0,
+    "kaminoDirectRewards": 0,
+    "observedProgramUpgradeAuthority": false
+  },
+  "funds": {
+    "direct": {
+      "liquidSystemSol": 4.336825655,
+      "liquidSystemSolUsd": 330.75316678289124,
+      "directTokenUsdIndicative": 9.892555839000435,
+      "tokenAccountRentSol": 0.0431868,
+      "tokenAccountRentUsdIndicative": 3.293692668219416,
+      "directLiquidUsdExcludingRent": 340.64572262189165,
+      "directControlledUsdIncludingRecoverableTokenAccountRent": 343.93941529011107
+    },
+    "tokens": [
+      {
+        "tokenAccount": "B8g6A7BpQaVh9smcq6a2gmLaqpGXm5t6V4PKcMFydCSr",
+        "mint": "So11111111111111111111111111111111111111112",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "0",
+        "decimals": 9,
+        "amount": "0",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "Wrapped SOL",
+        "symbol": "SOL",
+        "isVerified": true,
+        "organicScoreLabel": "high",
+        "holderCount": 3820662,
+        "liquidityUsd": 658930441.272797,
+        "usdPrice": 76.2661893962835,
+        "priceBlockId": 434740515,
+        "usdValue": 0,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": null,
+        "freezeAuthority": null
+      },
+      {
+        "tokenAccount": "9UVoUCFaQy9LDns8NZQ6NqdJjpbveUNbHdJ7SjqgkBPz",
+        "mint": "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "500",
+        "decimals": 8,
+        "amount": "0.000005",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "Coinbase Wrapped BTC",
+        "symbol": "cbBTC",
+        "isVerified": true,
+        "organicScoreLabel": "high",
+        "holderCount": 70622,
+        "liquidityUsd": 22105712.055723447,
+        "usdPrice": 64895.98488153425,
+        "priceBlockId": 434740491,
+        "usdValue": 0.32447992440767126,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": "CTQE6PMesbH4szKR9Nk5moj9WWUr9MVGP734wYX9wy3p",
+        "freezeAuthority": "DSFAkPhfrSR95J9oq9Sh8rUetbj5vgFmwiSuHw6rAVnz"
+      },
+      {
+        "tokenAccount": "GTdXF8F46CeXsRV8MVrdiaWeARELirqiuJAqYtidbv72",
+        "mint": "rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "10882800",
+        "decimals": 8,
+        "amount": "0.108828",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "Render Token",
+        "symbol": "RENDER",
+        "isVerified": true,
+        "organicScoreLabel": "medium",
+        "holderCount": 124397,
+        "liquidityUsd": 230085.50031089172,
+        "usdPrice": 1.4941650351973883,
+        "priceBlockId": 434740508,
+        "usdValue": 0.16260699245046137,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": "CFyeujXVymxgP2YR9kLbPsaCv2rKrtXMWtJ3EbAN2pdc",
+        "freezeAuthority": "3LNxAhNnQpbCPcvgiamZhUbBugZTzxbjhcMwJ5jE65r5"
+      },
+      {
+        "tokenAccount": "CEmVQeN7wYYCouSs4Npodix5AwEBjKRXa6VNrSg9q8kH",
+        "mint": "27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "97682",
+        "decimals": 6,
+        "amount": "0.097682",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "Jupiter Perps",
+        "symbol": "JLP",
+        "isVerified": true,
+        "organicScoreLabel": "high",
+        "holderCount": 90124,
+        "liquidityUsd": 5781425.184613655,
+        "usdPrice": 3.6366731490663473,
+        "priceBlockId": 434740436,
+        "usdValue": 0.35523750654709896,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": "AVzP2GeRmqGphJsMxWoqjpUifPpCret7LqWhD8NWQK49",
+        "freezeAuthority": "AVzP2GeRmqGphJsMxWoqjpUifPpCret7LqWhD8NWQK49"
+      },
+      {
+        "tokenAccount": "GThU3m3PobboRcHxkNsv7rpGkZh4GXWUqie1cGoSaz2r",
+        "mint": "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "400",
+        "decimals": 8,
+        "amount": "0.000004",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "Wrapped BTC (Portal)",
+        "symbol": "WBTC",
+        "isVerified": true,
+        "organicScoreLabel": "high",
+        "holderCount": 79883,
+        "liquidityUsd": 29663516.71664593,
+        "usdPrice": 64667.88317931491,
+        "priceBlockId": 434740467,
+        "usdValue": 0.2586715327172596,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": "BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7",
+        "freezeAuthority": null
+      },
+      {
+        "tokenAccount": "68BrNgjpnM5LKTvKS3v27CrT1HKqt9wEKT2Gm2iniKJC",
+        "mint": "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "33900",
+        "decimals": 8,
+        "amount": "0.000339",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "Ether (Portal)",
+        "symbol": "ETH",
+        "isVerified": true,
+        "organicScoreLabel": "high",
+        "holderCount": 110738,
+        "liquidityUsd": 14164047.97744136,
+        "usdPrice": 1894.8923719902489,
+        "priceBlockId": 434740515,
+        "usdValue": 0.6423685141046944,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": "BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7",
+        "freezeAuthority": null
+      },
+      {
+        "tokenAccount": "EFvQHkse5RynMEwcrPExovyv1t9M94wFtMAfcn6PguR6",
+        "mint": "9dwPiStDBwJJqC3QzMnjpJP7xohZbMVmHELFx3uy3KRq",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "2442045041000",
+        "decimals": 9,
+        "amount": "2442.045041",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "NVIDIA",
+        "symbol": "NVDA",
+        "isVerified": true,
+        "organicScoreLabel": "low",
+        "holderCount": 5309,
+        "liquidityUsd": 16109.454333069936,
+        "usdPrice": 7.912466997340891e-05,
+        "priceBlockId": 434732284,
+        "usdValue": 0.19322600792932482,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": null,
+        "freezeAuthority": null
+      },
+      {
+        "tokenAccount": "AtkknLr4HNND4PuW7LRy2HpkQHYvfPA6fYMFLLXs1tr",
+        "mint": "AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "146014",
+        "decimals": 6,
+        "amount": "0.146014",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "Syrup USDC",
+        "symbol": "syrupUSDC",
+        "isVerified": true,
+        "organicScoreLabel": "medium",
+        "holderCount": 3729,
+        "liquidityUsd": 13188798.183241783,
+        "usdPrice": 1.1746337450705118,
+        "priceBlockId": 434738973,
+        "usdValue": 0.17151297165272572,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": "BL428ZGJqpmWRxJx8G3d52eEgTYyWyHj5suUZERdxk1w",
+        "freezeAuthority": "GoFoFfEDgALWRTw5dSY3VZQSwbFpvBEhDv1sFAWzYpbf"
+      },
+      {
+        "tokenAccount": "3ZwaGbKx5ShprkfNmWQEhLXb5iEoF6FH8Mfty44GhocN",
+        "mint": "Dn4noZ5jgGfkntzcQSUZ8czkreiZ1ForXYoV2H8Dm7S1",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "180540",
+        "decimals": 6,
+        "amount": "0.18054",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "Tether USD (Portal from Ethereum)",
+        "symbol": "USDTet",
+        "isVerified": true,
+        "organicScoreLabel": "low",
+        "holderCount": 6627,
+        "liquidityUsd": 11.447222433154153,
+        "usdPrice": 0.9986224093994271,
+        "priceBlockId": 434730545,
+        "usdValue": 0.18029128979297257,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": "BCD75RNBHrJJpW4dXVagL5mPjzRLnVZq4YirJdjEYMV7",
+        "freezeAuthority": null
+      },
+      {
+        "tokenAccount": "7We9GuSEL5dND9YAtieRffXUCkovTz9uv3Hjk2w94MB4",
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "2360206",
+        "decimals": 6,
+        "amount": "2.360206",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "USD Coin",
+        "symbol": "USDC",
+        "isVerified": true,
+        "organicScoreLabel": "high",
+        "holderCount": 5248202,
+        "liquidityUsd": 360497186.38011897,
+        "usdPrice": 0.9999198024532931,
+        "priceBlockId": 434740515,
+        "usdValue": 2.360016717269077,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": "BJE5MMbqXjVwjAF7oxwPYXnTXDyspzZyt4vwenNw5ruG",
+        "freezeAuthority": "7dGbd2QZcCKcTndnHcTL8q7SMVXAkp688NTQYwrRCrar"
+      },
+      {
+        "tokenAccount": "81WN9ssMkMiT4foJm89m92PPwhf2FofRbiogYkQEyRhY",
+        "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "3675214",
+        "decimals": 6,
+        "amount": "3.675214",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "USDT",
+        "symbol": "USDT",
+        "isVerified": true,
+        "organicScoreLabel": "high",
+        "holderCount": 2305507,
+        "liquidityUsd": 37862779.88706889,
+        "usdPrice": 0.9993300674924874,
+        "priceBlockId": 434740515,
+        "usdValue": 3.6727518546693347,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": "Q6XprfkF8RQQKoQVG33xT88H7wi8Uk1B1CC7YAs69Gi",
+        "freezeAuthority": "Q6XprfkF8RQQKoQVG33xT88H7wi8Uk1B1CC7YAs69Gi"
+      },
+      {
+        "tokenAccount": "B2DD1uAWgCmz1KnuzkLUnHQ3QdDhFYLcANtik8qTbkUJ",
+        "mint": "FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "1664863",
+        "decimals": 6,
+        "amount": "1.664863",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "Melania Meme",
+        "symbol": "MELANIA",
+        "isVerified": true,
+        "organicScoreLabel": "low",
+        "holderCount": 222955,
+        "liquidityUsd": 2131263.3314956035,
+        "usdPrice": 0.08029290414268053,
+        "priceBlockId": 434740078,
+        "usdValue": 0.13367668526969553,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": null,
+        "freezeAuthority": null
+      },
+      {
+        "tokenAccount": "7KUj2r34x2Ax6XxmppCtPYrJ52nSC1uemh81vQT7Rae9",
+        "mint": "Foot4fxy8CHxM37W8BeHwK6aLd8VH2yHTFu43KCxbCqc",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "2111528050000",
+        "decimals": 9,
+        "amount": "2111.52805",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "Bigfoot",
+        "symbol": "BIG",
+        "isVerified": false,
+        "organicScoreLabel": "low",
+        "holderCount": 631,
+        "liquidityUsd": 9755.010207901243,
+        "usdPrice": 0.00010568588252057695,
+        "priceBlockId": 433747952,
+        "usdValue": 0.22315870543120292,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": null,
+        "freezeAuthority": null
+      },
+      {
+        "tokenAccount": "4RjxG8NkxLWgGAbvmXT1UAkGJVZoo4kFQmz7DuSV5F7a",
+        "mint": "GbbesPbaYh5uiAZSYNXTc7w9jty1rpg3P9L4JeN4LkKc",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "567393",
+        "decimals": 6,
+        "amount": "0.567393",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "TRON",
+        "symbol": "TRX",
+        "isVerified": true,
+        "organicScoreLabel": "low",
+        "holderCount": 6649,
+        "liquidityUsd": 3709181.179225857,
+        "usdPrice": 0.3269582320178803,
+        "priceBlockId": 434739999,
+        "usdValue": 0.1855138121393212,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": "2qzoaECQaWkGariCaJdTuwZP7WaNUNdykqGVx6K8SZLV",
+        "freezeAuthority": null
+      },
+      {
+        "tokenAccount": "jigLVAJ46erehXUtaWPFNsQX4CqpRK4DgSUqussm6xR",
+        "mint": "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn",
+        "program": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "amountRaw": "5016000",
+        "decimals": 9,
+        "amount": "0.005016",
+        "lamports": 2039280,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [],
+        "name": "Jito Staked SOL",
+        "symbol": "JitoSOL",
+        "isVerified": true,
+        "organicScoreLabel": "high",
+        "holderCount": 187310,
+        "liquidityUsd": 763661033.0544325,
+        "usdPrice": 98.21334025931347,
+        "priceBlockId": 434740494,
+        "usdValue": 0.49263811474071634,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": "6iQKfEyhr3bZMotVkW6beNZz5CPAkiwvgV2CTje9pVSS",
+        "freezeAuthority": null
+      },
+      {
+        "tokenAccount": "785vZtazqHFsuf98pSVZPvgenXJt5B3Th2d7jmL2Kqms",
+        "mint": "NV2RYH954cTJ3ckFUpvfqaQXU4ARqqDH3562nFSpump",
+        "program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "amountRaw": "16957433",
+        "decimals": 6,
+        "amount": "16.957433",
+        "lamports": 2074080,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [
+          {
+            "extension": "immutableOwner"
+          }
+        ],
+        "name": "パンチ",
+        "symbol": "Punch",
+        "isVerified": true,
+        "organicScoreLabel": "medium",
+        "holderCount": 24375,
+        "liquidityUsd": 122339.71386814366,
+        "usdPrice": 0.0012294714809557654,
+        "priceBlockId": 434740456,
+        "usdValue": 0.02084868026371817,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": null,
+        "freezeAuthority": null
+      },
+      {
+        "tokenAccount": "nivr8DNindJLK6PrwVUC9sFb3cwRMPUZxorCx1JJB5w",
+        "mint": "ijq5Vaxog5xZvqbt9NfGpm7mndrwBGQaydXNNsmpump",
+        "program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "amountRaw": "138380711",
+        "decimals": 6,
+        "amount": "138.380711",
+        "lamports": 2074080,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [
+          {
+            "extension": "immutableOwner"
+          }
+        ],
+        "name": "Snow Mountain Saving the Fox",
+        "symbol": "雪山救狐",
+        "isVerified": false,
+        "organicScoreLabel": "low",
+        "holderCount": 250,
+        "liquidityUsd": 2934.191859618211,
+        "usdPrice": 3.2147216295374177e-06,
+        "priceBlockId": 433438510,
+        "usdValue": 0.00044485546476246644,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": null,
+        "freezeAuthority": null
+      },
+      {
+        "tokenAccount": "8ftVeNsLGnNdibuEVvyoinaesYfMXdbQ2Wn7gs5as8SR",
+        "mint": "pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn",
+        "program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "amountRaw": "100149013",
+        "decimals": 6,
+        "amount": "100.149013",
+        "lamports": 2108880,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [
+          {
+            "extension": "immutableOwner"
+          },
+          {
+            "extension": "transferHookAccount",
+            "state": {
+              "transferring": false
+            }
+          }
+        ],
+        "name": "Pump",
+        "symbol": "PUMP",
+        "isVerified": true,
+        "organicScoreLabel": "high",
+        "holderCount": 126485,
+        "liquidityUsd": 21701191.377826713,
+        "usdPrice": 0.0019357873257356628,
+        "priceBlockId": 434740495,
+        "usdValue": 0.19386719005033612,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": null,
+        "freezeAuthority": null
+      },
+      {
+        "tokenAccount": "BUpf8UURGEt4xGHbz2GEujwkBh8tV6RM4gteujqsksNq",
+        "mint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+        "program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "amountRaw": "173242",
+        "decimals": 6,
+        "amount": "0.173242",
+        "lamports": 2192400,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [
+          {
+            "extension": "immutableOwner"
+          },
+          {
+            "extension": "transferFeeAmount",
+            "state": {
+              "withheldAmount": 0
+            }
+          },
+          {
+            "extension": "transferHookAccount",
+            "state": {
+              "transferring": false
+            }
+          }
+        ],
+        "name": "PayPal USD",
+        "symbol": "PYUSD",
+        "isVerified": true,
+        "organicScoreLabel": "high",
+        "holderCount": 55052,
+        "liquidityUsd": 33312763.939325776,
+        "usdPrice": 0.9999223725008494,
+        "priceBlockId": 434740472,
+        "usdValue": 0.17322855165679216,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": "8Jornc27vtAYPkwDzsZVgLQchAYyC8nD7aCNPCDV8Qk2",
+        "freezeAuthority": "2apBGMsS6ti9RyF5TwQTDswXBWskiJP2LD4cUEDqYJjk"
+      },
+      {
+        "tokenAccount": "5iVhcU6WnqwLGe8RpCpfogVMSpiRNEAobXGPWKHJdrud",
+        "mint": "9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump",
+        "program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "amountRaw": "867303",
+        "decimals": 6,
+        "amount": "0.867303",
+        "lamports": 2074080,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [
+          {
+            "extension": "immutableOwner"
+          }
+        ],
+        "name": "The Black Bull",
+        "symbol": "ANSEM",
+        "isVerified": true,
+        "organicScoreLabel": "high",
+        "holderCount": 130767,
+        "liquidityUsd": 2301376.43515343,
+        "usdPrice": 0.16664163297196652,
+        "priceBlockId": 434740515,
+        "usdValue": 0.1445287882014855,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": null,
+        "freezeAuthority": null
+      },
+      {
+        "tokenAccount": "22Fg3rZHy66352BgwbTzRrzULKAPZCLCAyZWJn1gi2Mv",
+        "mint": "BKMp8wXfbsRjAQ65rpDgUPjL8s1xFDAtVWzw3eeQpump",
+        "program": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "amountRaw": "777000000",
+        "decimals": 6,
+        "amount": "777",
+        "lamports": 2074080,
+        "owner": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+        "delegate": null,
+        "closeAuthority": null,
+        "state": "initialized",
+        "extensions": [
+          {
+            "extension": "immutableOwner"
+          }
+        ],
+        "name": "DURCOIN",
+        "symbol": "DURCOIN",
+        "isVerified": false,
+        "organicScoreLabel": "low",
+        "holderCount": 6992,
+        "liquidityUsd": 2512.2861396676353,
+        "usdPrice": 4.487959127141396e-06,
+        "priceBlockId": 434581509,
+        "usdValue": 0.0034871442417888647,
+        "isAssociatedTokenAccount": true,
+        "mintAuthority": null,
+        "freezeAuthority": null
+      }
+    ],
+    "protocolAndProgram": {
+      "systemProgram": {
+        "directSol": 4.336825655,
+        "usdIndicative": 330.75316678289124,
+        "access": "direct CH signature"
+      },
+      "splTokenAndToken2022": {
+        "tokenAccounts": 21,
+        "totalTokenUsdIndicative": 9.892555839000435,
+        "rentSolPotentiallyRecoverableAfterEmptyingAndClosing": 0.0431868,
+        "access": "direct CH token-account owner; no current delegates"
+      },
+      "xplaceProgram2": {
+        "configPda": "9CX9RyosaZusW7KZsNGSw4znN3kXZ9neFLgUHAQc6DWb",
+        "configOwnedTokenAccounts": [
+          {
+            "tokenAccount": "6osAkwJXbLe2it2iiuQLWcWpejpVGCg1W11UekHd9C2Q",
+            "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "amountRaw": "1431400000",
+            "decimals": 6,
+            "amount": "1431.4",
+            "lamports": "2039280"
+          }
+        ],
+        "configUsdc": 1431.4,
+        "configUsdcUsdIndicative": 1431.2852052316439,
+        "allProgramOwnedAccountLamports": {
+          "slot": 434740741,
+          "accountCount": 3186,
+          "lamports": "3748996345",
+          "sol": 3.748996345,
+          "indicativeUsdAtSolPrice": 285.9216652937446,
+          "byDataSize": [
+            {
+              "space": 41,
+              "count": 3168,
+              "lamports": 3726404185
+            },
+            {
+              "space": 30,
+              "count": 16,
+              "lamports": 17594880
+            },
+            {
+              "space": 81,
+              "count": 1,
+              "lamports": 1454640
+            },
+            {
+              "space": 381,
+              "count": 1,
+              "lamports": 3542640
+            }
+          ]
+        },
+        "access": "program-controlled; CH is embedded operational authority, not token-account owner and not upgrade authority; movement remains instruction/constraint bound"
+      },
+      "xplaceProgram1": {
+        "configPda": "HHdYSwJ4KNtw45nYTFwEyxJ5qamGTEdD2e4vKxuVbRcx",
+        "configOwnedTokenAccounts": [
+          {
+            "tokenAccount": "3vRZGVwgCT1FNxSqn6kPLmKRrTqW4tPJgcTnG7sXxNsE",
+            "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "amountRaw": "0",
+            "decimals": 6,
+            "amount": "0",
+            "lamports": "2039280"
+          }
+        ],
+        "configUsdc": 0,
+        "allProgramOwnedAccountLamports": {
+          "slot": 434740740,
+          "accountCount": 10138,
+          "lamports": "13136958242",
+          "sol": 13.136958242,
+          "indicativeUsdAtSolPrice": 1001.9057453754394,
+          "byDataSize": [
+            {
+              "space": 96,
+              "count": 5066,
+              "lamports": 8139747842
+            },
+            {
+              "space": 13,
+              "count": 5066,
+              "lamports": 4971569760
+            },
+            {
+              "space": 34,
+              "count": 3,
+              "lamports": 3382560
+            },
+            {
+              "space": 12,
+              "count": 1,
+              "lamports": 974400
+            },
+            {
+              "space": 81,
+              "count": 1,
+              "lamports": 1454640
+            },
+            {
+              "space": 2721,
+              "count": 1,
+              "lamports": 19829040
+            }
+          ]
+        },
+        "access": "program-controlled; CH is embedded operational authority, not token-account owner and not upgrade authority"
+      },
+      "kamino": {
+        "market": "7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF",
+        "obligations": [],
+        "vaultPositions": [],
+        "rewards": {
+          "avgBaseApy": "0",
+          "avgBoostedApy": "0",
+          "avgMaxApy": "0",
+          "rewards": []
+        },
+        "directChPositionUsd": 0,
+        "access": "no direct CH-owned position; observed via XPlace-owned user/obligation accounts"
+      },
+      "drift": {
+        "program": "dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH",
+        "userAccounts": [],
+        "directChPositionUsd": 0,
+        "access": "no Drift User account whose authority is CH; observed via XPlace proxy accounts"
+      },
+      "jupiter": {
+        "directJlpAmount": "0.097682",
+        "directJlpUsdIndicative": 0.35523750654709896,
+        "otherPersistentPositionEvidence": false,
+        "access": "direct JLP token holding plus observed route execution"
+      },
+      "jito": {
+        "directJitoSolAmount": "0.005016",
+        "directJitoSolUsdIndicative": 0.49263811474071634,
+        "access": "direct liquid-staking token holding"
+      },
+      "orcaRaydiumMeteora": {
+        "positionNftTokenAccounts": 0,
+        "persistentDirectPositionEvidence": false,
+        "access": "observed swap routes only in decoded sample"
+      },
+      "nativeStake": {
+        "stakeAccountsAsStakerOrWithdrawer": 0,
+        "access": "none observed"
+      }
+    }
   },
   "programs": [
     {
-      "label": "XPlace Program 2",
+      "label": "XPlace Program 2 / rain-card",
       "address": "Ar2YWzaGxR55YKLx2jNdXuD6RrX9tbu3EsKvxgF7EZa7",
+      "programData": "BDprCHVpqu1bz6yveqyvTJCxVbRKJGuxb8xnHktza2eB",
+      "deployedSlot": 430526032,
       "upgradeAuthority": "61XyY6sTZfCSzKom9HjZcHbXrvSnWkqhS4aAGvs2ro5u",
       "chIsUpgradeAuthority": false,
-      "methods": ["RepayByWorker", "TopUp", "Withdraw", "CreateAccount", "UpdateRepayLimit"]
+      "currentBinarySha256": "69e96442df0248956c564d3f2d0870596744da400f3c53d01c16573478de5259",
+      "config": {
+        "address": "9CX9RyosaZusW7KZsNGSw4znN3kXZ9neFLgUHAQc6DWb",
+        "anchorAccountType": "Config",
+        "discriminatorHex": "9b0caae01efacc82",
+        "space": 381,
+        "lamports": "3542640",
+        "embeddedPublicKeys": {
+          "offset8_adminControllerInferred": "6yANiqv13yE9TFzj4y3M1zceSdMw77xHegGCnXdJzrAn",
+          "offset40_operationalAuthority": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE"
+        },
+        "chByteOffsets": [
+          40
+        ],
+        "programReferences": {
+          "offset72_proxyProgram": "CWhvrgNvYNdkT4gnjPcdVxaNB8HQkXgBTsJAwp3GaHop"
+        },
+        "ownedTokenAccounts": [
+          {
+            "tokenAccount": "6osAkwJXbLe2it2iiuQLWcWpejpVGCg1W11UekHd9C2Q",
+            "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "amountRaw": "1431400000",
+            "decimals": 6,
+            "amount": "1431.4",
+            "lamports": "2039280"
+          }
+        ]
+      },
+      "programOwnedAccountInventory": {
+        "slot": 434740741,
+        "accountCount": 3186,
+        "lamports": "3748996345",
+        "sol": 3.748996345,
+        "indicativeUsdAtSolPrice": 285.9216652937446,
+        "byDataSize": [
+          {
+            "space": 41,
+            "count": 3168,
+            "lamports": 3726404185
+          },
+          {
+            "space": 30,
+            "count": 16,
+            "lamports": 17594880
+          },
+          {
+            "space": 81,
+            "count": 1,
+            "lamports": 1454640
+          },
+          {
+            "space": 381,
+            "count": 1,
+            "lamports": 3542640
+          }
+        ]
+      },
+      "instructionSurface": {
+        "source": "Anchor labels and source-path symbols extracted from the current on-chain ProgramData binary",
+        "completeBinaryExposedMethods": [
+          "Init",
+          "UpdateConfig",
+          "ConfirmAdminRotation",
+          "Migrate",
+          "RepayByWorker",
+          "ReclaimByWorker",
+          "CreateAccount",
+          "UpdateRepayLimit",
+          "TopUp",
+          "Withdraw",
+          "WithdrawByWorker",
+          "TakeSubscriptionPayment",
+          "WithdrawRevenue",
+          "UpdateSubscriptionConfig",
+          "ReturnRefund"
+        ],
+        "observedSampleSignerLayouts": {
+          "TopUp": {
+            "oneSigner": 23,
+            "twoSigner": 0,
+            "other": 0,
+            "success": 19,
+            "failed": 4
+          },
+          "RepayByWorker": {
+            "oneSigner": 51,
+            "twoSigner": 0,
+            "other": 0,
+            "success": 51,
+            "failed": 0
+          },
+          "UpdateRepayLimit": {
+            "oneSigner": 0,
+            "twoSigner": 2,
+            "other": 0,
+            "success": 2,
+            "failed": 0
+          },
+          "Withdraw": {
+            "oneSigner": 0,
+            "twoSigner": 11,
+            "other": 0,
+            "success": 11,
+            "failed": 0
+          },
+          "CreateAccount": {
+            "oneSigner": 9,
+            "twoSigner": 0,
+            "other": 0,
+            "success": 6,
+            "failed": 3
+          }
+        }
+      }
     },
     {
-      "label": "XPlace Program 1",
+      "label": "XPlace Program 1 / proxy",
       "address": "CWhvrgNvYNdkT4gnjPcdVxaNB8HQkXgBTsJAwp3GaHop",
+      "programData": "8dKTWjvwgsJRiCgtBByTiWhfqnjvMa7e6GZfzm4Bg2mw",
+      "deployedSlot": 433046915,
       "upgradeAuthority": "61XyY6sTZfCSzKom9HjZcHbXrvSnWkqhS4aAGvs2ro5u",
       "chIsUpgradeAuthority": false,
-      "methods": ["BorrowByWorkerKamino", "DepositKamino", "CreateAccount", "BorrowByWorkerDrift", "RepayKamino", "CreateAccountKamino", "BorrowKamino", "WithdrawAndSendKamino", "RepayDrift"]
+      "currentBinarySha256": "ff1c8445dc9c6ce287ccdaf5455654a87e0ce5dcde2984882bc119604aafaaa5",
+      "config": {
+        "address": "HHdYSwJ4KNtw45nYTFwEyxJ5qamGTEdD2e4vKxuVbRcx",
+        "anchorAccountType": "Config",
+        "discriminatorHex": "9b0caae01efacc82",
+        "space": 2721,
+        "lamports": "19829040",
+        "embeddedPublicKeys": {
+          "offset8_adminControllerInferred": "6yANiqv13yE9TFzj4y3M1zceSdMw77xHegGCnXdJzrAn",
+          "offset40_operationalAuthority": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE"
+        },
+        "chByteOffsets": [
+          40
+        ],
+        "programReferences": {
+          "offset72_kaminoLending": "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD",
+          "offset104_drift": "dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH",
+          "offset136_rainCard": "Ar2YWzaGxR55YKLx2jNdXuD6RrX9tbu3EsKvxgF7EZa7"
+        },
+        "ownedTokenAccounts": [
+          {
+            "tokenAccount": "3vRZGVwgCT1FNxSqn6kPLmKRrTqW4tPJgcTnG7sXxNsE",
+            "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "amountRaw": "0",
+            "decimals": 6,
+            "amount": "0",
+            "lamports": "2039280"
+          }
+        ]
+      },
+      "programOwnedAccountInventory": {
+        "slot": 434740740,
+        "accountCount": 10138,
+        "lamports": "13136958242",
+        "sol": 13.136958242,
+        "indicativeUsdAtSolPrice": 1001.9057453754394,
+        "byDataSize": [
+          {
+            "space": 96,
+            "count": 5066,
+            "lamports": 8139747842
+          },
+          {
+            "space": 13,
+            "count": 5066,
+            "lamports": 4971569760
+          },
+          {
+            "space": 34,
+            "count": 3,
+            "lamports": 3382560
+          },
+          {
+            "space": 12,
+            "count": 1,
+            "lamports": 974400
+          },
+          {
+            "space": 81,
+            "count": 1,
+            "lamports": 1454640
+          },
+          {
+            "space": 2721,
+            "count": 1,
+            "lamports": 19829040
+          }
+        ]
+      },
+      "instructionSurface": {
+        "source": "Anchor labels and source-path symbols extracted from the current on-chain ProgramData binary",
+        "completeBinaryExposedMethods": [
+          "Init",
+          "UpdateConfig",
+          "ExtendWhitelist",
+          "ConfirmAdminRotation",
+          "WithdrawRevenue",
+          "Migrate",
+          "BatchCreateLoanSnapshot",
+          "BorrowSyncByWorkerKamino",
+          "BorrowByWorkerKamino",
+          "RepaySyncByWorkerKamino",
+          "RepayByWorkerKamino",
+          "RepayByWorkerDrift",
+          "BorrowByWorkerDrift",
+          "CreateAccount",
+          "CreateAccountKamino",
+          "CreateAccountDrift",
+          "CloseAccountDrift",
+          "RebalanceDrift",
+          "UpdateBorrowLimit",
+          "DepositDrift",
+          "DepositKamino",
+          "WithdrawDrift",
+          "WithdrawKamino",
+          "WithdrawAndSendKamino",
+          "BorrowSyncKamino",
+          "BorrowKamino",
+          "BorrowDrift",
+          "RepaySyncKamino",
+          "RepayKamino",
+          "RepayDrift",
+          "RepayWithBuffer",
+          "RepayWithBufferKamino",
+          "WithdrawByWorker",
+          "WithdrawByWorkerKamino",
+          "CompleteDeleverageKamino",
+          "ClaimDfxDrift",
+          "UpdateTargetBorrowApyKamino",
+          "UpdateLoanSnapshotKamino",
+          "ResetLoanSnapshotKamino",
+          "RevertRepayWithBufferKamino"
+        ],
+        "observedSampleSignerLayouts": {
+          "BorrowByWorkerKamino": {
+            "oneSigner": 9,
+            "twoSigner": 0,
+            "other": 0,
+            "success": 9,
+            "failed": 0
+          },
+          "CreateAccount": {
+            "oneSigner": 9,
+            "twoSigner": 0,
+            "other": 0,
+            "success": 6,
+            "failed": 3
+          },
+          "DepositKamino": {
+            "oneSigner": 3,
+            "twoSigner": 3,
+            "other": 0,
+            "success": 6,
+            "failed": 0
+          },
+          "BorrowKamino": {
+            "oneSigner": 0,
+            "twoSigner": 2,
+            "other": 0,
+            "success": 2,
+            "failed": 0
+          },
+          "WithdrawAndSendKamino": {
+            "oneSigner": 0,
+            "twoSigner": 1,
+            "other": 0,
+            "success": 1,
+            "failed": 0
+          },
+          "BorrowByWorkerDrift": {
+            "oneSigner": 6,
+            "twoSigner": 0,
+            "other": 0,
+            "success": 6,
+            "failed": 0
+          }
+        }
+      }
     },
     {
       "label": "Kamino Lending",
       "address": "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD",
       "chIsUpgradeAuthority": false,
-      "methods": ["RefreshReserve", "RefreshObligation", "BorrowObligationLiquidityV2", "DepositReserveLiquidityAndObligationCollateralV2", "RepayObligationLiquidityV2", "InitUserMetadata", "InitObligation", "InitObligationFarmsForReserve", "WithdrawObligationCollateralAndRedeemReserveCollateralV2"]
+      "methods": [
+        "RefreshReserve",
+        "RefreshObligation",
+        "BorrowObligationLiquidityV2",
+        "DepositReserveLiquidityAndObligationCollateralV2",
+        "RepayObligationLiquidityV2",
+        "InitUserMetadata",
+        "InitObligation",
+        "InitObligationFarmsForReserve",
+        "WithdrawObligationCollateralAndRedeemReserveCollateralV2"
+      ],
+      "programData": "9uSbGW1y9H5Av6H5TKxQ1wnFApSq2t3oEpfF2YfjDQGA",
+      "deployedSlot": 422723185,
+      "upgradeAuthority": "42X7dwhpYd1agEfywyeP14NThdQBt6fzrcAFQYM9f7w9"
     },
     {
       "label": "Kamino Scope Oracle",
       "address": "HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ",
       "chIsUpgradeAuthority": false,
-      "methods": ["RefreshPriceList"]
+      "methods": [
+        "RefreshPriceList"
+      ],
+      "programData": "DuKtB88SQGJbow5jxmUSwgJWmC7zma8mX3Nodz1Gsjs2",
+      "deployedSlot": 432013062,
+      "upgradeAuthority": "9NnRCSbLVKTAfbBoHNquu2AgDY5LAzu27WTgn4a2V43V"
     },
     {
       "label": "Kamino Farms",
       "address": "FarmsPZpWu9i7Kky8tPN37rs2TpmMrAZrC7S7vJa91Hr",
       "chIsUpgradeAuthority": false,
-      "methods": ["SetStakeDelegated", "InitializeUser"]
+      "methods": [
+        "SetStakeDelegated",
+        "InitializeUser"
+      ],
+      "programData": "5Fz4tY19ihWJAW1j9RNoEQJKSdn5mQHjcVrcZ5BRK5E9",
+      "deployedSlot": 379693642,
+      "upgradeAuthority": "DSAvuEw75jtjiYrijAg2CqccLhM3U8c89TfFZuVvbJHh"
     },
     {
       "label": "Drift v2",
       "address": "dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH",
       "chIsUpgradeAuthority": false,
-      "methods": ["Deposit", "Withdraw"]
+      "methods": [
+        "Deposit",
+        "Withdraw"
+      ],
+      "programData": "7dLgmtcTavcguNoynVimF9ZNVb13FvhXVRfj2HyrDGaP",
+      "deployedSlot": 429731225,
+      "upgradeAuthority": "YNC3gabSmzbGAFVqoQdsnLmZfRX5zS6h9Ka5im61LGj"
     },
     {
       "label": "Jupiter V6",
       "address": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
       "chIsUpgradeAuthority": false,
-      "methods": ["SharedAccountsRouteV2", "RouteV2", "CreateTokenAccount"]
+      "methods": [
+        "SharedAccountsRouteV2",
+        "RouteV2",
+        "CreateTokenAccount"
+      ],
+      "programData": "4Ec7ZxZS6Sbdg5UGSLHbAnM7GQHp2eFd4KYWRexAipQT",
+      "deployedSlot": 433056714,
+      "upgradeAuthority": "FWZp6jQg6b97PSs64ccuYoQEuG36E3e1agZbTQ3rMBMm"
     },
     {
       "label": "Orca Whirlpool",
       "address": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
       "chIsUpgradeAuthority": false,
-      "methods": ["SwapV2", "Swap"]
+      "methods": [
+        "SwapV2",
+        "Swap"
+      ],
+      "programData": "CtXfPzz36dH5Ws4UYKZvrQ1Xqzn42ecDW6y8NKuiN8nD",
+      "deployedSlot": 398059635,
+      "upgradeAuthority": "CnevaGgUphmbpBJs6zwFwHsHHJdsF91xcP6k8FAP4onj"
     },
     {
       "label": "Raydium CLMM",
       "address": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
       "chIsUpgradeAuthority": false,
-      "methods": ["Swap"]
+      "methods": [
+        "Swap"
+      ],
+      "programData": "HzD2cCXXT3UQNjMMY6kDv9w6gZ9qquSdfoGXrLL3LXx",
+      "deployedSlot": 433823822,
+      "upgradeAuthority": "dmJNFgqLDTqB9SxhnnrxLFjnoC5tSnCFvDbMFTy4Gx3"
     },
     {
       "label": "Meteora DLMM",
       "address": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
       "chIsUpgradeAuthority": false,
-      "methods": ["Swap"]
+      "methods": [
+        "Swap"
+      ],
+      "programData": "HZcJwcJ2njPDxZtpPoKnF8v2w9QAx2rS7TdJPSRkbEhu",
+      "deployedSlot": 423977638,
+      "upgradeAuthority": "5bhvDmXXfgto116sGwy14FCcwELSW3yUQgL6x19CvRo9"
     },
     {
       "label": "Observed routed-swap program",
       "address": "riptK81hDxhe5pW5jSzSM9iRA8azgEgLJ4dXkPtBS7j",
       "chIsUpgradeAuthority": false,
-      "methods": ["SwapExactIn"]
+      "methods": [
+        "SwapExactIn"
+      ],
+      "programData": "4RhNxb6VAhj9EMsnmyxz8giXsuaMcnjCUKxPtUvhBeRu",
+      "deployedSlot": 428636871,
+      "upgradeAuthority": "CnevaGgUphmbpBJs6zwFwHsHHJdsF91xcP6k8FAP4onj"
     }
   ],
-  "tokenAccounts": {
-    "splToken": 15,
-    "token2022": 6,
-    "total": 21,
-    "delegated": 0,
-    "examples": [
-      {"mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", "symbol": "USDC", "account": "7We9GuSEL5dND9YAtieRffXUCkovTz9uv3Hjk2w94MB4", "amount": "2.360206"},
-      {"mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", "symbol": "USDT", "account": "81WN9ssMkMiT4foJm89m92PPwhf2FofRbiogYkQEyRhY", "amount": "3.675214"},
-      {"mint": "So11111111111111111111111111111111111111112", "symbol": "WSOL", "account": "B8g6A7BpQaVh9smcq6a2gmLaqpGXm5t6V4PKcMFydCSr", "amount": "0"}
+  "guardrailsObservedInCurrentXplaceBinaries": {
+    "xplaceProgram2": [
+      "instruction enabled flag",
+      "token allowlist",
+      "temporary pause",
+      "insufficient balance",
+      "per-transaction and daily repay limits",
+      "swap structure/source/destination validation",
+      "payment and subscription limits",
+      "maximum repay fee"
+    ],
+    "xplaceProgram1": [
+      "whitelist and asset type checks",
+      "daily borrow limit",
+      "flash-loan opening/closing structure",
+      "swap account/source/destination/balance checks",
+      "tax-wallet checks",
+      "transfer-hook/confidential-transfer extension checks",
+      "target APY and loan-snapshot freshness",
+      "bundle structure and deleverage-residue checks",
+      "repay-buffer revert timeout"
     ]
-  }
+  },
+  "sources": {
+    "solanaRpc": [
+      "getAccountInfo",
+      "getBalance",
+      "getTokenAccountsByOwner",
+      "getProgramAccounts",
+      "getSignaturesForAddress",
+      "getTransaction"
+    ],
+    "kaminoApi": [
+      "https://api.kamino.finance/kamino-market/7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF/users/CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE/obligations",
+      "https://api.kamino.finance/kvaults/users/CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE/positions",
+      "https://api.kamino.finance/klend/users/CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE/rewards"
+    ],
+    "jupiter": [
+      "https://api.jup.ag/tokens/v2/search",
+      "https://api.jup.ag/price/v3"
+    ],
+    "driftSdkMethod": "getUserAccountsAndAddressesForAuthority"
+  },
+  "limitations": [
+    "148,000 signatures are enumerated but the preserved cursor shows history is not yet complete.",
+    "Method frequencies and signer-layout evidence are from the 148-transaction temporal sample, not all 148,000 signatures.",
+    "XPlace config and program-owned balances are not direct CH wallet balances. CH operational authority is constrained by on-chain instruction validation and does not imply arbitrary transfer or program-upgrade control.",
+    "Program-owned account lamports are predominantly rent/account-state lamports across all users; they are not CH spendable SOL and are not included in direct CH net worth.",
+    "USD values are indicative price marks, not guaranteed liquidation value; this is especially material for low-organic-score and unverified tokens."
+  ]
 }
