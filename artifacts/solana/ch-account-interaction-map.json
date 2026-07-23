@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "chain": "solana",
+  "network": "mainnet-beta",
+  "account": "CHvpgjgJNDboeagrHRCA3hsyCddUjwf54LdvZ4tUzbHE",
+  "snapshot": {
+    "slot": 434738815,
+    "owner": "11111111111111111111111111111111",
+    "executable": false,
+    "dataBytes": 0,
+    "lamports": "4336825655",
+    "sol": "4.336825655"
+  },
+  "historyCoverage": {
+    "finalizedSignaturesEnumerated": 148000,
+    "fromUtc": "2026-03-14T16:28:40Z",
+    "toUtc": "2026-07-23T15:05:15Z",
+    "successfulSignatures": 143227,
+    "failedSignatures": 4773,
+    "complete": false,
+    "nextHistoricalCursor": "3aBZdBJBQnGTvQZi8GtRXAXfrHYXwRF54LGHG5LyvXmvwpHzZ93DmqzhfiFk97f8TsEyxS2ZvessTTqpWtXswyaX"
+  },
+  "decodedSample": {
+    "strategy": "temporal-stratified finalized transaction sample plus direct live-flow verification",
+    "transactions": 148,
+    "signerLayouts": {
+      "chOnly": 101,
+      "chPlusOne": 47
+    },
+    "chStaticAccountIndexZero": 148
+  },
+  "permissions": {
+    "transactionSigner": true,
+    "observedFeePayer": true,
+    "directTokenAccountOwner": true,
+    "observedProgramUpgradeAuthority": false,
+    "currentTokenDelegates": 0
+  },
+  "programs": [
+    {
+      "label": "XPlace Program 2",
+      "address": "Ar2YWzaGxR55YKLx2jNdXuD6RrX9tbu3EsKvxgF7EZa7",
+      "upgradeAuthority": "61XyY6sTZfCSzKom9HjZcHbXrvSnWkqhS4aAGvs2ro5u",
+      "chIsUpgradeAuthority": false,
+      "methods": ["RepayByWorker", "TopUp", "Withdraw", "CreateAccount", "UpdateRepayLimit"]
+    },
+    {
+      "label": "XPlace Program 1",
+      "address": "CWhvrgNvYNdkT4gnjPcdVxaNB8HQkXgBTsJAwp3GaHop",
+      "upgradeAuthority": "61XyY6sTZfCSzKom9HjZcHbXrvSnWkqhS4aAGvs2ro5u",
+      "chIsUpgradeAuthority": false,
+      "methods": ["BorrowByWorkerKamino", "DepositKamino", "CreateAccount", "BorrowByWorkerDrift", "RepayKamino", "CreateAccountKamino", "BorrowKamino", "WithdrawAndSendKamino", "RepayDrift"]
+    },
+    {
+      "label": "Kamino Lending",
+      "address": "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD",
+      "chIsUpgradeAuthority": false,
+      "methods": ["RefreshReserve", "RefreshObligation", "BorrowObligationLiquidityV2", "DepositReserveLiquidityAndObligationCollateralV2", "RepayObligationLiquidityV2", "InitUserMetadata", "InitObligation", "InitObligationFarmsForReserve", "WithdrawObligationCollateralAndRedeemReserveCollateralV2"]
+    },
+    {
+      "label": "Kamino Scope Oracle",
+      "address": "HFn8GnPADiny6XqUoWE8uRPPxb29ikn4yTuPa9MF2fWJ",
+      "chIsUpgradeAuthority": false,
+      "methods": ["RefreshPriceList"]
+    },
+    {
+      "label": "Kamino Farms",
+      "address": "FarmsPZpWu9i7Kky8tPN37rs2TpmMrAZrC7S7vJa91Hr",
+      "chIsUpgradeAuthority": false,
+      "methods": ["SetStakeDelegated", "InitializeUser"]
+    },
+    {
+      "label": "Drift v2",
+      "address": "dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH",
+      "chIsUpgradeAuthority": false,
+      "methods": ["Deposit", "Withdraw"]
+    },
+    {
+      "label": "Jupiter V6",
+      "address": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+      "chIsUpgradeAuthority": false,
+      "methods": ["SharedAccountsRouteV2", "RouteV2", "CreateTokenAccount"]
+    },
+    {
+      "label": "Orca Whirlpool",
+      "address": "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc",
+      "chIsUpgradeAuthority": false,
+      "methods": ["SwapV2", "Swap"]
+    },
+    {
+      "label": "Raydium CLMM",
+      "address": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+      "chIsUpgradeAuthority": false,
+      "methods": ["Swap"]
+    },
+    {
+      "label": "Meteora DLMM",
+      "address": "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo",
+      "chIsUpgradeAuthority": false,
+      "methods": ["Swap"]
+    },
+    {
+      "label": "Observed routed-swap program",
+      "address": "riptK81hDxhe5pW5jSzSM9iRA8azgEgLJ4dXkPtBS7j",
+      "chIsUpgradeAuthority": false,
+      "methods": ["SwapExactIn"]
+    }
+  ],
+  "tokenAccounts": {
+    "splToken": 15,
+    "token2022": 6,
+    "total": 21,
+    "delegated": 0,
+    "examples": [
+      {"mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", "symbol": "USDC", "account": "7We9GuSEL5dND9YAtieRffXUCkovTz9uv3Hjk2w94MB4", "amount": "2.360206"},
+      {"mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", "symbol": "USDT", "account": "81WN9ssMkMiT4foJm89m92PPwhf2FofRbiogYkQEyRhY", "amount": "3.675214"},
+      {"mint": "So11111111111111111111111111111111111111112", "symbol": "WSOL", "account": "B8g6A7BpQaVh9smcq6a2gmLaqpGXm5t6V4PKcMFydCSr", "amount": "0"}
+    ]
+  }
+}

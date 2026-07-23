@@ -260,5 +260,6 @@ The access, refresh, and identity tokens pasted during earlier traffic investiga
 - [Verified Kamino withdrawal signing and broadcast flow](docs/research/2026-07-23-kamino-withdraw-signing-flow.md)
 - [Verified live two-signer Kamino SOL deposit](docs/research/2026-07-23-live-two-signer-kamino-deposit.md)
 - [Verified live CH single-signer self-transfer](docs/research/2026-07-23-live-ch-self-signed-self-transfer.md)
+- [CHvpg on-chain interaction and authority map](docs/research/2026-07-23-ch-account-interaction-map.md)
 - [0.2.0-rc.1 end-to-end verification](docs/testing/0.2.0-rc.1-verification.md)
 - [Previous React observability verification](docs/testing/react-observability-verification.md)
